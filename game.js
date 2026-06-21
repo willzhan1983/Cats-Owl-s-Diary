@@ -34,18 +34,13 @@ const backgroundSources = {
   adventure: "./assets/bg-level3-adventure.png",
   classroom: "./assets/bg-level4-classroom.png",
 };
-const backgrounds = Object.fromEntries(
-  Object.entries(backgroundSources).map(([key, src]) => {
-    const image = new Image();
-    image.src = src;
-    return [key, image];
-  }),
-);
+const backgrounds = {};
 
 const keys = new Set();
 const touchDirs = new Set();
 let lastFrame = performance.now();
 let state;
+let gameEntered = false;
 
 const music = {
   ctx: null,
@@ -55,6 +50,22 @@ const music = {
   pattern: "",
   step: 0,
 };
+
+function ensureBackground(key) {
+  if (!key || backgrounds[key]) return backgrounds[key];
+  const image = new Image();
+  image.decoding = "async";
+  image.src = backgroundSources[key];
+  backgrounds[key] = image;
+  return image;
+}
+
+function preloadNearbyBackgrounds(levelIndex) {
+  const current = levels[levelIndex]?.bg;
+  const next = levels[levelIndex + 1]?.bg;
+  ensureBackground(current);
+  window.setTimeout(() => ensureBackground(next), 800);
+}
 
 const quizBank = {
   math: [
@@ -333,6 +344,7 @@ function bossTask(x, y, name, animal, need, speech) {
 
 function resetGame(levelIndex = 0, keepHearts = false) {
   const level = levels[levelIndex];
+  if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
   state = {
     levelIndex,
@@ -378,6 +390,8 @@ function randomQuiz(key) {
 }
 
 function startGame() {
+  gameEntered = true;
+  preloadNearbyBackgrounds(state.levelIndex);
   initAudio();
   if (state.running) {
     resetGame(state.levelIndex, state.levelIndex > 0);
@@ -407,6 +421,8 @@ function startGame() {
 }
 
 function enterGame() {
+  gameEntered = true;
+  preloadNearbyBackgrounds(state.levelIndex);
   homeScreen.classList.add("is-hidden");
   messageEl.textContent = "\u70b9\u51fb\u5f00\u59cb\uff0c\u548c\u5c0f\u732b\u3001\u732b\u5934\u9e70\u4e00\u8d77\u51fa\u53d1\u3002";
 }
@@ -952,7 +968,7 @@ function drawBackground() {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const image = backgrounds[levels[state.levelIndex].bg];
+  const image = gameEntered ? ensureBackground(levels[state.levelIndex].bg) : null;
   if (image && image.complete && image.naturalWidth) {
     ctx.save();
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -2444,14 +2460,19 @@ function initialLevelFromUrl() {
 }
 
 const initialLevel = initialLevelFromUrl();
+if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
+  gameEntered = true;
+}
 resetGame(initialLevel);
 if (initialLevel > 0) {
   homeScreen.classList.add("is-hidden");
   messageEl.textContent = levels[initialLevel].message;
+  preloadNearbyBackgrounds(initialLevel);
 }
 if (new URLSearchParams(window.location.search).get("play") === "1") {
   homeScreen.classList.add("is-hidden");
   state.running = true;
   startBtn.textContent = text.restart;
+  preloadNearbyBackgrounds(initialLevel);
 }
 requestAnimationFrame(loop);
