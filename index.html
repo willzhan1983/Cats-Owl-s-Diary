@@ -3,13 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cats & Owl's Diary - &#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;</title>
+    <title>Cats & Owl's Diary 2.0 - &#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;</title>
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
       <img src="./assets/home-screen-fast.jpg" alt="Cats & Owl's Diary 森林学校首页" decoding="async" fetchpriority="high" />
+      <div class="role-picker" aria-label="选择角色">
+        <button class="role-btn is-selected" data-role="cat" type="button">Cat 小猫</button>
+        <button class="role-btn" data-role="owl" type="button">Owl 猫头鹰</button>
+      </div>
       <button id="enterBtn" class="enter-btn" type="button">进入游戏</button>
     </section>
 
@@ -19,12 +23,12 @@
           <div class="brand">
             <span class="brand-mark">C&O</span>
             <div>
-              <h1>Cats & Owl's Diary</h1>
+              <h1>Cats & Owl's Diary <span class="version-tag">2.0</span></h1>
               <p>&#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;</p>
             </div>
           </div>
           <div class="stats" aria-live="polite">
-            <span>&#20851;&#21345; <strong id="level">1</strong></span>
+            <span>&#26085;&#35760; <strong id="level">&#31532;&#19968;&#22825;</strong></span>
             <span>&#29233;&#24515; <strong id="hearts">0</strong></span>
             <span>&#26102;&#38388; <strong id="time">60</strong></span>
             <span>&#20219;&#21153; <strong id="tasks">0/3</strong></span>

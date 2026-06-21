@@ -2,6 +2,7 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const homeScreen = document.getElementById("homeScreen");
 const enterBtn = document.getElementById("enterBtn");
+const roleButtons = document.querySelectorAll("[data-role]");
 const startBtn = document.getElementById("startBtn");
 const messageEl = document.getElementById("message");
 const levelEl = document.getElementById("level");
@@ -35,15 +36,20 @@ const backgroundSources = {
   classroom: "./assets/bg-level4-classroom.png",
   courage: "./assets/bg-level5-courage.jpg",
   boss: "./assets/bg-level6-boss.jpg",
+  cityRoad: "./assets/v2/v2-bg-city-road.png",
+  pondSide: "./assets/v2/v2-bg-pond.png",
+  wetland: "./assets/v2/v2-bg-wetland.png",
+  swampBoss: "./assets/v2/v2-bg-swamp-boss.png",
 };
 const backgrounds = {};
-const dayNames = ["\u7b2c\u4e00\u5929", "\u7b2c\u4e8c\u5929", "\u7b2c\u4e09\u5929", "\u7b2c\u56db\u5929", "\u7b2c\u4e94\u5929", "\u7b2c\u516d\u5929"];
+const dayNames = ["\u7b2c\u4e00\u5929", "\u7b2c\u4e8c\u5929", "\u7b2c\u4e09\u5929", "\u7b2c\u56db\u5929", "\u7b2c\u4e94\u5929", "\u7b2c\u516d\u5929", "\u7b2c\u4e03\u5929"];
 
 const keys = new Set();
 const touchDirs = new Set();
 let lastFrame = performance.now();
 let state;
 let gameEntered = false;
+let selectedRole = localStorage.getItem("catsOwlRole") || "cat";
 
 const music = {
   ctx: null,
@@ -223,11 +229,11 @@ const levels = [
     ],
   },
   {
-    name: "\u653e\u5b66\u5927\u5192\u9669",
-    bg: "adventure",
+    name: "\u57ce\u5e02\u9053\u8def\u5927\u5192\u9669",
+    bg: "cityRoad",
     time: 78,
     start: { x: 480, y: 438 },
-    message: "\u7b2c\u4e09\u5929\uff1a\u5e2e\u8ff7\u8def\u7684\u670b\u53cb\u56de\u5bb6\uff0c\u628a\u68ee\u6797\u5b66\u6821\u70b9\u4eae\u3002",
+    message: "\u7b2c\u4e09\u5929\uff1a\u8d70\u51fa\u68ee\u6797\u6765\u5230\u57ce\u5e02\u9053\u8def\uff0c\u5e2e\u8ff7\u8def\u7684\u670b\u53cb\u56de\u5bb6\u3002",
     collectibles: [
       item(190, 116, "lantern", "\u5c0f\u706f\u7b3c"),
       item(365, 215, "map", "\u5730\u56fe"),
@@ -281,11 +287,11 @@ const levels = [
     ],
   },
   {
-    name: "\u52c7\u6c14\u51c6\u5907",
-    bg: "courage",
+    name: "\u6c60\u5858\u52c7\u6c14\u51c6\u5907",
+    bg: "pondSide",
     time: 88,
     start: { x: 465, y: 430 },
-    message: "\u7b2c\u4e94\u5929\uff1a\u68ee\u6797\u91cc\u51fa\u73b0\u4e86\u9ed1\u718a\u602a\uff0c\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u94c5\u7b14\u548c\u5b88\u62a4\u4e66\u3002",
+    message: "\u7b2c\u4e94\u5929\uff1a\u6765\u5230\u6c60\u5858\u5c0f\u8def\uff0c\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u94c5\u7b14\u548c\u5b88\u62a4\u4e66\u3002",
     collectibles: [
       item(188, 150, "courageStar", "\u52c7\u6c14\u661f"),
       item(446, 218, "magicPencil", "\u9b54\u6cd5\u94c5\u7b14"),
@@ -310,11 +316,41 @@ const levels = [
     ],
   },
   {
-    name: "\u68ee\u6797\u5927 Boss",
-    bg: "boss",
+    name: "\u6e7f\u5730\u8df3\u8df3\u8def",
+    bg: "wetland",
+    time: 82,
+    start: { x: 132, y: 438 },
+    message: "\u7b2c\u516d\u5929\uff1a\u8dd1\u8fc7\u6e7f\u5730\u6728\u6808\u9053\uff0c\u8eb2\u5f00\u6c34\u5858\u3001\u6ce5\u5730\u548c\u704c\u6728\uff0c\u51b2\u5230\u7ec8\u70b9\u65d7\uff01",
+    collectibles: [
+      item(198, 360, "apple", "\u52a0\u6cb9\u82f9\u679c"),
+      item(318, 228, "courageStar", "\u8df3\u8df3\u661f"),
+      item(486, 404, "potion", "\u7231\u5fc3\u836f\u6c34"),
+      item(618, 210, "courageStar", "\u52c7\u6c14\u661f"),
+      item(792, 362, "guardBook", "\u901a\u5173\u624b\u518c"),
+    ],
+    tasks: [
+      actionTask(292, 360, "\u5f39\u8df3\u8611\u83c7", "spring", "\u7ad9\u4f4f\u4e00\u4f1a\uff0c\u5f39\u8fc7\u5c0f\u571f\u5751"),
+      delivery(580, 362, "\u8df3\u8df3\u5154", "rabbit", "courageStar", "\u6211\u9700\u8981\u4e00\u9897\u8df3\u8df3\u661f"),
+      actionTask(842, 238, "\u7ec8\u70b9\u65d7", "finish", "\u5230\u8fbe\u7ec8\u70b9\uff0c\u51c6\u5907\u9762\u5bf9\u9ed1\u718a\u602a"),
+    ],
+    puddles: [
+      { x: 230, y: 436, r: 28 },
+      { x: 508, y: 312, r: 32 },
+      { x: 748, y: 438, r: 30 },
+    ],
+    obstacles: [
+      { type: "pit", x: 376, y: 392, r: 28 },
+      { type: "bush", x: 454, y: 220, r: 32 },
+      { type: "pond", x: 660, y: 342, r: 35 },
+      { type: "pit", x: 828, y: 398, r: 25 },
+    ],
+  },
+  {
+    name: "\u6cbc\u6cfd\u5927 Boss",
+    bg: "swampBoss",
     time: 95,
     start: { x: 480, y: 438 },
-    message: "\u7b2c\u516d\u5929\uff1a\u6536\u96c6\u9053\u5177\u8fdc\u7a0b\u653b\u51fb\u9ed1\u718a\u602a\uff0c\u8eb2\u5f00\u9707\u6ce2\uff01",
+    message: "\u7b2c\u4e03\u5929\uff1a\u8fdb\u5165\u6cbc\u6cfd\u8fb9\u7f18\uff0c\u6536\u96c6\u9053\u5177\u8fdc\u7a0b\u653b\u51fb\u9ed1\u718a\u602a\uff0c\u8eb2\u5f00\u9707\u6ce2\uff01",
     collectibles: [
       item(176, 392, "courageStar", "\u52c7\u6c14\u661f"),
       item(306, 218, "courageStar", "\u52c7\u6c14\u661f"),
@@ -446,7 +482,8 @@ function enterGame() {
   gameEntered = true;
   preloadNearbyBackgrounds(state.levelIndex);
   homeScreen.classList.add("is-hidden");
-  messageEl.textContent = "\u70b9\u51fb\u5f00\u59cb\uff0c\u548c\u5c0f\u732b\u3001\u732b\u5934\u9e70\u4e00\u8d77\u51fa\u53d1\u3002";
+  const roleName = selectedRole === "owl" ? "\u732b\u5934\u9e70" : "\u5c0f\u732b";
+  messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c${roleName}\u4e00\u8d77\u51fa\u53d1\u3002`;
 }
 
 function initAudio() {
@@ -592,7 +629,7 @@ function update(dt) {
       messageEl.textContent = text.allDone;
     } else {
       startBtn.textContent = text.next;
-      messageEl.textContent = `\u7b2c${state.levelIndex + 1}\u5173\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
+      messageEl.textContent = `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
     }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
   }
@@ -668,6 +705,14 @@ function checkObstacles() {
       burst(p.x, p.y, "#69a9d7", 4);
       addFloatingText(p.x, p.y - 42, "\u7ed5\u5f00\u6c34\u5858", "#277faf");
       messageEl.textContent = "\u524d\u9762\u662f\u6c34\u5858\uff0c\u8d70\u8fb9\u4e0a\u66f4\u5b89\u5168\u3002";
+    } else if (obstacle.type === "spring") {
+      state.puddleCooldownUntil = now + 680;
+      p.vx += p.dir * 120;
+      p.vy -= 95;
+      state.shake = 0.04;
+      burst(p.x, p.y, "#ffd94a", 7);
+      addFloatingText(p.x, p.y - 42, "\u8df3\uff01", "#f2ad31");
+      messageEl.textContent = "\u5f39\u8df3\u8611\u83c7\u628a\u5c0f\u4f19\u4f34\u9001\u5411\u524d\u65b9\uff01";
     }
     break;
   }
@@ -1140,6 +1185,7 @@ function drawPond(x, y, r) {
     const a = i * 1.25;
     circle(x + Math.cos(a) * r * 1.28, y + Math.sin(a) * r * 0.68, 3 + (i % 2));
   }
+  drawGrassTufts(x, y + r * 0.56, r);
   ctx.restore();
 }
 
@@ -1165,6 +1211,7 @@ function drawBush(x, y, r) {
   ctx.fillStyle = "rgba(246, 201, 95, 0.72)";
   circle(x + r * 0.28, y - r * 0.12, 2.5);
   circle(x - r * 0.36, y + r * 0.03, 2);
+  drawGrassTufts(x, y + r * 0.48, r * 0.8);
   ctx.restore();
 }
 
@@ -1193,6 +1240,25 @@ function drawPit(x, y, r) {
   ctx.ellipse(x - r * 0.86, y + r * 0.18, r * 0.26, r * 0.08, -0.2, 0, Math.PI * 2);
   ctx.ellipse(x + r * 0.84, y - r * 0.1, r * 0.22, r * 0.07, 0.25, 0, Math.PI * 2);
   ctx.fill();
+  drawGrassTufts(x, y + r * 0.46, r * 0.72);
+  ctx.restore();
+}
+
+function drawGrassTufts(x, y, r) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(74, 126, 56, 0.62)";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  for (let i = 0; i < 5; i += 1) {
+    const bx = x - r * 0.65 + i * r * 0.32;
+    const h = 7 + (i % 3) * 2;
+    ctx.beginPath();
+    ctx.moveTo(bx, y);
+    ctx.lineTo(bx - 4, y - h);
+    ctx.moveTo(bx, y);
+    ctx.lineTo(bx + 3, y - h * 0.85);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -1294,10 +1360,6 @@ function drawLandmarks() {
   }
   if (index === 1) {
     drawGroundFlowerBed(382, 414, 1);
-  }
-  if (index === 2) {
-    drawPotionStump(535, 365, 1);
-    drawConcreteSchool(170, 118, 0.48);
   }
   if (index === 3) {
     drawConcreteSchool(490, 128, 0.58);
@@ -1446,6 +1508,8 @@ function drawAnimal(kind) {
   else if (kind === "owl") drawOwl(0, 4, 0.92);
   else if (kind === "sign") drawSign();
   else if (kind === "light") drawTreeLight();
+  else if (kind === "spring") drawSpringMushroom();
+  else if (kind === "finish") drawFinishFlag();
   else if (kind === "math") drawQuizStand("#ffd75e", "27+16");
   else if (kind === "logic") drawQuizStand("#ffffff", "\u2605?");
   else if (kind === "science") drawQuizStand("#83b83d", "\u82b1");
@@ -1463,14 +1527,18 @@ function drawPlayer() {
   ctx.translate(p.x, p.y + bounce);
   if (p.dir < 0) ctx.scale(-1, 1);
   drawShadow(2, 25, 58, 12);
-  drawCat(-24, 0, walk, speed);
-  drawOwl(27, 2, 0.9, walk, speed);
+  if (selectedRole === "owl") {
+    drawOwl(0, 2, 1.08, walk, speed);
+  } else {
+    drawCat(0, 0, walk, speed);
+  }
   ctx.restore();
 }
 
 function drawCat(x, y, walk = 0, speed = 0) {
   ctx.save();
   ctx.translate(x, y);
+  const wiggle = speed > 12 ? Math.sin(walk) * 1.2 : Math.sin(performance.now() / 520) * 0.55;
   const blink = speed > 90 && walk > 0.6;
   const face = ctx.createRadialGradient(-8, -20, 3, 0, -8, 36);
   face.addColorStop(0, "#ffffff");
@@ -1479,18 +1547,40 @@ function drawCat(x, y, walk = 0, speed = 0) {
   ctx.fillStyle = face;
   ctx.strokeStyle = "#d9c99b";
   ctx.lineWidth = 3;
+  ctx.lineJoin = "round";
   ctx.beginPath();
-  ctx.moveTo(-20, -18);
-  ctx.lineTo(-12, -38);
-  ctx.lineTo(-2, -20);
+  ctx.moveTo(-20, -18 + wiggle * 0.2);
+  ctx.lineTo(-12, -38 - wiggle * 0.4);
+  ctx.lineTo(-3, -20);
   ctx.lineTo(16, -20);
-  ctx.lineTo(25, -38);
-  ctx.lineTo(28, -15);
+  ctx.lineTo(25, -38 + wiggle * 0.4);
+  ctx.lineTo(28, -15 - wiggle * 0.15);
   ctx.quadraticCurveTo(31, 14, 2, 24);
   ctx.quadraticCurveTo(-28, 14, -20, -18);
   ctx.fill();
   ctx.stroke();
-  drawCatBow(5, -42, 1 + Math.sin(walk) * 0.04);
+
+  ctx.fillStyle = "#ffd6df";
+  ctx.beginPath();
+  ctx.moveTo(-12, -32);
+  ctx.lineTo(-9, -24);
+  ctx.lineTo(-5, -21);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(24, -32);
+  ctx.lineTo(21, -24);
+  ctx.lineTo(17, -21);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(216,188,116,0.58)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(3, -7, 29, 0.28 * Math.PI, 0.72 * Math.PI);
+  ctx.stroke();
+
+  drawCatBow(5 + wiggle * 0.1, -42 + wiggle * 0.3, 1 + Math.sin(walk) * 0.04);
   ctx.fillStyle = "#263b32";
   if (blink) {
     roundRect(-13, -9, 9, 3, 2);
@@ -1506,14 +1596,33 @@ function drawCat(x, y, walk = 0, speed = 0) {
   ctx.fillStyle = "rgba(244,126,139,0.28)";
   circle(-18, 0, 4);
   circle(20, 0, 4);
+  ctx.fillStyle = "#f59a8b";
+  ctx.beginPath();
+  ctx.moveTo(0, -4);
+  ctx.lineTo(-4, 0);
+  ctx.lineTo(4, 0);
+  ctx.closePath();
+  ctx.fill();
   ctx.strokeStyle = "#263b32";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(0, -2);
+  ctx.moveTo(0, 0);
   ctx.quadraticCurveTo(0, 7, -8, 9);
-  ctx.moveTo(0, -2);
+  ctx.moveTo(0, 0);
   ctx.quadraticCurveTo(0, 7, 8, 9);
   ctx.stroke();
+
+  ctx.strokeStyle = "rgba(216,188,116,0.72)";
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = "round";
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(side * 15, -3);
+    ctx.lineTo(side * 26, -7);
+    ctx.moveTo(side * 16, 2);
+    ctx.lineTo(side * 28, 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -1521,12 +1630,24 @@ function drawCatBow(x, y, s) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);
-  ctx.fillStyle = "#1f8ec4";
-  roundRect(-19, -5, 17, 11, 4);
-  roundRect(2, -5, 17, 11, 4);
+  ctx.rotate(Math.sin(performance.now() / 420) * 0.035);
+  const bow = ctx.createLinearGradient(0, -7, 0, 7);
+  bow.addColorStop(0, "#5bc4e6");
+  bow.addColorStop(1, "#1f8ec4");
+  ctx.fillStyle = bow;
+  roundRect(-19, -6, 17, 12, 4);
+  roundRect(2, -6, 17, 12, 4);
   ctx.fill();
   ctx.fillStyle = "#176a9e";
   circle(0, 0, 4);
+  ctx.strokeStyle = "rgba(255,255,255,0.52)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-15, -3);
+  ctx.lineTo(-7, -1);
+  ctx.moveTo(15, -3);
+  ctx.lineTo(7, -1);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -1665,15 +1786,39 @@ function drawBook(color) {
   ctx.fillStyle = cover;
   roundRect(-23, -18, 44, 36, 7);
   ctx.fill();
+  ctx.strokeStyle = "rgba(36,65,52,0.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = "#f6d77b";
+  roundRect(-23, -10, 5, 20, 3);
+  ctx.fill();
   ctx.fillStyle = "rgba(255,255,255,0.22)";
   roundRect(-17, -12, 14, 24, 4);
   ctx.fill();
+  ctx.fillStyle = "#fff7df";
+  circle(-10, -3, 5);
+  ctx.fillStyle = "#2f9dcc";
+  circle(-12, -5, 1.2);
+  circle(-8, -5, 1.2);
+  ctx.strokeStyle = "#2f9dcc";
+  ctx.lineWidth = 1.1;
+  ctx.beginPath();
+  ctx.arc(-10, -2, 2.6, 0.1, Math.PI - 0.1);
+  ctx.stroke();
   ctx.strokeStyle = "#fff7df";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(0, -16);
   ctx.lineTo(0, 18);
   ctx.stroke();
+  ctx.strokeStyle = "rgba(255,255,255,0.6)";
+  ctx.lineWidth = 1.4;
+  for (const y of [-8, -2, 4]) {
+    ctx.beginPath();
+    ctx.moveTo(6, y);
+    ctx.lineTo(15, y + 1);
+    ctx.stroke();
+  }
 }
 
 function drawPencil() {
@@ -1685,12 +1830,34 @@ function drawPencil() {
   ctx.fillStyle = pencil;
   roundRect(-24, -7, 40, 14, 5);
   ctx.fill();
-  ctx.fillStyle = "#f59a8b";
+  ctx.strokeStyle = "rgba(139,91,43,0.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = "#f6d77b";
+  roundRect(-18, -7, 6, 14, 1);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(-19, -3);
+  ctx.lineTo(12, -3);
+  ctx.stroke();
+  ctx.fillStyle = "#f1c28b";
   ctx.beginPath();
   ctx.moveTo(16, -7);
   ctx.lineTo(30, 0);
   ctx.lineTo(16, 7);
   ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#244134";
+  ctx.beginPath();
+  ctx.moveTo(26, -2.5);
+  ctx.lineTo(32, 0);
+  ctx.lineTo(26, 2.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#f59a8b";
+  roundRect(-30, -7, 7, 14, 3);
   ctx.fill();
 }
 
@@ -1887,6 +2054,12 @@ function drawSeed() {
   ctx.beginPath();
   ctx.ellipse(4, -9, 10, 5, -0.5, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = "rgba(52,86,62,0.45)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(-3, -6);
+  ctx.quadraticCurveTo(3, -13, 13, -11);
+  ctx.stroke();
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   circle(-10, -10, 3);
 }
@@ -1910,6 +2083,18 @@ function drawBell() {
   circle(-7, -8, 4);
   ctx.fillStyle = "#e9882d";
   circle(0, 16, 5);
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-7, -20);
+  ctx.quadraticCurveTo(0, -31, 7, -20);
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(139,91,43,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-12, 7);
+  ctx.quadraticCurveTo(0, 12, 12, 7);
+  ctx.stroke();
 }
 
 function drawLantern() {
@@ -1931,6 +2116,14 @@ function drawLantern() {
   ctx.fill();
   ctx.fillStyle = "rgba(255,247,176,0.55)";
   circle(0, 2, 13);
+  ctx.strokeStyle = "rgba(255,247,223,0.55)";
+  ctx.lineWidth = 1.5;
+  for (const x of [-7, 0, 7]) {
+    ctx.beginPath();
+    ctx.moveTo(x, -13);
+    ctx.lineTo(x * 0.5, 15);
+    ctx.stroke();
+  }
 }
 
 function drawMap() {
@@ -1961,7 +2154,11 @@ function drawMap() {
 
 function drawDeer() {
   drawShadow(0, 28, 30, 7);
-  ctx.fillStyle = "#d89a57";
+  const fur = ctx.createRadialGradient(-9, -7, 3, 0, 6, 30);
+  fur.addColorStop(0, "#f2c078");
+  fur.addColorStop(0.68, "#d89a57");
+  fur.addColorStop(1, "#a96d39");
+  ctx.fillStyle = fur;
   ctx.beginPath();
   ctx.ellipse(0, 3, 25, 23, 0, 0, Math.PI * 2);
   ctx.fill();
@@ -1992,11 +2189,22 @@ function drawDeer() {
   drawFace(0, 1);
   ctx.fillStyle = "#55331f";
   circle(0, 9, 3);
+  ctx.strokeStyle = "#5bc4e6";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(-14, 18);
+  ctx.quadraticCurveTo(0, 26, 14, 18);
+  ctx.stroke();
 }
 
 function drawSquirrel() {
   drawShadow(4, 31, 30, 7);
-  ctx.fillStyle = "#c9793b";
+  const sway = Math.sin(performance.now() / 260) * 1.5;
+  const fur = ctx.createRadialGradient(-8, -7, 4, 10, 8, 42);
+  fur.addColorStop(0, "#f0a15c");
+  fur.addColorStop(0.62, "#c9793b");
+  fur.addColorStop(1, "#8e4f29");
+  ctx.fillStyle = fur;
   ctx.beginPath();
   ctx.ellipse(0, 6, 20, 24, 0, 0, Math.PI * 2);
   ctx.ellipse(29, 0, 17, 34, 0.35, 0, Math.PI * 2);
@@ -2006,6 +2214,11 @@ function drawSquirrel() {
   ctx.beginPath();
   ctx.arc(29, 1, 17, -1.1, 1.1);
   ctx.stroke();
+  ctx.strokeStyle = "rgba(95,48,24,0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(28, 0, 25, -1.28, 1.18);
+  ctx.stroke();
   ctx.fillStyle = "#f2c078";
   ctx.beginPath();
   ctx.ellipse(0, 12, 11, 12, 0, 0, Math.PI * 2);
@@ -2013,30 +2226,87 @@ function drawSquirrel() {
   ctx.fillStyle = "#c9793b";
   circle(-13, -12, 8);
   circle(12, -12, 8);
+  ctx.fillStyle = "#2f8fc7";
+  ctx.beginPath();
+  ctx.ellipse(0, -22 + sway * 0.15, 18, 7, 0, Math.PI, 0);
+  ctx.quadraticCurveTo(13, -27, 2, -31);
+  ctx.quadraticCurveTo(-12, -29, -17, -22 + sway * 0.15);
+  ctx.fill();
+  ctx.fillStyle = "#ffd75e";
+  roundRect(-4, -32, 8, 4, 2);
+  ctx.fill();
   drawFace(0, -1);
   ctx.fillStyle = "#6b3b20";
   circle(0, 7, 3);
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 3;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(12, 8);
+  ctx.lineTo(32, 24 + sway);
+  ctx.stroke();
+  ctx.fillStyle = "#f2c65f";
+  ctx.beginPath();
+  ctx.moveTo(31, 18 + sway);
+  ctx.lineTo(45, 27 + sway);
+  ctx.lineTo(27, 31 + sway);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#8b5b2b";
+  ctx.beginPath();
+  ctx.ellipse(-14, 17, 7, 10, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#f2c078";
+  circle(-16, 14, 2);
 }
 
 function drawRabbit() {
   drawShadow(0, 31, 30, 7);
-  ctx.fillStyle = "#f4d9e9";
-  roundRect(-17, -42, 12, 42, 8);
-  roundRect(6, -42, 12, 42, 8);
+  const hop = Math.sin(performance.now() / 330) * 1.2;
+  const fur = ctx.createRadialGradient(-8, -18, 5, 0, 10, 42);
+  fur.addColorStop(0, "#fff7fb");
+  fur.addColorStop(0.72, "#f4d9e9");
+  fur.addColorStop(1, "#d9a9c4");
+  ctx.fillStyle = fur;
+  roundRect(-17, -42 - hop, 12, 42, 8);
+  roundRect(6, -42 + hop, 12, 42, 8);
   ctx.fill();
   ctx.fillStyle = "#f8c0d9";
-  roundRect(-13, -35, 5, 27, 4);
-  roundRect(10, -35, 5, 27, 4);
+  roundRect(-13, -35 - hop, 5, 27, 4);
+  roundRect(10, -35 + hop, 5, 27, 4);
   ctx.fill();
   ctx.fillStyle = "#f4d9e9";
   ctx.beginPath();
   ctx.ellipse(0, 8, 23, 22, 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = "#f6a9c7";
+  ctx.beginPath();
+  ctx.moveTo(-18, 11);
+  ctx.quadraticCurveTo(0, 27, 18, 11);
+  ctx.lineTo(14, 31);
+  ctx.lineTo(-14, 31);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = "#fff7df";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-10, 20);
+  ctx.lineTo(10, 20);
+  ctx.stroke();
   ctx.fillStyle = "rgba(255,255,255,0.48)";
   circle(-8, -2, 5);
   drawFace(0, 8);
   ctx.fillStyle = "#fff7df";
   circle(0, 18, 5);
+  ctx.fillStyle = "#5bc4e6";
+  roundRect(-12, 27, 24, 7, 4);
+  ctx.fill();
+  ctx.fillStyle = "#8b5b2b";
+  roundRect(15, 9, 10, 16, 4);
+  ctx.fill();
+  ctx.fillStyle = "#f6d77b";
+  roundRect(17, 11, 7, 12, 3);
+  ctx.fill();
 }
 
 function drawAnt() {
@@ -2084,7 +2354,12 @@ function drawButterfly() {
 
 function drawFox() {
   drawShadow(0, 31, 34, 7);
-  ctx.fillStyle = "#d96f35";
+  const tailWag = Math.sin(performance.now() / 260) * 0.12;
+  const fur = ctx.createRadialGradient(-10, -16, 4, 0, 7, 38);
+  fur.addColorStop(0, "#ff9a55");
+  fur.addColorStop(0.62, "#d96f35");
+  fur.addColorStop(1, "#9b4926");
+  ctx.fillStyle = fur;
   ctx.beginPath();
   ctx.moveTo(-24, -12);
   ctx.lineTo(-8, -30);
@@ -2096,11 +2371,11 @@ function drawFox() {
   ctx.fill();
   ctx.fillStyle = "#d96f35";
   ctx.beginPath();
-  ctx.ellipse(31, 11, 13, 28, -0.45, 0, Math.PI * 2);
+  ctx.ellipse(31, 11, 13, 28, -0.45 + tailWag, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#fff1ca";
   ctx.beginPath();
-  ctx.ellipse(36, 20, 8, 14, -0.45, 0, Math.PI * 2);
+  ctx.ellipse(36, 20, 8, 14, -0.45 + tailWag, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = "#fff1ca";
   ctx.beginPath();
@@ -2112,6 +2387,18 @@ function drawFox() {
   drawFace(0, 0);
   ctx.fillStyle = "#4c2a1d";
   circle(0, 6, 3);
+  ctx.fillStyle = "#2f9dcc";
+  roundRect(-12, 22, 24, 8, 4);
+  ctx.fill();
+  ctx.save();
+  ctx.rotate(-0.16);
+  ctx.fillStyle = "#fff7df";
+  roundRect(-24, 8, 17, 20, 3);
+  ctx.fill();
+  ctx.strokeStyle = "#2f9dcc";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawFlowerPatch() {
@@ -2120,6 +2407,11 @@ function drawFlowerPatch() {
 
 function drawFirefly() {
   drawShadow(0, 27, 20, 5);
+  ctx.fillStyle = "rgba(210,246,255,0.48)";
+  ctx.beginPath();
+  ctx.ellipse(-9, -8, 10, 17, -0.45, 0, Math.PI * 2);
+  ctx.ellipse(9, -8, 10, 17, 0.45, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = "#6b4a31";
   ctx.beginPath();
   ctx.ellipse(0, -5, 10, 14, 0, 0, Math.PI * 2);
@@ -2140,7 +2432,12 @@ function drawFirefly() {
 
 function drawHedgehog() {
   drawShadow(0, 30, 30, 7);
-  ctx.fillStyle = "#8b6a4a";
+  const blink = Math.sin(performance.now() / 700) > 0.92;
+  const spikes = ctx.createRadialGradient(-8, -8, 4, 0, 8, 34);
+  spikes.addColorStop(0, "#b08a62");
+  spikes.addColorStop(0.58, "#8b6a4a");
+  spikes.addColorStop(1, "#5b422f");
+  ctx.fillStyle = spikes;
   ctx.beginPath();
   for (let i = 0; i < 14; i += 1) {
     const angle = Math.PI + (i / 13) * Math.PI;
@@ -2159,9 +2456,37 @@ function drawHedgehog() {
   ctx.fill();
   ctx.fillStyle = "rgba(255,255,255,0.28)";
   circle(-3, 0, 4);
-  drawFace(4, 4);
+  if (blink) {
+    ctx.strokeStyle = "#263b32";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-5, 4);
+    ctx.lineTo(1, 4);
+    ctx.moveTo(11, 4);
+    ctx.lineTo(17, 4);
+    ctx.stroke();
+  } else {
+    drawFace(4, 4);
+    ctx.strokeStyle = "#263b32";
+    ctx.lineWidth = 1.6;
+    circleStroke(-4, 4, 6);
+    circleStroke(12, 4, 6);
+    ctx.beginPath();
+    ctx.moveTo(2, 4);
+    ctx.lineTo(6, 4);
+    ctx.stroke();
+  }
   ctx.fillStyle = "#4c2a1d";
   circle(14, 10, 3);
+  ctx.fillStyle = "#6fb447";
+  roundRect(-12, 20, 20, 6, 3);
+  ctx.fill();
+  ctx.fillStyle = "#f6d77b";
+  roundRect(15, 12, 14, 18, 3);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
 }
 
 function drawTreasureChest() {
@@ -2268,6 +2593,56 @@ function drawTreeLight() {
   circle(0, -20, 30);
   ctx.fillStyle = "rgba(255, 217, 74, 0.65)";
   circle(0, -20, 13 + Math.sin(performance.now() / 160) * 3);
+}
+
+function drawSpringMushroom() {
+  const bounce = Math.sin(performance.now() / 170) * 2;
+  ctx.save();
+  ctx.translate(0, bounce);
+  drawShadow(0, 31, 34, 7);
+  ctx.fillStyle = "#fff1ca";
+  roundRect(-12, 0, 24, 30, 9);
+  ctx.fill();
+  const cap = ctx.createLinearGradient(0, -32, 0, 4);
+  cap.addColorStop(0, "#ff8d68");
+  cap.addColorStop(1, "#d94b3b");
+  ctx.fillStyle = cap;
+  ctx.beginPath();
+  ctx.ellipse(0, -4, 34, 22, 0, Math.PI, 0);
+  ctx.quadraticCurveTo(20, 10, 0, 11);
+  ctx.quadraticCurveTo(-20, 10, -34, -4);
+  ctx.fill();
+  ctx.fillStyle = "#fff7df";
+  circle(-15, -9, 5);
+  circle(3, -16, 6);
+  circle(18, -3, 4);
+  ctx.fillStyle = "#f2ad31";
+  star(0, -39, 8);
+  ctx.restore();
+}
+
+function drawFinishFlag() {
+  drawShadow(0, 31, 33, 7);
+  ctx.fillStyle = "#8b5b2b";
+  roundRect(-4, -44, 8, 74, 4);
+  ctx.fill();
+  const flag = ctx.createLinearGradient(2, -42, 42, -10);
+  flag.addColorStop(0, "#ffd94a");
+  flag.addColorStop(1, "#f46a5c");
+  ctx.fillStyle = flag;
+  ctx.beginPath();
+  ctx.moveTo(4, -42);
+  ctx.lineTo(46, -32);
+  ctx.lineTo(4, -18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#fff7df";
+  star(20, -31, 6);
+  ctx.fillStyle = "#6fb447";
+  ctx.beginPath();
+  ctx.ellipse(-11, 25, 18, 6, -0.2, 0, Math.PI * 2);
+  ctx.ellipse(13, 25, 18, 6, 0.2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawQuizStand(color, label) {
@@ -2488,6 +2863,20 @@ window.addEventListener("blur", () => {
   touchDirs.clear();
 });
 
+function syncRoleButtons() {
+  roleButtons.forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.role === selectedRole);
+  });
+}
+
+roleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    selectedRole = button.dataset.role || "cat";
+    localStorage.setItem("catsOwlRole", selectedRole);
+    syncRoleButtons();
+  });
+});
+
 startBtn.addEventListener("click", startGame);
 
 function initialLevelFromUrl() {
@@ -2500,6 +2889,7 @@ function initialLevelFromUrl() {
 }
 
 const initialLevel = initialLevelFromUrl();
+syncRoleButtons();
 if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
   gameEntered = true;
 }
