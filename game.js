@@ -33,8 +33,11 @@ const backgroundSources = {
   forest: "./assets/bg-level2-forest.png",
   adventure: "./assets/bg-level3-adventure.png",
   classroom: "./assets/bg-level4-classroom.png",
+  courage: "./assets/bg-level5-courage.jpg",
+  boss: "./assets/bg-level6-boss.jpg",
 };
 const backgrounds = {};
+const dayNames = ["\u7b2c\u4e00\u5929", "\u7b2c\u4e8c\u5929", "\u7b2c\u4e09\u5929", "\u7b2c\u56db\u5929", "\u7b2c\u4e94\u5929", "\u7b2c\u516d\u5929"];
 
 const keys = new Set();
 const touchDirs = new Set();
@@ -82,17 +85,20 @@ const quizBank = {
     { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "125 + 236 = ?", options: ["351", "361", "371", "381"], answer: 1 },
     { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "\u4e00\u5305\u7cd6 36 \u9897\uff0c\u5e73\u5747\u5206\u7ed9 4 \u4eba\uff0c\u6bcf\u4eba\u51e0\u9897\uff1f", options: ["8", "9", "10", "12"], answer: 1 },
     { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "3 \u65f6 = \u51e0\u5206\u949f\uff1f", options: ["30", "90", "120", "180"], answer: 3 },
+    { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "240 - 86 = ?", options: ["144", "154", "164", "174"], answer: 1 },
+    { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "15 \u00d7 6 = ?", options: ["80", "85", "90", "96"], answer: 2 },
+    { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "\u4e00\u4e2a\u6b63\u65b9\u5f62\u8fb9\u957f 6 \u5398\u7c73\uff0c\u5468\u957f\u662f\uff1f", options: ["12", "18", "24", "36"], answer: 2 },
+    { title: "\u6570\u5b66\u5c0f\u6e38\u620f", question: "\u4ece 3\u30016\u30019\u300112 \u770b\uff0c\u4e0b\u4e00\u4e2a\u6570\u662f\uff1f", options: ["13", "14", "15", "18"], answer: 2 },
   ],
-  sudoku: [
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "2  _  4  1\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 2 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "_  2  3  4\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 0 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "1  3  _  4\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 1 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "4  1  2  _\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 2 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "3  4  _  2\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 0 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "_  3  1  2\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 3 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "4  _  1  3\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 1 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "1  _  2  4\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 2 },
-    { title: "\u8ff7\u4f60\u6570\u72ec", question: "2  4  1  _\uff0c\u6bcf\u884c\u8981\u6709 1-4\uff0c\u7f3a\u7684\u6570\u662f\uff1f", options: ["1", "2", "3", "4"], answer: 2 },
+  logic: [
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u82f9\u679c\u3001\u4e66\u3001\u94c5\u7b14\u6309\u987a\u5e8f\u91cd\u590d\uff0c\u4e0b\u4e00\u4e2a\u662f\uff1f", options: ["\u82f9\u679c", "\u4e66", "\u94c5\u7b14", "\u836f\u6c34"], answer: 0 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u5c0f\u732b\u6bd4\u5154\u5b50\u65e9\u5230\uff0c\u5154\u5b50\u6bd4\u677e\u9f20\u65e9\u5230\uff0c\u8c01\u6700\u665a\uff1f", options: ["\u5c0f\u732b", "\u5154\u5b50", "\u677e\u9f20", "\u90fd\u4e00\u6837"], answer: 2 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u4e24\u9897\u661f\u6362\u4e00\u672c\u4e66\uff0c\u56db\u9897\u661f\u80fd\u6362\u51e0\u672c\u4e66\uff1f", options: ["1", "2", "3", "4"], answer: 1 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u5982\u679c\u4e0b\u96e8\u5c31\u5e26\u4f1e\u3002\u4eca\u5929\u4e0b\u96e8\uff0c\u5e94\u8be5\u5e26\u4ec0\u4e48\uff1f", options: ["\u4f1e", "\u706f\u7b3c", "\u94c3\u94db", "\u5730\u56fe"], answer: 0 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u7ea2\u82b1\u5728\u84dd\u82b1\u5de6\u8fb9\uff0c\u9ec4\u82b1\u5728\u84dd\u82b1\u53f3\u8fb9\uff0c\u4e2d\u95f4\u662f\uff1f", options: ["\u7ea2\u82b1", "\u84dd\u82b1", "\u9ec4\u82b1", "\u6811"], answer: 1 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u4e00\u6761\u8def\u53ea\u80fd\u5411\u5317\u6216\u5411\u4e1c\u8d70\uff0c\u54ea\u4e2a\u65b9\u5411\u4e0d\u80fd\u9009\uff1f", options: ["\u5317", "\u4e1c", "\u5357", "\u5411\u524d"], answer: 2 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u9e7f\u3001\u5154\u3001\u677e\u9f20\u90fd\u662f\u52a8\u7269\uff0c\u54ea\u4e2a\u4e0d\u662f\u540c\u4e00\u7c7b\uff1f", options: ["\u9e7f", "\u5154", "\u677e\u9f20", "\u94c5\u7b14"], answer: 3 },
+    { title: "\u68ee\u6797\u903b\u8f91\u9898", question: "\u4ece\u5c0f\u5230\u5927\u6392\uff1a\u6811\u82d7\u3001\u5927\u6811\u3001\u79cd\u5b50\uff0c\u7b2c\u4e00\u4e2a\u662f\uff1f", options: ["\u5927\u6811", "\u6811\u82d7", "\u79cd\u5b50", "\u6811\u5c4b"], answer: 2 },
   ],
   science: [
     { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u690d\u7269\u8fdb\u884c\u5149\u5408\u4f5c\u7528\uff0c\u4e3b\u8981\u9700\u8981\u9633\u5149\u3001\u6c34\u548c\u4ec0\u4e48\uff1f", options: ["\u6c27\u6c14", "\u4e8c\u6c27\u5316\u78b3", "\u7802\u5b50", "\u94c1\u5757"], answer: 1 },
@@ -104,6 +110,10 @@ const quizBank = {
     { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u98df\u7269\u94fe\u4e2d\uff0c\u9752\u8349\u901a\u5e38\u5c5e\u4e8e\u4ec0\u4e48\uff1f", options: ["\u751f\u4ea7\u8005", "\u6d88\u8d39\u8005", "\u673a\u5668", "\u77f3\u5934"], answer: 0 },
     { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u6708\u4eae\u672c\u8eab\u4f1a\u53d1\u5149\u5417\uff1f", options: ["\u4f1a", "\u4e0d\u4f1a\uff0c\u53cd\u5c04\u592a\u9633\u5149", "\u53ea\u5728\u767d\u5929\u4f1a", "\u53ea\u5728\u4e0b\u96e8\u65f6\u4f1a"], answer: 1 },
     { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u54ea\u4e2a\u662f\u54fa\u4e73\u52a8\u7269\uff1f", options: ["\u91d1\u9c7c", "\u9752\u86d9", "\u5c0f\u732b", "\u8774\u8776"], answer: 2 },
+    { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u79cd\u5b50\u53d1\u82bd\u6700\u9700\u8981\u4ec0\u4e48\uff1f", options: ["\u6c34\u548c\u7a7a\u6c14", "\u94c1\u5757", "\u73bb\u7483", "\u6a61\u76ae"], answer: 0 },
+    { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u592a\u9633\u662f\u5730\u7403\u4e0a\u54ea\u79cd\u80fd\u91cf\u7684\u91cd\u8981\u6765\u6e90\uff1f", options: ["\u5149\u548c\u70ed", "\u58f0\u97f3", "\u77f3\u5934", "\u6c99\u5b50"], answer: 0 },
+    { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u6c34\u5728 0\u2103 \u5de6\u53f3\u901a\u5e38\u4f1a\u53d8\u6210\u4ec0\u4e48\uff1f", options: ["\u51b0", "\u706b", "\u7eb8", "\u6728\u5934"], answer: 0 },
+    { title: "\u79d1\u5b66\u5c0f\u6e38\u620f", question: "\u54ea\u4e2a\u5668\u5b98\u5e2e\u52a9\u6211\u4eec\u547c\u5438\uff1f", options: ["\u80ba", "\u94c5\u7b14", "\u4e66\u5305", "\u6811\u53f6"], answer: 0 },
   ],
   language: [
     { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u4e0b\u9762\u54ea\u4e2a\u8bcd\u548c\u201c\u5feb\u4e50\u201d\u610f\u601d\u6700\u63a5\u8fd1\uff1f", options: ["\u96be\u8fc7", "\u9ad8\u5174", "\u5b89\u9759", "\u5e72\u51c0"], answer: 1 },
@@ -115,6 +125,10 @@ const quizBank = {
     { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u732b\u5934\u9e70\u5728\u6811\u4e0a\u770b\u4e66\u3002\u201d\u8fd9\u53e5\u8bdd\u7684\u52a8\u4f5c\u662f\uff1f", options: ["\u6811", "\u770b", "\u4e66", "\u732b\u5934\u9e70"], answer: 1 },
     { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u5c0f\u732b\u8f7b\u8f7b\u5730\u8d70\u8fc7\u8349\u5730\u3002\u201d\u4fee\u9970\u201c\u8d70\u201d\u7684\u8bcd\u662f\uff1f", options: ["\u5c0f\u732b", "\u8f7b\u8f7b\u5730", "\u8349\u5730", "\u8d70\u8fc7"], answer: 1 },
     { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u6d53\u5bc6\u201d\u66f4\u5e38\u7528\u6765\u5f62\u5bb9\u54ea\u4e2a\uff1f", options: ["\u5934\u53d1", "\u94c3\u94db", "\u6570\u5b66", "\u65f6\u95f4"], answer: 0 },
+    { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u5174\u9ad8\u91c7\u70c8\u201d\u8868\u793a\u5fc3\u60c5\u600e\u4e48\u6837\uff1f", options: ["\u9ad8\u5174", "\u5bb3\u6015", "\u751f\u6c14", "\u56f0\u4e86"], answer: 0 },
+    { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u5b89\u9759\u201d\u7684\u8fd1\u4e49\u8bcd\u662f\uff1f", options: ["\u5b81\u9759", "\u5435\u95f9", "\u5feb\u901f", "\u660e\u4eae"], answer: 0 },
+    { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u54ea\u4e2a\u53e5\u5b50\u9700\u8981\u95ee\u53f7\uff1f", options: ["\u4eca\u5929\u5929\u6c14\u771f\u597d", "\u4f60\u5403\u996d\u4e86\u5417", "\u6211\u559c\u6b22\u68ee\u6797", "\u5c0f\u9e1f\u5728\u5531\u6b4c"], answer: 1 },
+    { title: "\u8bed\u6587\u5c0f\u6e38\u620f", question: "\u201c\u4ed6\u50cf\u5c0f\u9e1f\u4e00\u6837\u5feb\u6d3b\u3002\u201d\u7528\u4e86\u4ec0\u4e48\u4fee\u8f9e\uff1f", options: ["\u6bd4\u55bb", "\u6392\u6bd4", "\u53cd\u95ee", "\u5938\u5f20"], answer: 0 },
   ],
   english: [
     { title: "English Mini Game", question: "Which sentence is correct?", options: ["I am a cat.", "I is a cat.", "I are a cat.", "I be a cat."], answer: 0 },
@@ -127,6 +141,10 @@ const quizBank = {
     { title: "English Mini Game", question: "Which means \u201c\u94c5\u7b14\u201d?", options: ["pencil", "puddle", "flower", "bear"], answer: 0 },
     { title: "English Mini Game", question: "They ___ friends.", options: ["am", "is", "are", "be"], answer: 2 },
     { title: "English Mini Game", question: "Choose the opposite of big.", options: ["small", "tall", "fast", "happy"], answer: 0 },
+    { title: "English Mini Game", question: "Choose the past tense of go.", options: ["goed", "went", "goes", "going"], answer: 1 },
+    { title: "English Mini Game", question: "A ___ has pages.", options: ["book", "pond", "star", "fox"], answer: 0 },
+    { title: "English Mini Game", question: "Which word is an animal?", options: ["rabbit", "yellow", "jump", "desk"], answer: 0 },
+    { title: "English Mini Game", question: "We ___ to school.", options: ["go", "goes", "is", "am"], answer: 0 },
   ],
   riddle: [
     { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e00\u5929\u4e00\u70b9\u70b9\uff0c\u4f1a\u53d8\u6210\u4ec0\u4e48\u5b57\uff1f", options: ["\u65e6", "\u660e", "\u65e7", "\u65e9"], answer: 0 },
@@ -138,6 +156,10 @@ const quizBank = {
     { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e00\u8fb9\u7eff\uff0c\u4e00\u8fb9\u7ea2\uff0c\u4e00\u8fb9\u6015\u6c34\uff0c\u4e00\u8fb9\u6015\u866b\u3002\u731c\u4e00\u5b57\uff1f", options: ["\u79cb", "\u660e", "\u6797", "\u597d"], answer: 0 },
     { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e00\u70b9\u4e00\u6a2a\u957f\uff0c\u4e00\u6487\u5230\u5357\u6d0b\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u5e7f", "\u5382", "\u6587", "\u5927"], answer: 0 },
     { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u56db\u9762\u90fd\u662f\u5c71\uff0c\u5c71\u5c71\u90fd\u76f8\u8fde\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u7530", "\u56de", "\u5cb3", "\u5c71"], answer: 0 },
+    { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e24\u68f5\u6811\u5e76\u6392\u7ad9\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u6797", "\u68ee", "\u672c", "\u672b"], answer: 0 },
+    { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e00\u4e2a\u4eba\u9760\u7740\u6728\u5934\u4f11\u606f\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u4f11", "\u4f53", "\u6797", "\u4ec1"], answer: 0 },
+    { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u4e00\u5927\u4e00\u5c0f\u6392\u4e00\u8d77\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u5c16", "\u592a", "\u5929", "\u592b"], answer: 0 },
+    { title: "\u731c\u5b57\u8c1c\u5c0f\u6e38\u620f", question: "\u95e8\u91cc\u6709\u4e2a\u4eba\uff0c\u662f\u4ec0\u4e48\u5b57\uff1f", options: ["\u95ea", "\u95ee", "\u95f4", "\u95fb"], answer: 0 },
   ],
 };
 
@@ -147,7 +169,7 @@ const levels = [
     bg: "schoolyard",
     time: 62,
     start: { x: 468, y: 430 },
-    message: "\u7b2c1\u5173\uff1a\u628a\u82f9\u679c\u3001\u94c5\u7b14\u548c\u4f5c\u4e1a\u672c\u9001\u5230\u90bb\u5c45\u624b\u91cc\u3002",
+    message: "\u7b2c\u4e00\u5929\uff1a\u628a\u82f9\u679c\u3001\u94c5\u7b14\u548c\u4f5c\u4e1a\u672c\u9001\u5230\u90bb\u5c45\u624b\u91cc\u3002",
     collectibles: [
       item(180, 150, "book", "\u4f5c\u4e1a\u672c"),
       item(748, 154, "apple", "\u82f9\u679c"),
@@ -175,7 +197,7 @@ const levels = [
     bg: "forest",
     time: 68,
     start: { x: 480, y: 420 },
-    message: "\u7b2c2\u5173\uff1a\u6536\u96c6\u5c0f\u5de5\u5177\uff0c\u5e2e\u90bb\u5c45\u4fee\u597d\u5c0f\u9ebb\u70e6\u3002",
+    message: "\u7b2c\u4e8c\u5929\uff1a\u6536\u96c6\u5c0f\u5de5\u5177\uff0c\u5e2e\u90bb\u5c45\u4fee\u597d\u5c0f\u9ebb\u70e6\u3002",
     collectibles: [
       item(164, 230, "leaf", "\u53f6\u5b50\u626b\u5e1a"),
       item(292, 130, "seed", "\u82b1\u79cd"),
@@ -205,7 +227,7 @@ const levels = [
     bg: "adventure",
     time: 78,
     start: { x: 480, y: 438 },
-    message: "\u7b2c3\u5173\uff1a\u5e2e\u8ff7\u8def\u7684\u670b\u53cb\u56de\u5bb6\uff0c\u628a\u68ee\u6797\u5b66\u6821\u70b9\u4eae\u3002",
+    message: "\u7b2c\u4e09\u5929\uff1a\u5e2e\u8ff7\u8def\u7684\u670b\u53cb\u56de\u5bb6\uff0c\u628a\u68ee\u6797\u5b66\u6821\u70b9\u4eae\u3002",
     collectibles: [
       item(190, 116, "lantern", "\u5c0f\u706f\u7b3c"),
       item(365, 215, "map", "\u5730\u56fe"),
@@ -239,11 +261,11 @@ const levels = [
     bg: "classroom",
     time: 95,
     start: { x: 480, y: 430 },
-    message: "\u7b2c4\u5173\uff1a\u56de\u5230\u68ee\u6797\u6559\u5ba4\uff0c\u5b8c\u6210\u6570\u5b66\u3001\u79d1\u5b66\u3001\u8bed\u6587\u548c\u82f1\u6587\u5c0f\u6311\u6218\u3002",
+    message: "\u7b2c\u56db\u5929\uff1a\u56de\u5230\u68ee\u6797\u6559\u5ba4\uff0c\u5b8c\u6210\u6570\u5b66\u3001\u79d1\u5b66\u3001\u8bed\u6587\u548c\u82f1\u6587\u5c0f\u6311\u6218\u3002",
     collectibles: [],
     tasks: [
       quizTask(138, 326, "\u6570\u5b66\u6811\u6869", "math", "\u7b97\u4e00\u7b97", "math"),
-      quizTask(322, 138, "\u8ff7\u4f60\u6570\u72ec", "sudoku", "\u586b\u6570\u5b57", "sudoku"),
+      quizTask(322, 138, "\u903b\u8f91\u6811\u6869", "logic", "\u60f3\u4e00\u60f3", "logic"),
       quizTask(500, 98, "\u79d1\u5b66\u82b1\u575b", "science", "\u60f3\u60f3\u770b", "science"),
       quizTask(742, 160, "\u8bed\u6587\u6728\u724c", "language", "\u8ba4\u4e00\u8ba4", "language"),
       quizTask(836, 354, "English Bell", "english", "ABC", "english"),
@@ -260,10 +282,10 @@ const levels = [
   },
   {
     name: "\u52c7\u6c14\u51c6\u5907",
-    bg: "adventure",
+    bg: "courage",
     time: 88,
     start: { x: 465, y: 430 },
-    message: "\u7b2c5\u5173\uff1a\u68ee\u6797\u91cc\u51fa\u73b0\u4e86\u9ed1\u718a\u602a\uff0c\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u94c5\u7b14\u548c\u5b88\u62a4\u4e66\u3002",
+    message: "\u7b2c\u4e94\u5929\uff1a\u68ee\u6797\u91cc\u51fa\u73b0\u4e86\u9ed1\u718a\u602a\uff0c\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u94c5\u7b14\u548c\u5b88\u62a4\u4e66\u3002",
     collectibles: [
       item(188, 150, "courageStar", "\u52c7\u6c14\u661f"),
       item(446, 218, "magicPencil", "\u9b54\u6cd5\u94c5\u7b14"),
@@ -289,10 +311,10 @@ const levels = [
   },
   {
     name: "\u68ee\u6797\u5927 Boss",
-    bg: "adventure",
+    bg: "boss",
     time: 95,
     start: { x: 480, y: 438 },
-    message: "\u6700\u540e\u4e00\u5173\uff1a\u6536\u96c6\u9053\u5177\u8fdc\u7a0b\u653b\u51fb\u9ed1\u718a\u602a\uff0c\u8eb2\u5f00\u9707\u6ce2\uff01",
+    message: "\u7b2c\u516d\u5929\uff1a\u6536\u96c6\u9053\u5177\u8fdc\u7a0b\u653b\u51fb\u9ed1\u718a\u602a\uff0c\u8eb2\u5f00\u9707\u6ce2\uff01",
     collectibles: [
       item(176, 392, "courageStar", "\u52c7\u6c14\u661f"),
       item(306, 218, "courageStar", "\u52c7\u6c14\u661f"),
@@ -524,7 +546,7 @@ function playNoise(time, duration) {
 
 function updateHud() {
   const target = state.tasksList ? state.tasksList.length : levels[state.levelIndex].tasks.length;
-  levelEl.textContent = `${state.levelIndex + 1}/${levels.length}`;
+  levelEl.textContent = dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`;
   heartsEl.textContent = state.hearts;
   timeEl.textContent = Math.max(0, Math.ceil(state.time));
   tasksEl.textContent = `${state.tasks}/${target}`;
@@ -1092,67 +1114,85 @@ function drawObstacles() {
 function drawPond(x, y, r) {
   const pulse = 1 + Math.sin(performance.now() / 520 + x) * 0.025;
   ctx.save();
-  drawShadow(x, y + r * 0.38, r * 1.4, r * 0.2);
-  ctx.fillStyle = "rgba(70, 130, 70, 0.36)";
+  drawShadow(x, y + r * 0.36, r * 1.28, r * 0.18);
+  const moss = ctx.createRadialGradient(x - r * 0.25, y - r * 0.2, 2, x, y, r * 1.7);
+  moss.addColorStop(0, "rgba(116, 158, 82, 0.42)");
+  moss.addColorStop(1, "rgba(50, 95, 44, 0.14)");
+  ctx.fillStyle = moss;
   ctx.beginPath();
-  ctx.ellipse(x, y + r * 0.12, r * 1.62, r * 0.98, -0.08, 0, Math.PI * 2);
+  ctx.ellipse(x, y + r * 0.12, r * 1.72, r * 0.94, -0.08, 0, Math.PI * 2);
   ctx.fill();
   const water = ctx.createRadialGradient(x - r * 0.3, y - r * 0.25, 4, x, y, r * 1.4);
-  water.addColorStop(0, "#b9ecf3");
-  water.addColorStop(0.58, "#52abc0");
-  water.addColorStop(1, "#2b788d");
+  water.addColorStop(0, "rgba(195, 238, 239, 0.92)");
+  water.addColorStop(0.58, "rgba(69, 157, 177, 0.86)");
+  water.addColorStop(1, "rgba(38, 103, 123, 0.88)");
   ctx.fillStyle = water;
   ctx.beginPath();
   ctx.ellipse(x, y, r * 1.45 * pulse, r * 0.82, -0.08, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "rgba(255,255,255,0.7)";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(255,255,255,0.5)";
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.ellipse(x - r * 0.18, y - r * 0.14, r * 0.55, r * 0.18, -0.08, 0, Math.PI * 2);
   ctx.stroke();
+  ctx.fillStyle = "rgba(99, 116, 82, 0.55)";
+  for (let i = 0; i < 5; i += 1) {
+    const a = i * 1.25;
+    circle(x + Math.cos(a) * r * 1.28, y + Math.sin(a) * r * 0.68, 3 + (i % 2));
+  }
   ctx.restore();
 }
 
 function drawBush(x, y, r) {
   ctx.save();
-  drawShadow(x, y + r * 0.42, r * 1.15, r * 0.22);
-  const colors = ["#416f31", "#578d3d", "#6da34b"];
-  for (let i = 0; i < 7; i += 1) {
-    const angle = (Math.PI * 2 * i) / 7;
-    const bx = x + Math.cos(angle) * r * 0.38;
-    const by = y + Math.sin(angle) * r * 0.22;
+  drawShadow(x, y + r * 0.42, r * 1.05, r * 0.18);
+  const colors = ["#315f31", "#467b38", "#669d48", "#7cb85a"];
+  for (let i = 0; i < 11; i += 1) {
+    const angle = (Math.PI * 2 * i) / 11;
+    const bx = x + Math.cos(angle) * r * (i % 3 === 0 ? 0.5 : 0.32);
+    const by = y + Math.sin(angle) * r * 0.24;
     ctx.fillStyle = colors[i % colors.length];
-    circle(bx, by, r * (i % 2 ? 0.42 : 0.48));
+    ctx.beginPath();
+    ctx.ellipse(bx, by, r * (i % 2 ? 0.34 : 0.42), r * (i % 2 ? 0.24 : 0.31), angle, 0, Math.PI * 2);
+    ctx.fill();
   }
-  ctx.fillStyle = "rgba(255,255,255,0.18)";
-  circle(x - r * 0.24, y - r * 0.28, r * 0.18);
-  ctx.fillStyle = "rgba(50, 95, 44, 0.42)";
+  ctx.fillStyle = "rgba(255,255,255,0.14)";
+  circle(x - r * 0.22, y - r * 0.24, r * 0.13);
+  ctx.fillStyle = "rgba(49, 95, 49, 0.35)";
   ctx.beginPath();
   ctx.ellipse(x, y + r * 0.45, r * 0.95, r * 0.18, 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.fillStyle = "rgba(246, 201, 95, 0.72)";
+  circle(x + r * 0.28, y - r * 0.12, 2.5);
+  circle(x - r * 0.36, y + r * 0.03, 2);
   ctx.restore();
 }
 
 function drawPit(x, y, r) {
   ctx.save();
-  drawShadow(x, y + r * 0.18, r * 1.1, r * 0.22);
+  drawShadow(x, y + r * 0.18, r * 1.05, r * 0.18);
   const dirt = ctx.createRadialGradient(x - r * 0.15, y - r * 0.25, 4, x, y, r);
-  dirt.addColorStop(0, "#b77b45");
-  dirt.addColorStop(0.55, "#7b4a29");
-  dirt.addColorStop(1, "#3d271b");
+  dirt.addColorStop(0, "rgba(159, 112, 64, 0.9)");
+  dirt.addColorStop(0.58, "rgba(102, 70, 43, 0.92)");
+  dirt.addColorStop(1, "rgba(45, 34, 27, 0.96)");
   ctx.fillStyle = dirt;
   ctx.beginPath();
   ctx.ellipse(x, y, r * 1.15, r * 0.72, 0.08, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = "#a87845";
-  ctx.lineWidth = 4;
+  ctx.strokeStyle = "rgba(174, 132, 72, 0.58)";
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.ellipse(x, y, r * 1.2, r * 0.78, 0.08, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = "rgba(122, 86, 50, 0.32)";
+  ctx.fillStyle = "rgba(122, 86, 50, 0.28)";
   for (let i = 0; i < 4; i += 1) {
     circle(x - r * 0.7 + i * r * 0.42, y - r * 0.4 + (i % 2) * r * 0.18, 3);
   }
+  ctx.fillStyle = "rgba(103, 145, 68, 0.45)";
+  ctx.beginPath();
+  ctx.ellipse(x - r * 0.86, y + r * 0.18, r * 0.26, r * 0.08, -0.2, 0, Math.PI * 2);
+  ctx.ellipse(x + r * 0.84, y - r * 0.1, r * 0.22, r * 0.07, 0.25, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1407,7 +1447,7 @@ function drawAnimal(kind) {
   else if (kind === "sign") drawSign();
   else if (kind === "light") drawTreeLight();
   else if (kind === "math") drawQuizStand("#ffd75e", "27+16");
-  else if (kind === "sudoku") drawQuizStand("#ffffff", "1 2");
+  else if (kind === "logic") drawQuizStand("#ffffff", "\u2605?");
   else if (kind === "science") drawQuizStand("#83b83d", "\u82b1");
   else if (kind === "language") drawQuizStand("#f6d77b", "\u6728");
   else if (kind === "english") drawQuizStand("#2f9dcc", "ABC");
