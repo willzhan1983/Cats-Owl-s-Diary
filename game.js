@@ -2418,10 +2418,18 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
   button.addEventListener("pointerdown", (event) => {
     touchDirs.add(dir);
     button.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
   });
-  button.addEventListener("pointerup", () => touchDirs.delete(dir));
+  button.addEventListener("pointerup", (event) => {
+    touchDirs.delete(dir);
+    event.preventDefault();
+  });
   button.addEventListener("pointercancel", () => touchDirs.delete(dir));
-  button.addEventListener("pointerleave", () => touchDirs.delete(dir));
+  button.addEventListener("lostpointercapture", () => touchDirs.delete(dir));
+});
+
+window.addEventListener("blur", () => {
+  touchDirs.clear();
 });
 
 startBtn.addEventListener("click", startGame);
