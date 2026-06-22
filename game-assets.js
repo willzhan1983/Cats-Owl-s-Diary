@@ -10,6 +10,20 @@
     owllyFly: "./assets/characters/owlly/fly.svg",
     owllyWrite: "./assets/characters/owlly/write.svg",
     owllyPortrait: "./assets/characters/owlly/portrait.svg",
+    lily: "./assets/npc/lily.svg",
+    coco: "./assets/npc/coco.svg",
+    nono: "./assets/npc/nono.svg",
+    dodo: "./assets/npc/dodo.svg",
+    ruru: "./assets/npc/ruru.svg",
+    blackBear: "./assets/boss/black-bear/idle.svg",
+    apple: "./assets/props/apple.svg",
+    courageStar: "./assets/props/courage-star.svg",
+    magicPencil: "./assets/props/magic-pencil.svg",
+    guardBook: "./assets/props/guard-book.svg",
+    potion: "./assets/props/potion.svg",
+    pond: "./assets/props/pond.svg",
+    bush: "./assets/props/bush.svg",
+    pit: "./assets/props/pit.svg",
   };
 
   window.gameImages = window.gameImages || {};
