@@ -1,0 +1,180 @@
+/* V0.2+ Character life and world UI overlay for Cats & Owl's Diary */
+.life-bubble {
+  position: fixed;
+  max-width: min(260px, calc(100vw - 48px));
+  padding: 10px 14px;
+  border: 3px solid rgba(139, 91, 43, 0.22);
+  border-radius: 18px;
+  background: rgba(255, 248, 236, 0.96);
+  color: #5b3212;
+  font-weight: 900;
+  font-size: 14px;
+  line-height: 1.45;
+  box-shadow: 0 12px 28px rgba(39, 65, 52, 0.22);
+  z-index: 35;
+  pointer-events: none;
+  transform: translate(-50%, -100%) scale(0.88);
+  opacity: 0;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.life-bubble.is-showing {
+  opacity: 1;
+  transform: translate(-50%, -100%) scale(1);
+}
+
+.life-sparkle {
+  position: fixed;
+  z-index: 36;
+  pointer-events: none;
+  font-size: 24px;
+  animation: lifeSparkleFly 1.05s ease forwards;
+}
+
+@keyframes lifeSparkleFly {
+  0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-64px) scale(1.24) rotate(16deg); opacity: 0; }
+}
+
+.world-fab {
+  position: fixed;
+  right: clamp(12px, 3vw, 28px);
+  bottom: clamp(82px, 10vw, 108px);
+  z-index: 30;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 247, 223, 0.88);
+  background: linear-gradient(180deg, #fff18a, #ffd75e);
+  color: #5b3212;
+  font-weight: 900;
+  box-shadow: 0 12px 26px rgba(39, 65, 52, 0.22);
+}
+
+.world-panel {
+  position: fixed;
+  inset: clamp(10px, 4vw, 38px);
+  z-index: 40;
+  display: none;
+  padding: clamp(16px, 3vw, 26px);
+  border-radius: 28px;
+  border: 4px solid rgba(255, 247, 223, 0.92);
+  background:
+    radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.8), transparent 18rem),
+    linear-gradient(145deg, rgba(255, 248, 236, 0.98), rgba(223, 244, 211, 0.96));
+  box-shadow: 0 26px 70px rgba(39, 65, 52, 0.32);
+  overflow: auto;
+}
+
+.world-panel.is-open {
+  display: block;
+}
+
+.world-panel h2 {
+  margin: 0 0 16px;
+  text-align: center;
+  color: #3f8a2f;
+  font-size: clamp(22px, 4vw, 34px);
+}
+
+.world-close {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #ffd6d6;
+  color: #7a3b1d;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(39, 65, 52, 0.16);
+}
+
+.world-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.world-card {
+  min-height: 138px;
+  padding: 13px;
+  border-radius: 22px;
+  border: 3px solid rgba(79, 139, 56, 0.16);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 10px 24px rgba(70, 110, 70, 0.13);
+  color: #34563e;
+  text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.world-card:hover,
+.world-card:focus-visible {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 16px 30px rgba(70, 110, 70, 0.2);
+}
+
+.world-card-icon {
+  font-size: 40px;
+}
+
+.world-card-name {
+  margin-top: 6px;
+  font-weight: 900;
+  color: #5b3212;
+}
+
+.world-card-desc {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #406b54;
+}
+
+.world-note {
+  margin-top: 16px;
+  text-align: center;
+  color: #406b54;
+  font-weight: 800;
+}
+
+.diary-toast {
+  position: fixed;
+  left: 50%;
+  top: 18px;
+  z-index: 34;
+  max-width: min(520px, calc(100vw - 36px));
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: rgba(255, 248, 236, 0.96);
+  border: 3px solid rgba(139, 91, 43, 0.2);
+  color: #5b3212;
+  box-shadow: 0 12px 28px rgba(39, 65, 52, 0.22);
+  transform: translate(-50%, -18px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  font-weight: 900;
+  text-align: center;
+}
+
+.diary-toast.is-showing {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 760px) {
+  .world-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .world-card {
+    min-height: 126px;
+  }
+
+  .world-fab {
+    bottom: 84px;
+    right: 12px;
+    font-size: 14px;
+  }
+}
