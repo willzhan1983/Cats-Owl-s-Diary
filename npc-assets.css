@@ -1,0 +1,41 @@
+/* V3.2 NPC image asset support */
+.npc-avatar-img,
+.npc-modal-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.npc-avatar-emoji,
+.npc-modal-emoji {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.npc-chip.has-image .npc-chip-avatar,
+.npc-modal-avatar.has-image {
+  background: radial-gradient(circle at 30% 18%, #fff, #ffeec7 58%, #f8d996);
+  overflow: hidden;
+}
+
+.npc-chip.has-image .npc-chip-avatar {
+  padding: 2px;
+}
+
+.npc-modal-avatar.has-image {
+  padding: 6px;
+}
+
+.npc-asset-guide {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 248, 236, 0.82);
+  color: #7b6546;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
