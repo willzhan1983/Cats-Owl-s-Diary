@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="35%" cy="22%" r="75%"><stop offset="0" stop-color="#fff7fb"/><stop offset="1" stop-color="#ffd9e8"/></radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#875b3b" flood-opacity=".22"/></filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <g opacity=".75"><circle cx="88" cy="96" r="18" fill="#fff"/><circle cx="430" cy="116" r="12" fill="#fff"/><path d="M60 392c68-50 115-38 162-10 55 33 120 32 210-24" fill="none" stroke="#b7df92" stroke-width="22" stroke-linecap="round"/></g>
+  <g filter="url(#shadow)">
+    <ellipse cx="190" cy="118" rx="42" ry="92" fill="#fff7f8" stroke="#8b5b43" stroke-width="7" transform="rotate(-12 190 118)"/>
+    <ellipse cx="310" cy="118" rx="42" ry="92" fill="#fff7f8" stroke="#8b5b43" stroke-width="7" transform="rotate(12 310 118)"/>
+    <ellipse cx="190" cy="124" rx="20" ry="58" fill="#ff9bb0" opacity=".75" transform="rotate(-12 190 124)"/>
+    <ellipse cx="310" cy="124" rx="20" ry="58" fill="#ff9bb0" opacity=".75" transform="rotate(12 310 124)"/>
+    <ellipse cx="256" cy="250" rx="128" ry="118" fill="#fff7f8" stroke="#8b5b43" stroke-width="8"/>
+    <circle cx="208" cy="238" r="22" fill="#2b2019"/><circle cx="304" cy="238" r="22" fill="#2b2019"/>
+    <circle cx="199" cy="228" r="7" fill="#fff"/><circle cx="295" cy="228" r="7" fill="#fff"/>
+    <ellipse cx="184" cy="286" rx="28" ry="16" fill="#ff9eb3" opacity=".65"/><ellipse cx="328" cy="286" rx="28" ry="16" fill="#ff9eb3" opacity=".65"/>
+    <path d="M238 268q18 20 36 0" fill="none" stroke="#8b3d35" stroke-width="8" stroke-linecap="round"/>
+    <path d="M176 366q80 54 160 0l24 78H152z" fill="#f48aa8" stroke="#8b5b43" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M154 338q-42 24-68-4" fill="none" stroke="#fff7f8" stroke-width="36" stroke-linecap="round"/>
+    <path d="M358 338q42 24 68-4" fill="none" stroke="#fff7f8" stroke-width="36" stroke-linecap="round"/>
+    <circle cx="336" cy="166" r="22" fill="#ff7898" stroke="#8b5b43" stroke-width="5"/><circle cx="364" cy="148" r="20" fill="#ffd65d" stroke="#8b5b43" stroke-width="5"/><circle cx="384" cy="176" r="20" fill="#ff91ad" stroke="#8b5b43" stroke-width="5"/>
+  </g>
+  <text x="256" y="486" text-anchor="middle" font-family="Verdana, sans-serif" font-size="42" font-weight="900" fill="#6b3e22">Lily</text>
+</svg>
