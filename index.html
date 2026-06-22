@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cats & Owl's Diary 2.0 - &#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;</title>
+    <title>Cats & Owl's Diary 3.0 - 小猫与猫头鹰的森林日记</title>
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./life.css" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
@@ -18,48 +19,49 @@
     </section>
 
     <main class="game-shell">
-      <section class="game-panel" aria-label="&#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;&#23567;&#28216;&#25103;">
+      <section class="game-panel" aria-label="森林学校帮帮忙小游戏">
         <div class="topbar">
           <div class="brand">
             <span class="brand-mark">C&O</span>
             <div>
-              <h1>Cats & Owl's Diary <span class="version-tag">2.0</span></h1>
-              <p>&#26862;&#26519;&#23398;&#26657;&#24110;&#24110;&#24537;</p>
+              <h1>Cats & Owl's Diary <span class="version-tag">3.0</span></h1>
+              <p>小猫与猫头鹰的森林日记</p>
             </div>
           </div>
           <div class="stats" aria-live="polite">
-            <span>&#26085;&#35760; <strong id="level">&#31532;&#19968;&#22825;</strong></span>
-            <span>&#29233;&#24515; <strong id="hearts">0</strong></span>
-            <span>&#26102;&#38388; <strong id="time">60</strong></span>
-            <span>&#20219;&#21153; <strong id="tasks">0/3</strong></span>
-            <span class="bag">&#32972;&#21253; <strong id="bag">空</strong></span>
+            <span>日记 <strong id="level">第一天</strong></span>
+            <span>爱心 <strong id="hearts">0</strong></span>
+            <span>时间 <strong id="time">60</strong></span>
+            <span>任务 <strong id="tasks">0/3</strong></span>
+            <span class="bag">背包 <strong id="bag">空</strong></span>
           </div>
-          <button id="soundBtn" class="sound-btn" type="button" aria-label="&#22768;&#38899;">&#9835;</button>
-          <button id="startBtn" type="button">&#24320;&#22987;</button>
+          <button id="soundBtn" class="sound-btn" type="button" aria-label="声音">♫</button>
+          <button id="startBtn" type="button">开始</button>
         </div>
 
         <div class="canvas-wrap">
           <canvas id="gameCanvas" width="960" height="540"></canvas>
-          <div id="message" class="message">&#24110;&#23567;&#29483;&#21644;&#29483;&#22836;&#40560;&#23436;&#25104;&#26862;&#26519;&#23398;&#26657;&#20219;&#21153;&#12290;</div>
+          <div id="message" class="message">帮小猫和猫头鹰完成森林学校任务。</div>
           <div id="quizPanel" class="quiz-panel" hidden>
             <div class="quiz-box">
-              <h2 id="quizTitle">&#26862;&#26519;&#35838;&#22530;</h2>
+              <h2 id="quizTitle">森林课堂</h2>
               <p id="quizQuestion"></p>
               <div id="quizOptions" class="quiz-options"></div>
             </div>
           </div>
         </div>
 
-        <div class="controls" aria-label="&#31227;&#21160;&#25353;&#38062;">
-          <button data-dir="left" type="button" aria-label="&#21521;&#24038;">&lsaquo;</button>
-          <button data-dir="up" type="button" aria-label="&#21521;&#19978;">&#8963;</button>
-          <button data-dir="down" type="button" aria-label="&#21521;&#19979;">&#8964;</button>
-          <button data-dir="right" type="button" aria-label="&#21521;&#21491;">&rsaquo;</button>
-          <button id="attackBtn" class="attack-btn" type="button" aria-label="&#25915;&#20987;">攻击</button>
+        <div class="controls" aria-label="移动按钮">
+          <button data-dir="left" type="button" aria-label="向左">&lsaquo;</button>
+          <button data-dir="up" type="button" aria-label="向上">⌃</button>
+          <button data-dir="down" type="button" aria-label="向下">⌄</button>
+          <button data-dir="right" type="button" aria-label="向右">&rsaquo;</button>
+          <button id="attackBtn" class="attack-btn" type="button" aria-label="攻击">攻击</button>
         </div>
       </section>
     </main>
 
     <script src="./game.js"></script>
+    <script src="./life.js"></script>
   </body>
 </html>
