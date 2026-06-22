@@ -1,36 +1,23 @@
-// V3.2 Cats & Owl's Diary NPC image assets, mobile touch and diary overlay
+// V3.2 Cats & Owl's Diary NPC SVG assets, mobile touch and diary overlay
 (() => {
   const NPC_ASSET_BASE = "./assets/npc/";
+  const makeNpc = (asset, icon, name, role, line) => ({ asset, image: `${NPC_ASSET_BASE}${asset}.svg`, icon, name, role, line });
 
   const WORLD_SCENES = [
-    { key: "school", icon: "🏫", name: "森林学校", desc: "小猫和猫头鹰开始写日记的地方。", line: "今天从森林学校出发，看看谁需要帮忙吧。", diary: "我们在森林学校整理了今天的计划，小猫负责发现故事，猫头鹰负责写进日记。", npcs: [npc("lily", "🐰", "Lily", "兔兔同学", "谢谢你陪我聊天！我们一起加油吧！"), npc("coco", "🐿️", "Coco", "松鼠同学", "我把橡果藏在教室旁边了。")] },
-    { key: "orchard", icon: "🍎", name: "苹果谷", desc: "收集苹果、勇气星和魔法铅笔。", line: "苹果谷有很多跳跳小路，慢慢来更安全。", diary: "今天我们在苹果谷帮助朋友收集苹果，风里都是甜甜的味道。", npcs: [npc("nono", "🦔", "Nono", "刺猬同学", "苹果太高了，我够不到。"), npc("bibi", "🐦", "Bibi", "小鸟同学", "我找到一片漂亮羽毛！")] },
-    { key: "lake", icon: "🌊", name: "月光湖", desc: "湖泊、荷叶、漂流瓶和萤火虫。", line: "月光湖边可能漂来新的日记页。", diary: "湖面亮晶晶的，我们捡到一张湿湿的日记页，猫头鹰把它小心夹进本子里。", npcs: [npc("dodo", "🦆", "Dodo", "小鸭朋友", "湖面上漂来了一页日记。"), npc("frogy", "🐸", "Frogy", "青蛙朋友", "呱！荷叶下面有秘密。")] },
-    { key: "wetland", icon: "🦆", name: "湿地公园", desc: "芦苇、木栈道和稀有鸟类。", line: "湿地公园要轻轻走，不要打扰休息的小鸟。", diary: "我们沿着湿地木栈道前进，看见白鹭从芦苇间飞过。", npcs: [npc("swan", "🦢", "Swan", "天鹅姐姐", "请安静一点，白鹭正在休息。"), npc("flora", "🦩", "Flora", "火烈鸟朋友", "我丢了一根粉色羽毛。")] },
-    { key: "swamp", icon: "🐸", name: "迷雾沼泽", desc: "发光蘑菇、浮桥和隐藏故事。", line: "迷雾沼泽有点神秘，猫头鹰会提醒小猫慢慢走。", diary: "沼泽里的雾像棉花一样飘着，我们听见了老乌龟讲很久以前的故事。", npcs: [npc("toto", "🐢", "Toto", "老乌龟", "慢慢走，沼泽里藏着古老故事。"), npc("mumu", "🍄", "Mumu", "发光蘑菇", "夜晚我会发光哦。")] },
-    { key: "road", icon: "🚗", name: "森林公路", desc: "未来跑酷玩法入口。", line: "森林公路以后可以做晨跑和躲避障碍小游戏。", diary: "今天我们看见一条通向远方的公路，也许下一次可以来一场森林晨跑。", npcs: [npc("buddy", "🐕", "Buddy", "跑步伙伴", "这里以后可以参加森林晨跑！"), npc("sign", "🚧", "Sign", "路牌", "小心树枝和滚木。")] },
-    { key: "town", icon: "🏙️", name: "橡果镇", desc: "动物城市、咖啡馆、邮局和小商店。", line: "橡果镇可以扩展服装、家具和装饰系统。", diary: "我们第一次来到橡果镇，街角的咖啡馆闻起来暖暖的。", npcs: [npc("bear", "🐻", "Bear", "咖啡馆老板", "欢迎来到橡果镇咖啡馆。"), npc("ruru", "🦝", "Ruru", "森林商人", "我的小店可以买装饰哦。") ] },
-    { key: "pier", icon: "🌉", name: "河畔码头", desc: "小船、桥梁、风车和漂流瓶。", line: "河畔码头以后可以坐船去新区域。", diary: "小船轻轻碰着码头，猫头鹰说河流也会把故事带到远方。", npcs: [npc("fifi", "🐟", "Fifi", "小鱼朋友", "河里有闪闪发光的东西。"), npc("boat", "🛶", "Boat", "小木船", "以后可以坐船去新地方。")] },
-    { key: "mountain", icon: "⛰️", name: "星光山", desc: "观星台、流星雨和最终日记。", line: "星光山适合放在后期，作为完成大日记后的奖励地图。", diary: "星光山上可以看到最亮的星星，我们约好完成更多日记后再回来。", npcs: [npc("ollie", "🦉", "Ollie", "猫头鹰好友", "这里可以看到最亮的星星。"), npc("star", "⭐", "Star", "星星", "完成日记后再回来吧。") ] },
+    { key: "school", icon: "🏫", name: "森林学校", desc: "小猫和猫头鹰开始写日记的地方。", line: "今天从森林学校出发，看看谁需要帮忙吧。", diary: "我们在森林学校整理了今天的计划，小猫负责发现故事，猫头鹰负责写进日记。", npcs: [makeNpc("lily", "🐰", "Lily", "兔兔同学", "谢谢你陪我聊天！我们一起加油吧！"), makeNpc("coco", "🐿️", "Coco", "松鼠同学", "我把橡果藏在教室旁边了。")] },
+    { key: "orchard", icon: "🍎", name: "苹果谷", desc: "收集苹果、勇气星和魔法铅笔。", line: "苹果谷有很多跳跳小路，慢慢来更安全。", diary: "今天我们在苹果谷帮助朋友收集苹果，风里都是甜甜的味道。", npcs: [makeNpc("nono", "🦔", "Nono", "刺猬同学", "苹果太高了，我够不到。"), makeNpc("bibi", "🐦", "Bibi", "小鸟同学", "我找到一片漂亮羽毛！")] },
+    { key: "lake", icon: "🌊", name: "月光湖", desc: "湖泊、荷叶、漂流瓶和萤火虫。", line: "月光湖边可能漂来新的日记页。", diary: "湖面亮晶晶的，我们捡到一张湿湿的日记页，猫头鹰把它小心夹进本子里。", npcs: [makeNpc("dodo", "🦆", "Dodo", "小鸭朋友", "湖面上漂来了一页日记。"), makeNpc("frogy", "🐸", "Frogy", "青蛙朋友", "呱！荷叶下面有秘密。")] },
+    { key: "wetland", icon: "🦆", name: "湿地公园", desc: "芦苇、木栈道和稀有鸟类。", line: "湿地公园要轻轻走，不要打扰休息的小鸟。", diary: "我们沿着湿地木栈道前进，看见白鹭从芦苇间飞过。", npcs: [makeNpc("swan", "🦢", "Swan", "天鹅姐姐", "请安静一点，白鹭正在休息。"), makeNpc("flora", "🦩", "Flora", "火烈鸟朋友", "我丢了一根粉色羽毛。")] },
+    { key: "swamp", icon: "🐸", name: "迷雾沼泽", desc: "发光蘑菇、浮桥和隐藏故事。", line: "迷雾沼泽有点神秘，猫头鹰会提醒小猫慢慢走。", diary: "沼泽里的雾像棉花一样飘着，我们听见了老乌龟讲很久以前的故事。", npcs: [makeNpc("toto", "🐢", "Toto", "老乌龟", "慢慢走，沼泽里藏着古老故事。"), makeNpc("mumu", "🍄", "Mumu", "发光蘑菇", "夜晚我会发光哦。 ")] },
+    { key: "road", icon: "🚗", name: "森林公路", desc: "未来跑酷玩法入口。", line: "森林公路以后可以做晨跑和躲避障碍小游戏。", diary: "今天我们看见一条通向远方的公路，也许下一次可以来一场森林晨跑。", npcs: [makeNpc("buddy", "🐕", "Buddy", "跑步伙伴", "这里以后可以参加森林晨跑！"), makeNpc("sign", "🚧", "Sign", "路牌", "小心树枝和滚木。 ")] },
+    { key: "town", icon: "🏙️", name: "橡果镇", desc: "动物城市、咖啡馆、邮局和小商店。", line: "橡果镇可以扩展服装、家具和装饰系统。", diary: "我们第一次来到橡果镇，街角的咖啡馆闻起来暖暖的。", npcs: [makeNpc("bear", "🐻", "Bear", "咖啡馆老板", "欢迎来到橡果镇咖啡馆。"), makeNpc("ruru", "🦝", "Ruru", "森林商人", "我的小店可以买装饰哦。 ")] },
+    { key: "pier", icon: "🌉", name: "河畔码头", desc: "小船、桥梁、风车和漂流瓶。", line: "河畔码头以后可以坐船去新区域。", diary: "小船轻轻碰着码头，猫头鹰说河流也会把故事带到远方。", npcs: [makeNpc("fifi", "🐟", "Fifi", "小鱼朋友", "河里有闪闪发光的东西。"), makeNpc("boat", "🛶", "Boat", "小木船", "以后可以坐船去新地方。 ")] },
+    { key: "mountain", icon: "⛰️", name: "星光山", desc: "观星台、流星雨和最终日记。", line: "星光山适合放在后期，作为完成大日记后的奖励地图。", diary: "星光山上可以看到最亮的星星，我们约好完成更多日记后再回来。", npcs: [makeNpc("ollie", "🦉", "Ollie", "猫头鹰好友", "这里可以看到最亮的星星。"), makeNpc("star", "⭐", "Star", "星星", "完成日记后再回来吧。 ")] },
   ];
 
-  const buddyLines = [
-    "小猫：猫头鹰，我们今天写什么日记呀？",
-    "猫头鹰：每一天都值得被记录。",
-    "小猫：森林里好像有新发现！",
-    "猫头鹰：我已经准备好日记本了。",
-    "小猫：我们一起去帮助朋友吧！",
-  ];
-
+  const buddyLines = ["小猫：猫头鹰，我们今天写什么日记呀？", "猫头鹰：每一天都值得被记录。", "小猫：森林里好像有新发现！", "猫头鹰：我已经准备好日记本了。", "小猫：我们一起去帮助朋友吧！"];
   const prefersTouch = matchMedia("(hover: none), (pointer: coarse)").matches;
-
-  function npc(asset, icon, name, role, line) {
-    return { asset, image: `${NPC_ASSET_BASE}${asset}.png`, icon, name, role, line };
-  }
-
-  function $(selector) {
-    return document.querySelector(selector);
-  }
+  const $ = (selector) => document.querySelector(selector);
 
   function bindTap(element, handler) {
     if (!element) return;
@@ -69,8 +56,8 @@
     bubble.style.left = `${Math.max(24, Math.min(window.innerWidth - 24, x))}px`;
     bubble.style.top = `${Math.max(96, Math.min(window.innerHeight - 16, y))}px`;
     bubble.classList.add("is-showing");
-    window.clearTimeout(bubble._timer);
-    bubble._timer = window.setTimeout(() => bubble.classList.remove("is-showing"), 2600);
+    clearTimeout(bubble._timer);
+    bubble._timer = setTimeout(() => bubble.classList.remove("is-showing"), 2600);
   }
 
   function sparkle(x, y) {
@@ -81,7 +68,7 @@
       s.style.left = `${x + index * 20 - 20}px`;
       s.style.top = `${y - index * 6}px`;
       document.body.appendChild(s);
-      window.setTimeout(() => s.remove(), 1100);
+      setTimeout(() => s.remove(), 1100);
     });
   }
 
@@ -94,8 +81,8 @@
     }
     toast.textContent = `📔 ${text}`;
     toast.classList.add("is-showing");
-    window.clearTimeout(toast._timer);
-    toast._timer = window.setTimeout(() => toast.classList.remove("is-showing"), 4200);
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove("is-showing"), 4200);
   }
 
   function showNpcModal(npc, scene) {
@@ -106,15 +93,7 @@
       modal.setAttribute("aria-label", "NPC 对话");
       document.body.appendChild(modal);
     }
-    modal.innerHTML = `
-      <div class="npc-modal-card">
-        <div class="npc-modal-heart">❤️ 好感度 +1</div>
-        <div class="npc-modal-avatar" aria-hidden="true">${npcAvatarHtml(npc, "modal")}</div>
-        <h3>${npc.name}</h3>
-        <p class="npc-modal-role">${npc.role} · ${scene.name}</p>
-        <p class="npc-modal-line">${npc.line}</p>
-        <button class="npc-modal-close" type="button">知道了</button>
-      </div>`;
+    modal.innerHTML = `<div class="npc-modal-card"><div class="npc-modal-heart">❤️ 好感度 +1</div><div class="npc-modal-avatar" aria-hidden="true">${npcAvatarHtml(npc, "modal")}</div><h3>${npc.name}</h3><p class="npc-modal-role">${npc.role} · ${scene.name}</p><p class="npc-modal-line">${npc.line}</p><button class="npc-modal-close" type="button">知道了</button></div>`;
     modal.classList.add("is-open");
     sparkle(window.innerWidth / 2, window.innerHeight / 2);
     bindTap(modal.querySelector(".npc-modal-close"), () => modal.classList.remove("is-open"));
@@ -130,9 +109,7 @@
       const card = document.createElement("button");
       card.className = "npc-chip";
       card.type = "button";
-      card.innerHTML = `
-        <span class="npc-chip-avatar">${npcAvatarHtml(npc)}</span>
-        <span><strong>${npc.name}</strong><small>${npc.role}</small></span>`;
+      card.innerHTML = `<span class="npc-chip-avatar">${npcAvatarHtml(npc)}</span><span><strong>${npc.name}</strong><small>${npc.role}</small></span>`;
       bindTap(card, (event) => {
         const rect = card.getBoundingClientRect();
         showBubble(npc.line, rect.left + rect.width / 2, rect.top + 8);
@@ -148,7 +125,6 @@
 
   function createWorldPanel() {
     if ($("#worldPanel")) return;
-
     const openBtn = document.createElement("button");
     openBtn.className = "world-fab";
     openBtn.type = "button";
@@ -159,12 +135,7 @@
     panel.id = "worldPanel";
     panel.className = "world-panel";
     panel.setAttribute("aria-label", "Cats & Owl's Diary 世界地图");
-    panel.innerHTML = `
-      <button class="world-close" type="button" aria-label="关闭世界地图">×</button>
-      <h2>小猫与猫头鹰的世界地图</h2>
-      <div class="world-grid"></div>
-      <p class="world-note">点击场景看故事，点击动物头像对话。把 PNG 放进 <code>assets/npc/</code> 后会自动替换头像。</p>
-      <p class="npc-asset-guide">V3.2 已支持 NPC 图片资产：lily.png、coco.png、nono.png、dodo.png、ruru.png...</p>`;
+    panel.innerHTML = `<button class="world-close" type="button" aria-label="关闭世界地图">×</button><h2>小猫与猫头鹰的世界地图</h2><div class="world-grid"></div><p class="world-note">点击场景看故事，点击动物头像对话。V3.2 已加入第一批正式 SVG 角色资产。</p>`;
     document.body.appendChild(panel);
 
     const grid = panel.querySelector(".world-grid");
@@ -172,10 +143,7 @@
       const card = document.createElement("button");
       card.className = "world-card";
       card.type = "button";
-      card.innerHTML = `
-        <div class="world-card-art" aria-hidden="true"><span>${scene.icon}</span></div>
-        <div class="world-card-name">${scene.name}</div>
-        <div class="world-card-desc">${scene.desc}</div>`;
+      card.innerHTML = `<div class="world-card-art" aria-hidden="true"><span>${scene.icon}</span></div><div class="world-card-name">${scene.name}</div><div class="world-card-desc">${scene.desc}</div>`;
       createNpcStrip(scene, card);
       bindTap(card, () => {
         const rect = card.getBoundingClientRect();
@@ -213,7 +181,7 @@
     const tasks = $("#tasks");
     if (!level || !tasks) return;
     let last = `${level.textContent}-${tasks.textContent}`;
-    window.setInterval(() => {
+    setInterval(() => {
       const current = `${level.textContent}-${tasks.textContent}`;
       if (current !== last) {
         last = current;
@@ -231,9 +199,6 @@
     hookDiaryProgress();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initLifeOverlay);
-  } else {
-    initLifeOverlay();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initLifeOverlay);
+  else initLifeOverlay();
 })();
