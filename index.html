@@ -7,6 +7,13 @@
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css" />
     <link rel="stylesheet" href="./life.css" />
+    <style>
+      .npc-chip-avatar img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: block; }
+      .npc-modal-avatar img { width: 92px; height: 92px; border-radius: 50%; object-fit: cover; display: block; }
+      .npc-chip-avatar-image-wrap .npc-chip-avatar-fallback, .npc-modal-avatar-image-wrap .npc-modal-avatar-fallback { display: none; }
+      .npc-chip-avatar-image-wrap.is-broken img, .npc-modal-avatar-image-wrap.is-broken img { display: none; }
+      .npc-chip-avatar-image-wrap.is-broken .npc-chip-avatar-fallback, .npc-modal-avatar-image-wrap.is-broken .npc-modal-avatar-fallback { display: grid; place-items: center; }
+    </style>
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
