@@ -1,17 +1,17 @@
-/* V0.2+ Character life and world UI overlay for Cats & Owl's Diary */
+/* V3.1 Character life, mobile touch and NPC world UI for Cats & Owl's Diary */
 .life-bubble {
   position: fixed;
-  max-width: min(260px, calc(100vw - 48px));
+  max-width: min(280px, calc(100vw - 48px));
   padding: 10px 14px;
   border: 3px solid rgba(139, 91, 43, 0.22);
   border-radius: 18px;
-  background: rgba(255, 248, 236, 0.96);
+  background: rgba(255, 248, 236, 0.97);
   color: #5b3212;
   font-weight: 900;
   font-size: 14px;
   line-height: 1.45;
   box-shadow: 0 12px 28px rgba(39, 65, 52, 0.22);
-  z-index: 35;
+  z-index: 65;
   pointer-events: none;
   transform: translate(-50%, -100%) scale(0.88);
   opacity: 0;
@@ -25,7 +25,7 @@
 
 .life-sparkle {
   position: fixed;
-  z-index: 36;
+  z-index: 66;
   pointer-events: none;
   font-size: 24px;
   animation: lifeSparkleFly 1.05s ease forwards;
@@ -39,31 +39,36 @@
 .world-fab {
   position: fixed;
   right: clamp(12px, 3vw, 28px);
-  bottom: clamp(82px, 10vw, 108px);
-  z-index: 30;
-  min-height: 46px;
-  padding: 0 16px;
+  bottom: max(88px, env(safe-area-inset-bottom, 0px) + 86px);
+  z-index: 50;
+  min-width: 124px;
+  min-height: 52px;
+  padding: 0 18px;
   border-radius: 999px;
-  border: 3px solid rgba(255, 247, 223, 0.88);
+  border: 3px solid rgba(255, 247, 223, 0.9);
   background: linear-gradient(180deg, #fff18a, #ffd75e);
   color: #5b3212;
   font-weight: 900;
   box-shadow: 0 12px 26px rgba(39, 65, 52, 0.22);
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .world-panel {
   position: fixed;
-  inset: clamp(10px, 4vw, 38px);
-  z-index: 40;
+  inset: max(10px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
+  z-index: 60;
   display: none;
   padding: clamp(16px, 3vw, 26px);
   border-radius: 28px;
   border: 4px solid rgba(255, 247, 223, 0.92);
   background:
-    radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.8), transparent 18rem),
-    linear-gradient(145deg, rgba(255, 248, 236, 0.98), rgba(223, 244, 211, 0.96));
+    radial-gradient(circle at 14% 10%, rgba(255, 255, 255, 0.82), transparent 18rem),
+    linear-gradient(145deg, rgba(255, 248, 236, 0.99), rgba(223, 244, 211, 0.97));
   box-shadow: 0 26px 70px rgba(39, 65, 52, 0.32);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .world-panel.is-open {
@@ -71,7 +76,7 @@
 }
 
 .world-panel h2 {
-  margin: 0 0 16px;
+  margin: 0 48px 16px;
   text-align: center;
   color: #3f8a2f;
   font-size: clamp(22px, 4vw, 34px);
@@ -81,41 +86,59 @@
   position: absolute;
   right: 18px;
   top: 16px;
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   background: #ffd6d6;
   color: #7a3b1d;
+  font-size: 24px;
   font-weight: 900;
   box-shadow: 0 8px 18px rgba(39, 65, 52, 0.16);
+  touch-action: manipulation;
 }
 
 .world-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .world-card {
-  min-height: 138px;
+  min-height: 196px;
   padding: 13px;
-  border-radius: 22px;
+  border-radius: 24px;
   border: 3px solid rgba(79, 139, 56, 0.16);
-  background: rgba(255, 255, 255, 0.76);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,248,236,0.82));
   box-shadow: 0 10px 24px rgba(70, 110, 70, 0.13);
   color: #34563e;
   text-align: center;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  touch-action: manipulation;
 }
 
 .world-card:hover,
-.world-card:focus-visible {
-  transform: translateY(-5px) scale(1.02);
+.world-card:focus-visible,
+.world-card:active {
+  transform: translateY(-4px) scale(1.015);
   box-shadow: 0 16px 30px rgba(70, 110, 70, 0.2);
 }
 
-.world-card-icon {
-  font-size: 40px;
+.world-card-art {
+  width: 74px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 8px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.88), transparent 38%),
+    linear-gradient(145deg, #b8ecff, #dff4d3);
+  box-shadow: inset 0 -5px 0 rgba(70, 110, 70, 0.12), 0 8px 18px rgba(70, 110, 70, 0.12);
+}
+
+.world-card-art span {
+  font-size: 42px;
 }
 
 .world-card-name {
@@ -125,10 +148,67 @@
 }
 
 .world-card-desc {
+  min-height: 32px;
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.35;
   color: #406b54;
+}
+
+.npc-strip {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.npc-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 2px solid rgba(139, 91, 43, 0.14);
+  background: rgba(255, 248, 236, 0.9);
+  color: #5b3212;
+  text-align: left;
+  box-shadow: 0 6px 12px rgba(70, 110, 70, 0.08);
+  touch-action: manipulation;
+}
+
+.npc-chip:active {
+  transform: scale(0.98);
+}
+
+.npc-chip-avatar {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, #ffeec7);
+  font-size: 24px;
+}
+
+.npc-chip strong,
+.npc-chip small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.npc-chip strong {
+  font-size: 12px;
+}
+
+.npc-chip small {
+  color: #7b6546;
+  font-size: 10px;
 }
 
 .world-note {
@@ -141,8 +221,8 @@
 .diary-toast {
   position: fixed;
   left: 50%;
-  top: 18px;
-  z-index: 34;
+  top: max(18px, env(safe-area-inset-top, 0px) + 12px);
+  z-index: 64;
   max-width: min(520px, calc(100vw - 36px));
   padding: 12px 16px;
   border-radius: 18px;
@@ -163,18 +243,129 @@
   transform: translate(-50%, 0);
 }
 
+.npc-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  background: rgba(36, 65, 52, 0.42);
+}
+
+.npc-modal.is-open {
+  display: grid;
+}
+
+.npc-modal-card {
+  width: min(340px, calc(100vw - 36px));
+  border-radius: 28px;
+  border: 4px solid rgba(255, 247, 223, 0.92);
+  background: linear-gradient(180deg, #fff8ec, #fff3d0);
+  color: #5b3212;
+  text-align: center;
+  padding: 22px;
+  box-shadow: 0 26px 60px rgba(39, 65, 52, 0.34);
+}
+
+.npc-modal-heart {
+  color: #e84b3f;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.npc-modal-avatar {
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 8px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, #fff, #ffe6aa);
+  box-shadow: inset 0 -8px 0 rgba(139, 91, 43, 0.08), 0 10px 20px rgba(70, 110, 70, 0.16);
+  font-size: 58px;
+}
+
+.npc-modal-card h3 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.npc-modal-role {
+  margin: 5px 0 12px;
+  color: #7b6546;
+  font-weight: 800;
+}
+
+.npc-modal-line {
+  margin: 0 0 18px;
+  line-height: 1.55;
+  font-weight: 900;
+}
+
+.npc-modal-close {
+  min-width: 128px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ff8f8f, #f45d68);
+  color: white;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(232, 75, 63, 0.25);
+  touch-action: manipulation;
+}
+
+@media (max-width: 920px) {
+  .world-fab {
+    bottom: max(92px, env(safe-area-inset-bottom, 0px) + 92px);
+  }
+}
+
 @media (max-width: 760px) {
+  .world-panel {
+    border-radius: 20px;
+    padding: 14px;
+  }
+
+  .world-panel h2 {
+    margin: 4px 52px 12px 6px;
+    text-align: left;
+    font-size: 22px;
+  }
+
   .world-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .world-card {
-    min-height: 126px;
+    min-height: 150px;
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    column-gap: 10px;
+    align-items: center;
+    text-align: left;
+  }
+
+  .world-card-art {
+    grid-row: span 3;
+    margin: 0;
+  }
+
+  .world-card-name,
+  .world-card-desc,
+  .npc-strip {
+    grid-column: 2;
+  }
+
+  .npc-strip {
+    justify-content: flex-start;
   }
 
   .world-fab {
-    bottom: 84px;
     right: 12px;
+    min-width: 112px;
+    min-height: 50px;
     font-size: 14px;
   }
 }
