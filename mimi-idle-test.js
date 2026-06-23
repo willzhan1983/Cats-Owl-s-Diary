@@ -1,34 +1,21 @@
-// Mimi render - FORCE PNG ONLY (minimal safe version)
 (() => {
   const img = new Image();
-  img.src = "./assets/asset-pack-01/characters/mimi/idle.png?v=999";
+  img.src = "./assets/asset-pack-01/characters/mimi/idle.png?v=10";
 
-  const original = window.drawPlayer;
-  if (!original) return;
+  function tryDraw() {
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas?.getContext("2d");
+    if (!ctx) return;
 
-  window.drawPlayer = function () {
-    try {
-      if (typeof selectedRole !== "undefined" && selectedRole === "owl") {
-        return original();
-      }
+    // 直接在画布左下角测试显示（避免找 drawPlayer）
+    img.onload = () => {
+      setInterval(() => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (!img.complete || !img.naturalWidth || !state || !state.player || !ctx) {
-        return original();
-      }
+        ctx.drawImage(img, 100, 200, 120, 120);
+      }, 1000);
+    };
+  }
 
-      const p = state.player;
-
-      ctx.save();
-      ctx.translate(p.x, p.y);
-
-      if (p.dir < 0) ctx.scale(-1, 1);
-
-      // NO shadow, NO animation, PURE TEST
-      ctx.drawImage(img, -44, -88, 88, 88);
-
-      ctx.restore();
-    } catch (e) {
-      return original();
-    }
-  };
+  tryDraw();
 })();
