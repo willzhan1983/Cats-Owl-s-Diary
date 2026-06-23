@@ -5,7 +5,7 @@
 (() => {
   const mimiIdle = new Image();
   mimiIdle.decoding = "async";
-  mimiIdle.src = "./assets/asset-pack-01/characters/mimi/idle-white-v4.svg?v=1";
+  mimiIdle.src = "./assets/asset-pack-01/characters/mimi/idle.png?v=7";
 
   const originalDrawPlayer = typeof drawPlayer === "function" ? drawPlayer : null;
   if (!originalDrawPlayer) return;
