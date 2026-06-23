@@ -1038,7 +1038,10 @@ function drawBackground() {
   const image = gameEntered ? ensureBackground(levels[state.levelIndex].bg) : null;
   if (image && image.complete && image.naturalWidth) {
     ctx.save();
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const img = new Image();
+img.src = "./assets/asset-pack-01/characters/mimi/idle.png";
+
+ctx.drawImage(img, p.x - 44, p.y - 88, 88, 88);
     ctx.restore();
   } else {
     drawTree(90, 135, 1.15);
