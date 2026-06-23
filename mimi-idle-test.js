@@ -1,24 +1,22 @@
-// Safe Mimi idle PNG render test - V2
+// Safe Mimi idle SVG render test - V4
 // Only replaces the visible cat player render.
 // Falls back to original drawPlayer if anything fails.
 
 (() => {
   const mimiIdle = new Image();
   mimiIdle.decoding = "async";
-  mimiIdle.src = "./assets/asset-pack-01/characters/mimi/idle.png?v=3";
+  mimiIdle.src = "./assets/asset-pack-01/characters/mimi/idle-white-v4.svg?v=1";
 
   const originalDrawPlayer = typeof drawPlayer === "function" ? drawPlayer : null;
   if (!originalDrawPlayer) return;
 
   drawPlayer = function drawPlayerWithMimiIdleTest() {
     try {
-      // Keep the original render when Owlly is selected.
       if (typeof selectedRole !== "undefined" && selectedRole === "owl") {
         originalDrawPlayer();
         return;
       }
 
-      // Fall back until the image/runtime is ready.
       if (!mimiIdle.complete || !mimiIdle.naturalWidth || !state || !state.player || !ctx) {
         originalDrawPlayer();
         return;
@@ -35,21 +33,21 @@
 
       if (p.dir < 0) ctx.scale(-1, 1);
 
-      // Contact shadow for stronger grounding.
+      // Grounding contact shadow.
       ctx.save();
-      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
       ctx.beginPath();
-      ctx.ellipse(2, 22, 20, 7, 0, 0, Math.PI * 2);
+      ctx.ellipse(2, 24, 22, 7, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
-      // Slight squash gives the sprite more weight.
+      // Small squash for weight and a less flat sticker feel.
       ctx.save();
-      ctx.scale(1.02, 0.98);
+      ctx.scale(1.03, 0.98);
 
-      const width = 84;
-      const height = 84;
-      const yFix = -68;
+      const width = 90;
+      const height = 90;
+      const yFix = -72;
 
       ctx.drawImage(mimiIdle, -width / 2, yFix, width, height);
       ctx.restore();
