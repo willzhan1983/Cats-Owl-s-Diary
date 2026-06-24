@@ -2690,11 +2690,14 @@ function drawShadow(x, y, w, h) {
   ctx.fill();
 }
 
-function loop(now) {
-  const dt = Math.min(0.033, (now - lastFrame) / 1000);
-  lastFrame = now;
-  update(dt);
-  draw();
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!state || !state.player) return;
+
+  state.player.step += 0.05;
+
+  drawPlayer();
   requestAnimationFrame(loop);
 }
 
