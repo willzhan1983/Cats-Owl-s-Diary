@@ -2909,3 +2909,4 @@ if (new URLSearchParams(window.location.search).get("play") === "1") {
   preloadNearbyBackgrounds(initialLevel);
 }
 requestAnimationFrame(loop);
+startGame();
