@@ -40,8 +40,102 @@ const backgroundSources = {
   pondSide: "./assets/v2/v2-bg-pond.png",
   wetland: "./assets/v2/v2-bg-wetland.png",
   swampBoss: "./assets/v2/v2-bg-swamp-boss.png",
+  forestSchool: "./assets/bg/forest_school.png",
+  riverTown: "./assets/bg/river_town.png",
+  darkSwamp: "./assets/bg/dark_swamp.png",
 };
+
+const backgroundSourceCandidates = {
+  forestSchool: ["./assets/bg/forest_school.png", "./assets/bg/forest_school.jpg", "./assets/bg-level1-schoolyard.png"],
+  riverTown: ["./assets/bg/river_town.png", "./assets/bg/river_town.jpg", "./assets/v2/v2-bg-pond.png"],
+  darkSwamp: ["./assets/bg/dark_swamp.png", "./assets/bg/dark_swamp.jpg", "./assets/v2/v2-bg-swamp-boss.png"],
+};
+
 const backgrounds = {};
+const backgroundCandidateIndex = {};
+const characterSheet = new Image();
+characterSheet.decoding = "async";
+characterSheet.src = "./assets/v2/v2-main-character-spritesheet-3d-clean.png";
+
+function mappedImage(src) {
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+  return image;
+}
+
+const CHARACTER_REGISTRY = {
+  mimi: {
+    id: "mimi",
+    name: "Mimi",
+    role: "player",
+    species: "white_cat",
+    asset: "./assets/characters/mimi_idle.png",
+    image: mappedImage("./assets/characters/mimi_idle.png"),
+  },
+  owlly: {
+    id: "owlly",
+    name: "Owlly",
+    role: "companion",
+    species: "owl",
+    asset: "./assets/characters/owlly_idle.png",
+    image: mappedImage("./assets/characters/owlly_idle.png"),
+  },
+  blackBear: {
+    id: "blackBear",
+    name: "Black Bear",
+    role: "boss",
+    species: "bear",
+    asset: "./assets/characters/black_bear.png",
+    image: mappedImage("./assets/characters/black_bear.png"),
+  },
+};
+
+const TASK_TYPES = {
+  FETCH_ITEM: "fetch_item",
+  HELP_NPC: "help_npc",
+  SIMPLE_PUZZLE: "simple_puzzle",
+  BOSS_FIGHT: "boss_fight",
+};
+
+const NPC_REGISTRY = {
+  deer: { id: "deer", displayName: "\u5c0f\u9e7f", renderer: drawDeer, world: "forest_school" },
+  squirrel: { id: "squirrel", displayName: "\u677e\u9f20", renderer: drawSquirrel, world: "forest_school" },
+  rabbit: { id: "rabbit", displayName: "\u5154\u8001\u5e08", renderer: drawRabbit, world: "forest_school" },
+  ant: { id: "ant", displayName: "\u8682\u8681", renderer: drawAnt, world: "forest_school" },
+  butterfly: { id: "butterfly", displayName: "\u8774\u8776", renderer: drawButterfly, world: "forest_school" },
+  fox: { id: "fox", displayName: "\u5c0f\u72d0", renderer: drawFox, world: "river_town" },
+  firefly: { id: "firefly", displayName: "\u8424\u706b\u866b", renderer: drawFirefly, world: "river_town" },
+  hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
+  owl: { id: "owl", displayName: "Owlly", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
+  boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
+};
+
+const WORLD_MAP = {
+  forest_school: {
+    id: "forest_school",
+    name: "Forest School",
+    background: "forestSchool",
+    levels: [0, 1, 3],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
+  river_town: {
+    id: "river_town",
+    name: "River Town",
+    background: "riverTown",
+    levels: [2, 4, 5],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
+  dark_swamp: {
+    id: "dark_swamp",
+    name: "Dark Swamp",
+    background: "darkSwamp",
+    levels: [6],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.BOSS_FIGHT],
+    boss: "blackBear",
+  },
+};
+
 const dayNames = ["\u7b2c\u4e00\u5929", "\u7b2c\u4e8c\u5929", "\u7b2c\u4e09\u5929", "\u7b2c\u56db\u5929", "\u7b2c\u4e94\u5929", "\u7b2c\u516d\u5929", "\u7b2c\u4e03\u5929"];
 
 const keys = new Set();
@@ -62,16 +156,25 @@ const music = {
 
 function ensureBackground(key) {
   if (!key || backgrounds[key]) return backgrounds[key];
+  const candidates = backgroundSourceCandidates[key] || [backgroundSources[key]];
+  backgroundCandidateIndex[key] = 0;
   const image = new Image();
   image.decoding = "async";
-  image.src = backgroundSources[key];
+  image.onerror = () => {
+    const nextIndex = (backgroundCandidateIndex[key] || 0) + 1;
+    const nextSource = candidates[nextIndex];
+    if (!nextSource) return;
+    backgroundCandidateIndex[key] = nextIndex;
+    image.src = nextSource;
+  };
+  image.src = candidates[0];
   backgrounds[key] = image;
   return image;
 }
 
 function preloadNearbyBackgrounds(levelIndex) {
-  const current = levels[levelIndex]?.bg;
-  const next = levels[levelIndex + 1]?.bg;
+  const current = levelBackgroundKey(levels[levelIndex]);
+  const next = levelBackgroundKey(levels[levelIndex + 1]);
   ensureBackground(current);
   window.setTimeout(() => ensureBackground(next), 800);
 }
@@ -380,6 +483,43 @@ const levels = [
   },
 ];
 
+const LEVEL_WORLD_SEQUENCE = [
+  "forest_school",
+  "forest_school",
+  "river_town",
+  "forest_school",
+  "river_town",
+  "river_town",
+  "dark_swamp",
+];
+
+levels.forEach((level, index) => {
+  const worldId = level.world || LEVEL_WORLD_SEQUENCE[index] || "forest_school";
+  level.id = level.id || `day_${index + 1}`;
+  level.world = worldId;
+  level.worldName = WORLD_MAP[worldId]?.name || worldId;
+});
+
+function levelBackgroundKey(level) {
+  if (!level) return null;
+  return level.bg || WORLD_MAP[level.world]?.background;
+}
+
+function taskSystemType(kind) {
+  if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
+  if (kind === "quiz") return TASK_TYPES.SIMPLE_PUZZLE;
+  if (kind === "delivery") return TASK_TYPES.HELP_NPC;
+  return TASK_TYPES.FETCH_ITEM;
+}
+
+window.CATS_OWLS_GAME_DATA = Object.freeze({
+  WORLD_MAP,
+  CHARACTER_REGISTRY,
+  NPC_REGISTRY,
+  TASK_TYPES,
+  levels,
+});
+
 function item(x, y, type, label) {
   return { x, y, type, label, taken: false };
 }
@@ -438,6 +578,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
 
 function prepareTask(entry) {
   const task = { ...entry };
+  task.taskType = task.taskType || taskSystemType(task.kind);
+  task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
+  task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
   if (task.quizKey) task.quiz = randomQuiz(task.quizKey);
   return task;
 }
@@ -1035,13 +1178,10 @@ function drawBackground() {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const image = gameEntered ? ensureBackground(levels[state.levelIndex].bg) : null;
+  const image = gameEntered ? ensureBackground(levelBackgroundKey(levels[state.levelIndex])) : null;
   if (image && image.complete && image.naturalWidth) {
     ctx.save();
-    const img = new Image();
-img.src = "./assets/asset-pack-01/characters/mimi/idle.png";
-
-ctx.drawImage(img, p.x - 44, p.y - 88, 88, 88);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   } else {
     drawTree(90, 135, 1.15);
@@ -1497,6 +1637,11 @@ function drawBossProgress(progress) {
 }
 
 function drawAnimal(kind) {
+  const npc = NPC_REGISTRY[kind];
+  if (npc?.renderer) {
+    npc.renderer();
+    return;
+  }
   if (kind === "deer") drawDeer();
   else if (kind === "squirrel") drawSquirrel();
   else if (kind === "rabbit") drawRabbit();
@@ -1531,16 +1676,88 @@ function drawPlayer() {
   if (p.dir < 0) ctx.scale(-1, 1);
   drawShadow(2, 25, 58, 12);
   if (selectedRole === "owl") {
-    drawOwl(0, 2, 1.08, walk, speed);
+    drawOwl(0, 2, 1.08, walk, speed, p.step);
   } else {
-    drawCat(0, 0, walk, speed);
+    drawCat(0, 0, walk, speed, p.step);
   }
   ctx.restore();
 }
 
-function drawCat(x, y, walk = 0, speed = 0) {
+function isImageReady(image) {
+  return image.complete && image.naturalWidth > 0;
+}
+
+function drawCharacterAsset(characterId, width, height, y) {
+  const entry = CHARACTER_REGISTRY[characterId];
+  if (!entry || !isImageReady(entry.image)) return false;
+  ctx.drawImage(entry.image, -width / 2, y, width, height);
+  return true;
+}
+
+function v2SpriteFrame(role, speed, step = 0) {
+  const now = performance.now();
+  const attacking = state && now < state.attackCooldownUntil;
+  const moving = speed > 8;
+  if (role === "cat") {
+    if (attacking) return { row: 0, col: 6 };
+    if (moving) return { row: 1, col: Math.floor(step * 1.15) % 6 };
+    return { row: 0, col: Math.floor(now / 650) % 2 };
+  }
+  if (attacking) return { row: 2, col: 6 };
+  if (moving) return { row: 3, col: Math.floor(step * 1.05) % 6 };
+  return { row: 2, col: Math.floor(now / 700) % 2 };
+}
+
+function v2SpriteCrop(role, frame, cellW, cellH) {
+  const attacking = frame.col >= 6;
+  if (role === "cat") {
+    if (attacking) return { x: 4, y: 48, w: cellW - 8, h: cellH - 58 };
+    if (frame.row === 1) return { x: 20, y: 24, w: cellW - 40, h: cellH - 34 };
+    return { x: 26, y: 52, w: cellW - 52, h: cellH - 62 };
+  }
+  if (attacking) return { x: 4, y: 14, w: cellW - 8, h: cellH - 26 };
+  if (frame.row === 3) return { x: 20, y: 18, w: cellW - 40, h: cellH - 42 };
+  return { x: 24, y: 20, w: cellW - 48, h: cellH - 40 };
+}
+
+function drawV2CharacterSprite(role, speed, scale = 1, step = 0) {
+  if (!isImageReady(characterSheet)) return false;
+  const cellW = characterSheet.naturalWidth / 8;
+  const cellH = characterSheet.naturalHeight / 4;
+  const frame = v2SpriteFrame(role, speed, step);
+  const crop = v2SpriteCrop(role, frame, cellW, cellH);
+  const drawW = role === "cat" ? 70 * scale : 66 * scale;
+  const drawH = role === "cat" ? 94 * scale : 86 * scale;
+  const drawY = role === "cat" ? -72 * scale : -64 * scale;
+  const lean = clamp(speed / 260, 0, 1) * (role === "cat" ? 0.05 : 0.035);
+  ctx.save();
+  ctx.rotate(lean);
+  ctx.drawImage(
+    characterSheet,
+    frame.col * cellW + crop.x,
+    frame.row * cellH + crop.y,
+    crop.w,
+    crop.h,
+    -drawW / 2,
+    drawY,
+    drawW,
+    drawH
+  );
+  ctx.restore();
+  return true;
+}
+
+function drawCat(x, y, walk = 0, speed = 0, step = 0) {
   ctx.save();
   ctx.translate(x, y);
+  if (speed < 8 && drawCharacterAsset("mimi", 72, 92, -72)) {
+    ctx.restore();
+    return;
+  }
+  if (drawV2CharacterSprite("cat", speed, 1, step)) {
+    ctx.restore();
+    return;
+  }
   const wiggle = speed > 12 ? Math.sin(walk) * 1.2 : Math.sin(performance.now() / 520) * 0.55;
   const blink = speed > 90 && walk > 0.6;
   const face = ctx.createRadialGradient(-8, -20, 3, 0, -8, 36);
@@ -1654,10 +1871,18 @@ function drawCatBow(x, y, s) {
   ctx.restore();
 }
 
-function drawOwl(x, y, scale = 1, walk = 0, speed = 0) {
+function drawOwl(x, y, scale = 1, walk = 0, speed = 0, step = 0) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(scale, scale);
+  if (speed < 8 && drawCharacterAsset("owlly", 68, 86, -64)) {
+    ctx.restore();
+    return;
+  }
+  if (drawV2CharacterSprite("owl", speed, 1, step)) {
+    ctx.restore();
+    return;
+  }
   const flap = speed > 18 ? Math.sin(walk * 1.4) * 4 : Math.sin(performance.now() / 500) * 2;
   const owlBody = ctx.createRadialGradient(-8, -20, 4, 0, -4, 33);
   owlBody.addColorStop(0, "#68c94f");
@@ -2517,6 +2742,10 @@ function drawForestBoss() {
   const pulse = 1 + Math.sin(performance.now() / 260) * 0.03;
   ctx.save();
   ctx.scale(pulse, pulse);
+  if (drawCharacterAsset("blackBear", 128, 148, -66)) {
+    ctx.restore();
+    return;
+  }
   drawShadow(0, 82, 82, 17);
   const body = ctx.createRadialGradient(-18, -38, 8, 0, 8, 88);
   body.addColorStop(0, "#4b4039");
@@ -2690,14 +2919,11 @@ function drawShadow(x, y, w, h) {
   ctx.fill();
 }
 
-function loop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (!state || !state.player) return;
-
-  state.player.step += 0.05;
-
-  drawPlayer();
+function loop(now) {
+  const dt = Math.min(0.033, (now - lastFrame) / 1000);
+  lastFrame = now;
+  update(dt);
+  draw();
   requestAnimationFrame(loop);
 }
 
@@ -2912,4 +3138,3 @@ if (new URLSearchParams(window.location.search).get("play") === "1") {
   preloadNearbyBackgrounds(initialLevel);
 }
 requestAnimationFrame(loop);
-startGame();
