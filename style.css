@@ -59,7 +59,7 @@ button {
 
 .enter-btn {
   position: absolute;
-  left: 50%;
+  left: min(66%, calc(100% - 170px));
   bottom: clamp(24px, 6vw, 68px);
   transform: translateX(-50%);
   min-width: 176px;
@@ -76,7 +76,7 @@ button {
 
 .role-picker {
   position: absolute;
-  left: 50%;
+  left: min(66%, calc(100% - 170px));
   bottom: calc(clamp(24px, 6vw, 68px) + 76px);
   transform: translateX(-50%);
   display: flex;
@@ -657,6 +657,7 @@ button {
   }
 
   .enter-btn {
+    left: min(70%, calc(100% - 94px));
     bottom: max(12px, env(safe-area-inset-bottom));
     min-width: 136px;
     min-height: 42px;
@@ -665,6 +666,7 @@ button {
   }
 
   .role-picker {
+    left: min(70%, calc(100% - 112px));
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 54px);
     gap: 7px;
     padding: 6px;
