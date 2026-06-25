@@ -6,6 +6,7 @@
     <title>Cats & Owl's Diary 3.0 - 森林学校帮帮忙</title>
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./world-map.css" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
@@ -34,8 +35,11 @@
             <span>任务 <strong id="tasks">0/3</strong></span>
             <span class="bag">背包 <strong id="bag">空</strong></span>
           </div>
-          <button id="soundBtn" class="sound-btn" type="button" aria-label="声音">♫</button>
-          <button id="startBtn" type="button">开始</button>
+          <div class="topbar-actions">
+            <button id="worldMapBtn" class="map-btn" type="button" aria-haspopup="dialog">世界地图</button>
+            <button id="soundBtn" class="sound-btn" type="button" aria-label="声音">♫</button>
+            <button id="startBtn" type="button">开始</button>
+          </div>
         </div>
 
         <div class="canvas-wrap">
@@ -60,8 +64,25 @@
       </section>
     </main>
 
+    <section id="worldMapPanel" class="world-map-panel" role="dialog" aria-modal="true" aria-labelledby="worldMapTitle" hidden>
+      <div class="world-map-card">
+        <header class="world-map-header">
+          <div>
+            <h2 id="worldMapTitle">世界地图</h2>
+            <p>Mimi 和 Owlly 的冒险路线</p>
+          </div>
+          <button class="world-map-close" type="button" data-world-close aria-label="关闭世界地图">×</button>
+        </header>
+        <div class="world-map-content">
+          <div id="worldMapGrid" class="world-map-grid" aria-label="区域节点"></div>
+          <aside id="worldMapDetail" class="world-map-detail" aria-live="polite"></aside>
+        </div>
+      </div>
+    </section>
+
     <script src="./game.js"></script>
     <script src="./art-assets.js"></script>
     <script src="./life.js"></script>
+    <script src="./world-map.js"></script>
   </body>
 </html>
