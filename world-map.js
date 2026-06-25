@@ -242,21 +242,62 @@
     return values && values.length ? values.join("、") : "等待发现";
   }
 
+  function getTaskObjective(task) {
+    return task.objective || task.gameplay || "等待任务接入";
+  }
+
   function renderTaskList(tasks) {
     return tasks
       .map(
         (task) => `
-          <li>
-            <strong>${task.name}</strong>
-            <span>${getCharacterName(task.npc)} · ${task.gameplay} · 奖励：${task.reward}</span>
+          <li class="world-task-card">
+            <div class="world-task-title">
+              <strong>${task.name}</strong>
+              <code>${task.id}</code>
+            </div>
+            <dl class="world-task-meta">
+              <div><dt>NPC</dt><dd>${getCharacterName(task.npc)}</dd></div>
+              <div><dt>Objective</dt><dd>${getTaskObjective(task)}</dd></div>
+              <div><dt>Reward</dt><dd>${task.reward}</dd></div>
+            </dl>
           </li>
         `
       )
       .join("");
   }
 
+  function renderNpcList(npcs) {
+    return npcs
+      .map((id) => {
+        const character = CHARACTER_REGISTRY[id];
+        return `<li><strong>${getCharacterName(id)}</strong><span>${character?.role || "NPC"} · ${character?.description || "等待补充"}</span></li>`;
+      })
+      .join("");
+  }
+
   function renderReferenceList() {
     return VISUAL_REFERENCE_PLAN.files.map((file) => `<li>${file}</li>`).join("");
+  }
+
+  function renderMapOverview() {
+    const detail = document.getElementById("worldMapDetail");
+    if (!detail) return;
+
+    detail.innerHTML = `
+      <div class="world-detail-heading">
+        <span class="world-detail-emoji" aria-hidden="true">📖</span>
+        <div>
+          <h3>任务详情</h3>
+          <p>点击左侧区域，查看那一天的朋友和任务。</p>
+        </div>
+      </div>
+      <p class="world-detail-copy">这里是安全的世界地图资料面板，只展示后续关卡设计，不会切换当前游戏关卡。</p>
+      <section class="world-reference-section" aria-label="视觉参考计划">
+        <h4>视觉参考</h4>
+        <p>${VISUAL_REFERENCE_PLAN.note}</p>
+        <ul>${renderReferenceList()}</ul>
+      </section>
+    `;
   }
 
   function renderRegionDetail(regionId) {
@@ -265,6 +306,9 @@
     if (!detail || !region) return;
 
     detail.innerHTML = `
+      <div class="world-detail-actions">
+        <button type="button" class="world-detail-back" data-world-detail-back>返回地图</button>
+      </div>
       <div class="world-detail-heading">
         <span class="world-detail-emoji" aria-hidden="true">${region.emoji}</span>
         <div>
@@ -274,14 +318,18 @@
       </div>
       <p class="world-detail-copy">${region.description}</p>
       <dl class="world-detail-list">
-        <div><dt>核心朋友</dt><dd>${listText(region.npcs.map(getCharacterName))}</dd></div>
+        <div><dt>区域名称</dt><dd>${region.emoji} ${region.name}</dd></div>
+        <div><dt>Unlock status</dt><dd>${region.unlocked ? "已解锁 / Unlocked" : "未解锁 / Locked"}；${region.unlockCondition}</dd></div>
         <div><dt>解锁条件</dt><dd>${region.unlockCondition}</dd></div>
-        <div><dt>背景路径</dt><dd>${region.background}</dd></div>
-        <div><dt>路线</dt><dd>上一阶段：${region.previous}；下一阶段：${region.next}</dd></div>
-        <div><dt>相邻区域</dt><dd>${listText(region.neighbors.map((id) => WORLD_MAP[id]?.name || id))}</dd></div>
+        <div><dt>Background image path</dt><dd>${region.background}</dd></div>
+        <div><dt>Connected / next regions</dt><dd>${listText(region.neighbors.map((id) => WORLD_MAP[id]?.name || id))}；下一阶段：${region.next}</dd></div>
       </dl>
+      <section class="world-npc-section" aria-label="${region.name}NPC 列表">
+        <h4>NPC List</h4>
+        <ul>${renderNpcList(region.npcs)}</ul>
+      </section>
       <section class="world-task-section" aria-label="${region.name}任务表">
-        <h4>任务 V1</h4>
+        <h4>Task List</h4>
         <ul>${renderTaskList(region.tasks)}</ul>
       </section>
       <section class="world-reference-section" aria-label="视觉参考计划">
@@ -342,11 +390,11 @@
       const node = event.target.closest("[data-region]");
       if (!node) return;
       map.querySelectorAll("[data-region]").forEach((entry) => entry.setAttribute("aria-pressed", "false"));
-      node.setAttribute("aria-pressed", "true");
-      renderRegionDetail(node.dataset.region);
+        node.setAttribute("aria-pressed", "true");
+        renderRegionDetail(node.dataset.region);
     };
 
-    renderRegionDetail("forest_school");
+    renderMapOverview();
   }
 
   function openWorldMap() {
@@ -371,6 +419,10 @@
     });
     document.getElementById("worldMapPanel")?.addEventListener("click", (event) => {
       if (event.target.id === "worldMapPanel") closeWorldMap();
+      if (event.target.closest("[data-world-detail-back]")) {
+        document.querySelectorAll("#worldMapGrid [data-region]").forEach((entry) => entry.setAttribute("aria-pressed", "false"));
+        renderMapOverview();
+      }
     });
     window.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && !document.getElementById("worldMapPanel")?.hidden) closeWorldMap();
