@@ -1293,10 +1293,70 @@ function drawSceneObjects() {
 
 function drawObstacles() {
   for (const obstacle of state.obstacles) {
+    const artKey = ART_PACK_OBSTACLE_KEYS[obstacle.type];
+    if (artKey && drawObstacleArtPackImage(obstacle, artKey)) continue;
     if (obstacle.type === "pond") drawPond(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "bush") drawBush(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "pit") drawPit(obstacle.x, obstacle.y, obstacle.r);
   }
+}
+
+const ART_PACK_PROP_KEYS = {
+  apple: "apple",
+  book: "book",
+  guardBook: "guardBook",
+  courageStar: "courageStar",
+  potion: "potion",
+};
+
+const ART_PACK_OBSTACLE_KEYS = {
+  pond: "pond",
+  bush: "bush",
+  pit: "pit",
+  stump: "stump",
+  rock: "rock",
+};
+
+const ART_PACK_ITEM_BOUNDS = {
+  apple: { x: -24, y: -28, w: 48, h: 48 },
+  book: { x: -27, y: -29, w: 54, h: 54 },
+  guardBook: { x: -27, y: -29, w: 54, h: 54 },
+  courageStar: { x: -27, y: -29, w: 54, h: 54 },
+  potion: { x: -22, y: -30, w: 44, h: 54 },
+};
+
+const ART_PACK_OBSTACLE_BOUNDS = {
+  pond: (r) => ({ x: -r * 1.72, y: -r * 0.98, w: r * 3.44, h: r * 1.96 }),
+  bush: (r) => ({ x: -r * 1.08, y: -r * 0.96, w: r * 2.16, h: r * 1.92 }),
+  pit: (r) => ({ x: -r * 1.2, y: -r * 0.82, w: r * 2.4, h: r * 1.64 }),
+  stump: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
+  rock: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
+};
+
+function drawArtPackImage(category, key, x, y, w, h) {
+  const pack = window.CATS_OWLS_ART_PACK_01;
+  const image = pack?.get?.(category, key);
+  if (!image || !image.complete || image.naturalWidth <= 0) return false;
+  ctx.drawImage(image, x, y, w, h);
+  return true;
+}
+
+function drawObstacleArtPackImage(obstacle, key) {
+  const getBounds = ART_PACK_OBSTACLE_BOUNDS[key];
+  if (!getBounds) return false;
+  const bounds = getBounds(obstacle.r);
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  const drawn = drawArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h);
+  ctx.restore();
+  return drawn;
+}
+
+function drawItemArtPackImage(type) {
+  const key = ART_PACK_PROP_KEYS[type];
+  const bounds = ART_PACK_ITEM_BOUNDS[type];
+  if (!key || !bounds) return false;
+  return drawArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
 function drawPond(x, y, r) {
@@ -1529,6 +1589,7 @@ function drawCollectibles() {
 }
 
 function drawItem(type) {
+  if (drawItemArtPackImage(type)) return;
   if (type === "apple") drawApple();
   else if (type === "book") drawBook("#2f9dcc");
   else if (type === "pencil") drawPencil();
