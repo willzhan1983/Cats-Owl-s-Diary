@@ -1317,6 +1317,12 @@ const ART_PACK_OBSTACLE_KEYS = {
   rock: "rock",
 };
 
+const ART_PACK_NPC_KEYS = {
+  rabbit: "lily",
+  squirrel: "coco",
+  hedgehog: "nono",
+};
+
 const ART_PACK_ITEM_BOUNDS = {
   apple: { x: -24, y: -28, w: 48, h: 48 },
   book: { x: -27, y: -29, w: 54, h: 54 },
@@ -1331,6 +1337,12 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   pit: (r) => ({ x: -r * 1.2, y: -r * 0.82, w: r * 2.4, h: r * 1.64 }),
   stump: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
   rock: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
+};
+
+const ART_PACK_NPC_BOUNDS = {
+  rabbit: { x: -36, y: -55, w: 72, h: 88 },
+  squirrel: { x: -38, y: -55, w: 76, h: 88 },
+  hedgehog: { x: -38, y: -52, w: 76, h: 84 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
@@ -1357,6 +1369,13 @@ function drawItemArtPackImage(type) {
   const bounds = ART_PACK_ITEM_BOUNDS[type];
   if (!key || !bounds) return false;
   return drawArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
+}
+
+function drawNpcArtPackImage(kind) {
+  const key = ART_PACK_NPC_KEYS[kind];
+  const bounds = ART_PACK_NPC_BOUNDS[kind];
+  if (!key || !bounds) return false;
+  return drawArtPackImage("npc", key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
 function drawPond(x, y, r) {
@@ -1698,6 +1717,7 @@ function drawBossProgress(progress) {
 }
 
 function drawAnimal(kind) {
+  if (drawNpcArtPackImage(kind)) return;
   const npc = NPC_REGISTRY[kind];
   if (npc?.renderer) {
     npc.renderer();
@@ -2803,6 +2823,10 @@ function drawForestBoss() {
   const pulse = 1 + Math.sin(performance.now() / 260) * 0.03;
   ctx.save();
   ctx.scale(pulse, pulse);
+  if (drawArtPackImage("boss", "blackBear", -64, -66, 128, 148)) {
+    ctx.restore();
+    return;
+  }
   if (drawCharacterAsset("blackBear", 128, 148, -66)) {
     ctx.restore();
     return;
