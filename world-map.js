@@ -1,7 +1,7 @@
 (function () {
   const CHARACTER_REGISTRY = {
-    mimi: { name: "Mimi", role: "主角", description: "白色小猫，蓝色蝴蝶结，主控角色。" },
-    owlly: { name: "Owlly", role: "伙伴", description: "粉色猫头鹰，圆眼镜，日记伙伴和地图引导。" },
+    mimi: { name: "Mimi / 詹涞儿", role: "主角", description: "白色小猫，蓝色蝴蝶结，主控角色。" },
+    owlly: { name: "Owlly / 姚头鹰", role: "伙伴", description: "粉色猫头鹰，圆眼镜，日记伙伴和地图引导。" },
     lily: { name: "Lily", role: "NPC", description: "小兔子，森林学校与花园任务。" },
     coco: { name: "Coco", role: "NPC", description: "小松鼠，苹果谷与橡果任务。" },
     nono: { name: "Nono", role: "NPC", description: "小刺猬，图书、作业本、知识任务。" },

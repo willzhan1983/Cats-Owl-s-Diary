@@ -87,6 +87,11 @@ const PLAYER_DRAW_SIZE = {
   owl: { width: 78, height: 88, footOffsetY: 22 },
 };
 
+const PLAYER_DISPLAY_NAMES = {
+  cat: "Mimi / \u8a79\u6d9e\u513f",
+  owl: "Owlly / \u59da\u5934\u9e70",
+};
+
 const playerImages = {};
 
 function mappedImage(src) {
@@ -100,6 +105,7 @@ const CHARACTER_REGISTRY = {
   mimi: {
     id: "mimi",
     name: "Mimi",
+    displayName: "Mimi / \u8a79\u6d9e\u513f",
     role: "player",
     species: "white_cat",
     asset: "./assets/characters/mimi/idle.svg",
@@ -108,6 +114,7 @@ const CHARACTER_REGISTRY = {
   owlly: {
     id: "owlly",
     name: "Owlly",
+    displayName: "Owlly / \u59da\u5934\u9e70",
     role: "companion",
     species: "owl",
     asset: "./assets/characters/owlly/idle.svg",
@@ -139,7 +146,7 @@ const NPC_REGISTRY = {
   fox: { id: "fox", displayName: "\u5c0f\u72d0", renderer: drawFox, world: "river_town" },
   firefly: { id: "firefly", displayName: "\u8424\u706b\u866b", renderer: drawFirefly, world: "river_town" },
   hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
-  owl: { id: "owl", displayName: "Owlly", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
+  owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
 };
 
@@ -673,8 +680,8 @@ function enterGame() {
   gameEntered = true;
   preloadNearbyBackgrounds(state.levelIndex);
   homeScreen.classList.add("is-hidden");
-  const roleName = selectedRole === "owl" ? "\u732b\u5934\u9e70" : "\u5c0f\u732b";
-  messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c${roleName}\u4e00\u8d77\u51fa\u53d1\u3002`;
+  const roleName = PLAYER_DISPLAY_NAMES[selectedRole] || PLAYER_DISPLAY_NAMES.cat;
+  messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c ${roleName} \u4e00\u8d77\u51fa\u53d1\u3002`;
 }
 
 function initAudio() {
