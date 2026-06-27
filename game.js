@@ -1352,7 +1352,7 @@ const ART_PACK_PROP_KEYS = {
   leaf: "leafBroom",
   seed: "flowerSeeds",
   bell: "bell",
-  lantern: "hangingLantern",
+  lantern: "lantern",
   map: "map",
   guardBook: "guardBook",
   courageStar: "courageStar",
@@ -1401,6 +1401,7 @@ const ART_PACK_ITEM_BOUNDS = {
   leafLamp: { x: -17, y: -23, w: 34, h: 46 },
   hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
   flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
+  flowerBed: { x: -43, y: -18, w: 86, h: 36 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
