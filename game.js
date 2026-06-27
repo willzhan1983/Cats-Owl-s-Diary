@@ -74,7 +74,7 @@ const PLAYER_CHARACTER_ASSETS = {
     idle: ["./assets/characters/mimi/v5/idle.png"],
     walk: ["./assets/characters/mimi/v5/walk_1.png"],
     jump: [],
-    happy: ["./assets/characters/mimi/v5/happy.png"],
+    happy: [],
     sit: [],
     thinking: [],
     holdDiary: [],
