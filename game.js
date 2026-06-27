@@ -1352,12 +1352,16 @@ const ART_PACK_PROP_KEYS = {
   leaf: "leafBroom",
   seed: "flowerSeeds",
   bell: "bell",
-  lantern: "lantern",
+  lantern: "hangingLantern",
   map: "map",
   guardBook: "guardBook",
   courageStar: "courageStar",
   magicPencil: "magicPencil",
   potion: "potion",
+  treasureChest: "treasureChest",
+  leafLamp: "leafLamp",
+  hangingLantern: "hangingLantern",
+  flowerBulbLamp: "flowerBulbLamp",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -1374,6 +1378,12 @@ const ART_PACK_NPC_KEYS = {
   hedgehog: "nono",
 };
 
+const ART_PACK_SCENE_PROP_KEYS = {
+  chest: "treasureChest",
+  light: "leafLamp",
+  flower: "flowerBed",
+};
+
 const ART_PACK_ITEM_BOUNDS = {
   apple: { x: -24, y: -28, w: 48, h: 48 },
   book: { x: -27, y: -29, w: 54, h: 54 },
@@ -1387,6 +1397,10 @@ const ART_PACK_ITEM_BOUNDS = {
   courageStar: { x: -27, y: -29, w: 54, h: 54 },
   magicPencil: { x: -27, y: -13, w: 54, h: 26 },
   potion: { x: -22, y: -30, w: 44, h: 54 },
+  treasureChest: { x: -24, y: -20, w: 48, h: 40 },
+  leafLamp: { x: -17, y: -23, w: 34, h: 46 },
+  hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
+  flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -1450,6 +1464,16 @@ function drawNpcArtPackImage(kind) {
   const bounds = ART_PACK_NPC_BOUNDS[kind];
   if (!key || !bounds) return false;
   return drawArtPackImage("npc", key, bounds.x, bounds.y, bounds.w, bounds.h);
+}
+
+function drawScenePropArtPackImage(kind) {
+  const key = ART_PACK_SCENE_PROP_KEYS[kind];
+  const bounds = ART_PACK_ITEM_BOUNDS[key];
+  if (!key || !bounds) return false;
+  if (window.ART_ASSETS?.props?.[key]) {
+    return drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h);
+  }
+  return drawArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
 function drawPond(x, y, r) {
@@ -1792,6 +1816,7 @@ function drawBossProgress(progress) {
 
 function drawAnimal(kind) {
   if (drawNpcArtPackImage(kind)) return;
+  if (drawScenePropArtPackImage(kind)) return;
   const npc = NPC_REGISTRY[kind];
   if (npc?.renderer) {
     npc.renderer();
