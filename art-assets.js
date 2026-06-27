@@ -1,5 +1,27 @@
 (function () {
   window.ENABLE_ART_PACK_01 = window.ENABLE_ART_PACK_01 !== false;
+  window.ART_ASSETS = window.ART_ASSETS || {};
+
+  window.ART_ASSETS.props = {
+    leafBroom: "assets/props/leaf_broom.png",
+    flowerSeeds: "assets/props/flower_seeds.png",
+    pencil: "assets/props/pencil.png",
+    bell: "assets/props/bell.png",
+    leafLamp: "assets/props/leaf_lamp.png",
+    hangingLantern: "assets/props/hanging_lantern.png",
+    map: "assets/props/map.png",
+    treasureChest: "assets/props/treasure_chest.png",
+    magicPencil: "assets/props/magic_pencil.png",
+    flowerBulbLamp: "assets/props/flower_bulb_lamp.png",
+    flowerBed: "assets/props/flower_bed.png",
+    treeStringLights: "assets/props/tree_string_lights.png",
+    antLeaf: "assets/props/ant_leaf.png",
+    antStick: "assets/props/ant_stick.png",
+    antFlower: "assets/props/ant_flower.png",
+    puddle: "assets/props/puddle.png",
+    lampPost: "assets/props/lamp_post.png",
+    lantern: "assets/props/lantern.png",
+  };
 
   const registry = {
     npc: {
@@ -18,6 +40,24 @@
       guardBook: "./assets/asset-pack-01/props/guard-book.png",
       courageStar: "./assets/asset-pack-01/props/courage-star.png",
       potion: "./assets/asset-pack-01/props/potion.png",
+      leafBroom: window.ART_ASSETS.props.leafBroom,
+      flowerSeeds: window.ART_ASSETS.props.flowerSeeds,
+      pencil: window.ART_ASSETS.props.pencil,
+      bell: window.ART_ASSETS.props.bell,
+      leafLamp: window.ART_ASSETS.props.leafLamp,
+      hangingLantern: window.ART_ASSETS.props.hangingLantern,
+      map: window.ART_ASSETS.props.map,
+      treasureChest: window.ART_ASSETS.props.treasureChest,
+      magicPencil: window.ART_ASSETS.props.magicPencil,
+      flowerBulbLamp: window.ART_ASSETS.props.flowerBulbLamp,
+      flowerBed: window.ART_ASSETS.props.flowerBed,
+      treeStringLights: window.ART_ASSETS.props.treeStringLights,
+      antLeaf: window.ART_ASSETS.props.antLeaf,
+      antStick: window.ART_ASSETS.props.antStick,
+      antFlower: window.ART_ASSETS.props.antFlower,
+      puddle: window.ART_ASSETS.props.puddle,
+      lampPost: window.ART_ASSETS.props.lampPost,
+      lantern: window.ART_ASSETS.props.lantern,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
