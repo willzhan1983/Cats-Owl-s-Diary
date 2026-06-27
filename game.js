@@ -1358,6 +1358,10 @@ const ART_PACK_PROP_KEYS = {
   courageStar: "courageStar",
   magicPencil: "magicPencil",
   potion: "potion",
+  treasureChest: "treasureChest",
+  leafLamp: "leafLamp",
+  hangingLantern: "hangingLantern",
+  flowerBulbLamp: "flowerBulbLamp",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -1380,6 +1384,8 @@ const ART_PACK_NPC_KEYS = {
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
+  chest: "treasureChest",
+  light: "leafLamp",
   flower: "flowerBed",
 };
 
@@ -1396,6 +1402,10 @@ const ART_PACK_ITEM_BOUNDS = {
   courageStar: { x: -27, y: -29, w: 54, h: 54 },
   magicPencil: { x: -27, y: -13, w: 54, h: 26 },
   potion: { x: -22, y: -30, w: 44, h: 54 },
+  treasureChest: { x: -24, y: -20, w: 48, h: 40 },
+  leafLamp: { x: -17, y: -23, w: 34, h: 46 },
+  hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
+  flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
   flowerBed: { x: -43, y: -18, w: 86, h: 36 },
 };
 
