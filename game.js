@@ -1372,6 +1372,11 @@ const ART_PACK_NPC_KEYS = {
   rabbit: "lily",
   squirrel: "coco",
   hedgehog: "nono",
+  deer: "deer",
+  ant: "ant",
+  butterfly: "butterfly",
+  fox: "fox",
+  firefly: "firefly",
 };
 
 const ART_PACK_ITEM_BOUNDS = {
@@ -1401,6 +1406,11 @@ const ART_PACK_NPC_BOUNDS = {
   rabbit: { x: -36, y: -55, w: 72, h: 88 },
   squirrel: { x: -38, y: -55, w: 76, h: 88 },
   hedgehog: { x: -38, y: -52, w: 76, h: 84 },
+  deer: { x: -38, y: -66, w: 76, h: 104 },
+  ant: { x: -35, y: -58, w: 70, h: 92 },
+  butterfly: { x: -48, y: -62, w: 96, h: 98 },
+  fox: { x: -38, y: -62, w: 76, h: 100 },
+  firefly: { x: -40, y: -62, w: 80, h: 98 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
