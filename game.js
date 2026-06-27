@@ -1352,7 +1352,7 @@ const ART_PACK_PROP_KEYS = {
   leaf: "leafBroom",
   seed: "flowerSeeds",
   bell: "bell",
-  lantern: "hangingLantern",
+  lantern: "lantern",
   map: "map",
   guardBook: "guardBook",
   courageStar: "courageStar",
@@ -1411,7 +1411,7 @@ function drawArtPackImage(category, key, x, y, w, h) {
   return true;
 }
 
-function drawPropImage(ctxArg, key, x, y, width, height, fallbackLabel) {
+function drawPropImage(ctxArg, key, x, y, width, height) {
   const pack = window.CATS_OWLS_ART_PACK_01;
   const image = pack?.get?.("props", key);
   if (image && image.complete && image.naturalWidth > 0) {
@@ -1421,15 +1421,6 @@ function drawPropImage(ctxArg, key, x, y, width, height, fallbackLabel) {
     ctxArg.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
     return true;
   }
-
-  if (!fallbackLabel) return false;
-  ctxArg.save();
-  ctxArg.fillStyle = "#f6d365";
-  ctxArg.fillRect(x, y, width, height);
-  ctxArg.fillStyle = "#333";
-  ctxArg.font = "12px sans-serif";
-  ctxArg.fillText(fallbackLabel, x, y - 4);
-  ctxArg.restore();
   return false;
 }
 
