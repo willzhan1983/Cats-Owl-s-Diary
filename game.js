@@ -1379,6 +1379,10 @@ const ART_PACK_NPC_KEYS = {
   firefly: "firefly",
 };
 
+const ART_PACK_SCENE_PROP_KEYS = {
+  flower: "flowerBed",
+};
+
 const ART_PACK_ITEM_BOUNDS = {
   apple: { x: -24, y: -28, w: 48, h: 48 },
   book: { x: -27, y: -29, w: 54, h: 54 },
@@ -1392,6 +1396,7 @@ const ART_PACK_ITEM_BOUNDS = {
   courageStar: { x: -27, y: -29, w: 54, h: 54 },
   magicPencil: { x: -27, y: -13, w: 54, h: 26 },
   potion: { x: -22, y: -30, w: 44, h: 54 },
+  flowerBed: { x: -43, y: -18, w: 86, h: 36 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -1460,6 +1465,13 @@ function drawNpcArtPackImage(kind) {
   const bounds = ART_PACK_NPC_BOUNDS[kind];
   if (!key || !bounds) return false;
   return drawArtPackImage("npc", key, bounds.x, bounds.y, bounds.w, bounds.h);
+}
+
+function drawScenePropArtPackImage(kind) {
+  const key = ART_PACK_SCENE_PROP_KEYS[kind];
+  const bounds = ART_PACK_ITEM_BOUNDS[key];
+  if (!key || !bounds) return false;
+  return drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
 function drawPond(x, y, r) {
@@ -1802,6 +1814,7 @@ function drawBossProgress(progress) {
 
 function drawAnimal(kind) {
   if (drawNpcArtPackImage(kind)) return;
+  if (drawScenePropArtPackImage(kind)) return;
   const npc = NPC_REGISTRY[kind];
   if (npc?.renderer) {
     npc.renderer();
