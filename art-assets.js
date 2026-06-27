@@ -30,6 +30,11 @@
       nono: "./assets/asset-pack-01/npc/nono.png",
       dodo: "./assets/asset-pack-01/npc/dodo.png",
       ruru: "./assets/asset-pack-01/npc/ruru.png",
+      deer: "./assets/asset-pack-01/npc/deer.png",
+      ant: "./assets/asset-pack-01/npc/ant.png",
+      butterfly: "./assets/asset-pack-01/npc/butterfly.png",
+      fox: "./assets/asset-pack-01/npc/fox.png",
+      firefly: "./assets/asset-pack-01/npc/firefly.png",
     },
     boss: {
       blackBear: "./assets/asset-pack-01/boss/black-bear/idle.png",
