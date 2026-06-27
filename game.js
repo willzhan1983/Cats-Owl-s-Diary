@@ -67,6 +67,28 @@ const characterSheet = new Image();
 characterSheet.decoding = "async";
 characterSheet.src = "./assets/v2/v2-main-character-spritesheet-3d-clean.png";
 
+const PLAYER_CHARACTER_ASSETS = {
+  cat: {
+    idle: ["./assets/characters/mimi/idle.svg"],
+    walk: ["./assets/characters/mimi/walk.svg", "./assets/characters/mimi/idle.svg"],
+    jump: ["./assets/characters/mimi/walk.svg"],
+    happy: ["./assets/characters/mimi/happy.svg"],
+  },
+  owl: {
+    idle: ["./assets/characters/owlly/idle.svg"],
+    walk: ["./assets/characters/owlly/fly.svg", "./assets/characters/owlly/idle.svg"],
+    jump: ["./assets/characters/owlly/fly.svg"],
+    happy: ["./assets/characters/owlly/idle.svg"],
+  },
+};
+
+const PLAYER_DRAW_SIZE = {
+  cat: { width: 74, height: 94, footOffsetY: 24 },
+  owl: { width: 78, height: 88, footOffsetY: 22 },
+};
+
+const playerImages = {};
+
 function mappedImage(src) {
   const image = new Image();
   image.decoding = "async";
@@ -80,16 +102,16 @@ const CHARACTER_REGISTRY = {
     name: "Mimi",
     role: "player",
     species: "white_cat",
-    asset: "./assets/characters/mimi_idle.png",
-    image: mappedImage("./assets/characters/mimi_idle.png"),
+    asset: "./assets/characters/mimi/idle.svg",
+    image: mappedImage("./assets/characters/mimi/idle.svg"),
   },
   owlly: {
     id: "owlly",
     name: "Owlly",
     role: "companion",
     species: "owl",
-    asset: "./assets/characters/owlly_idle.png",
-    image: mappedImage("./assets/characters/owlly_idle.png"),
+    asset: "./assets/characters/owlly/idle.svg",
+    image: mappedImage("./assets/characters/owlly/idle.svg"),
   },
   blackBear: {
     id: "blackBear",
@@ -1909,16 +1931,75 @@ function drawPlayer() {
   const speed = Math.hypot(p.vx, p.vy);
   const walk = Math.sin(p.step);
   const bounce = speed > 12 ? walk * 3 : Math.sin(performance.now() / 600) * 1.1;
+  const role = selectedRole === "owl" ? "owl" : "cat";
+  const action = performance.now() < state.attackCooldownUntil ? "happy" : speed > 8 ? "walk" : "idle";
   ctx.save();
   ctx.translate(p.x, p.y + bounce);
   if (p.dir < 0) ctx.scale(-1, 1);
   drawShadow(2, 25, 58, 12);
-  if (selectedRole === "owl") {
+  if (drawPlayerSprite(role, action, speed, p.step)) {
+    ctx.restore();
+    return;
+  }
+  if (drawV2CharacterSprite(role === "owl" ? "owl" : "cat", speed, 1, p.step)) {
+    ctx.restore();
+    return;
+  }
+  if (role === "owl") {
     drawOwl(0, 2, 1.08, walk, speed, p.step);
   } else {
     drawCat(0, 0, walk, speed, p.step);
   }
   ctx.restore();
+}
+
+function preloadPlayerAssets() {
+  Object.entries(PLAYER_CHARACTER_ASSETS).forEach(([role, actions]) => {
+    playerImages[role] = playerImages[role] || {};
+    Object.entries(actions).forEach(([action, sources]) => {
+      playerImages[role][action] = playerImages[role][action] || [];
+      sources.forEach((src, index) => {
+        if (playerImages[role][action][index]) return;
+        const image = new Image();
+        image.decoding = "async";
+        image.onerror = () => console.warn(`Missing player asset: ${src}`);
+        image.src = src;
+        playerImages[role][action][index] = image;
+      });
+    });
+  });
+}
+
+function getPlayerFrames(role, action) {
+  const roleImages = playerImages[role] || {};
+  const frames = roleImages[action] || [];
+  const ready = frames.filter(isImageReady);
+  if (ready.length) return ready;
+  const idleFrames = roleImages.idle || [];
+  return idleFrames.filter(isImageReady);
+}
+
+function getPlayerFrame(role, action, frameIndex) {
+  const frames = getPlayerFrames(role, action);
+  if (!frames.length) return null;
+  return frames[frameIndex % frames.length];
+}
+
+function drawPlayerSprite(role, action, speed, step) {
+  const frames = getPlayerFrames(role, action);
+  if (!frames.length) return false;
+  const frameDuration = role === "owl" ? 135 : 150;
+  const moving = speed > 8;
+  const frameIndex = moving ? Math.floor(performance.now() / frameDuration) : 0;
+  const frame = getPlayerFrame(role, action, frameIndex);
+  if (!frame) return false;
+  const size = PLAYER_DRAW_SIZE[role] || PLAYER_DRAW_SIZE.cat;
+  const sway = moving ? Math.sin(step * 0.85) * 1.8 : 0;
+  ctx.save();
+  ctx.rotate(sway * 0.006);
+  ctx.drawImage(frame, -size.width / 2, -size.height + size.footOffsetY, size.width, size.height);
+  ctx.restore();
+  return true;
 }
 
 function isImageReady(image) {
@@ -3363,6 +3444,7 @@ function initialLevelFromUrl() {
 }
 
 const initialLevel = initialLevelFromUrl();
+preloadPlayerAssets();
 syncRoleButtons();
 if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
   gameEntered = true;
