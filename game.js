@@ -286,6 +286,16 @@ const levels = [
       item(260, 386, "apple", "\u82f9\u679c"),
       item(665, 390, "book", "\u6545\u4e8b\u4e66"),
     ],
+    propDecorations: [
+      propDecoration(125, 332, "map", 42, 34, "\u5730\u56fe"),
+      propDecoration(330, 388, "flowerSeeds", 32, 32, "\u82b1\u79cd"),
+      propDecoration(385, 186, "bell", 30, 30, "\u5c0f\u94c3\u94db"),
+      propDecoration(612, 240, "leafLamp", 34, 46, "\u53f6\u5b50\u706f"),
+      propDecoration(552, 128, "hangingLantern", 34, 46, "\u706f\u7b3c"),
+      propDecoration(344, 146, "flowerBulbLamp", 32, 42, "\u82b1\u82de\u706f"),
+      propDecoration(238, 330, "leafBroom", 46, 46, "\u53f6\u5b50\u626b\u5e1a"),
+      propDecoration(92, 462, "treasureChest", 48, 40, "\u5b9d\u7bb1"),
+    ],
     tasks: [
       delivery(198, 322, "\u5c0f\u9e7f", "deer", "apple", "\u60f3\u5403\u82f9\u679c"),
       delivery(790, 298, "\u677e\u9f20", "squirrel", "pencil", "\u627e\u94c5\u7b14"),
@@ -524,6 +534,10 @@ function item(x, y, type, label) {
   return { x, y, type, label, taken: false };
 }
 
+function propDecoration(x, y, type, width, height, label) {
+  return { x, y, type, width, height, label };
+}
+
 function delivery(x, y, name, animal, need, speech) {
   return { x, y, name, animal, need: Array.isArray(need) ? need : [need], speech, kind: "delivery", done: false, progress: 0 };
 }
@@ -567,6 +581,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     tasksList: level.tasks.map((entry) => prepareTask(entry)),
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
+    propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     sparkles: [],
     floaters: [],
     leaves: makeLeaves(levelIndex),
@@ -1272,6 +1287,7 @@ function drawLeaves() {
 
 function drawSceneObjects() {
   drawObstacles();
+  drawPropDecorations();
   for (const puddle of state.puddles) {
     const pulse = 1 + Math.sin(performance.now() / 420 + puddle.x) * 0.04;
     ctx.fillStyle = "rgba(81, 161, 207, 0.5)";
@@ -1291,6 +1307,34 @@ function drawSceneObjects() {
   }
 }
 
+function drawPropDecorations() {
+  const decorations = state.propDecorations || [];
+  for (const prop of decorations) {
+    ctx.save();
+    ctx.translate(prop.x, prop.y);
+    drawItemShadow(0, prop.height * 0.5, prop.width * 0.36, Math.max(4, prop.height * 0.08));
+    if (!drawPropImage(ctx, prop.type, -prop.width / 2, -prop.height / 2, prop.width, prop.height)) {
+      drawMiniPropFallback(prop);
+    }
+    ctx.restore();
+  }
+}
+
+function drawMiniPropFallback(prop) {
+  ctx.save();
+  ctx.fillStyle = "rgba(246, 211, 101, 0.9)";
+  roundRect(-prop.width / 2, -prop.height / 2, prop.width, prop.height, 8);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(139,91,43,0.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 9px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(prop.label || prop.type, 0, prop.height / 2 + 12, Math.max(36, prop.width + 10));
+  ctx.restore();
+}
+
 function drawObstacles() {
   for (const obstacle of state.obstacles) {
     const artKey = ART_PACK_OBSTACLE_KEYS[obstacle.type];
@@ -1304,8 +1348,15 @@ function drawObstacles() {
 const ART_PACK_PROP_KEYS = {
   apple: "apple",
   book: "book",
+  pencil: "pencil",
+  leaf: "leafBroom",
+  seed: "flowerSeeds",
+  bell: "bell",
+  lantern: "lantern",
+  map: "map",
   guardBook: "guardBook",
   courageStar: "courageStar",
+  magicPencil: "magicPencil",
   potion: "potion",
 };
 
@@ -1326,8 +1377,15 @@ const ART_PACK_NPC_KEYS = {
 const ART_PACK_ITEM_BOUNDS = {
   apple: { x: -24, y: -28, w: 48, h: 48 },
   book: { x: -27, y: -29, w: 54, h: 54 },
+  pencil: { x: -24, y: -11, w: 48, h: 22 },
+  leaf: { x: -23, y: -23, w: 46, h: 46 },
+  seed: { x: -16, y: -16, w: 32, h: 32 },
+  bell: { x: -15, y: -15, w: 30, h: 30 },
+  lantern: { x: -17, y: -23, w: 34, h: 46 },
+  map: { x: -21, y: -17, w: 42, h: 34 },
   guardBook: { x: -27, y: -29, w: 54, h: 54 },
   courageStar: { x: -27, y: -29, w: 54, h: 54 },
+  magicPencil: { x: -27, y: -13, w: 54, h: 26 },
   potion: { x: -22, y: -30, w: 44, h: 54 },
 };
 
@@ -1353,6 +1411,19 @@ function drawArtPackImage(category, key, x, y, w, h) {
   return true;
 }
 
+function drawPropImage(ctxArg, key, x, y, width, height) {
+  const pack = window.CATS_OWLS_ART_PACK_01;
+  const image = pack?.get?.("props", key);
+  if (image && image.complete && image.naturalWidth > 0) {
+    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+    const drawWidth = image.naturalWidth * scale;
+    const drawHeight = image.naturalHeight * scale;
+    ctxArg.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+    return true;
+  }
+  return false;
+}
+
 function drawObstacleArtPackImage(obstacle, key) {
   const getBounds = ART_PACK_OBSTACLE_BOUNDS[key];
   if (!getBounds) return false;
@@ -1368,6 +1439,9 @@ function drawItemArtPackImage(type) {
   const key = ART_PACK_PROP_KEYS[type];
   const bounds = ART_PACK_ITEM_BOUNDS[type];
   if (!key || !bounds) return false;
+  if (window.ART_ASSETS?.props?.[key]) {
+    return drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h);
+  }
   return drawArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
