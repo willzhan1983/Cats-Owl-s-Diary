@@ -40,15 +40,25 @@ const backgroundSources = {
   pondSide: "./assets/v2/v2-bg-pond.png",
   wetland: "./assets/v2/v2-bg-wetland.png",
   swampBoss: "./assets/v2/v2-bg-swamp-boss.png",
-  forestSchool: "./assets/bg/forest_school.png",
-  riverTown: "./assets/bg/river_town.png",
-  darkSwamp: "./assets/bg/dark_swamp.png",
+  forestSchool: "./assets/bg-level1-schoolyard.png",
+  riverTown: "./assets/v2/v2-bg-city-road.png",
+  darkSwamp: "./assets/v2/v2-bg-swamp-boss.png",
 };
 
 const backgroundSourceCandidates = {
-  forestSchool: ["./assets/bg/forest_school.png", "./assets/bg/forest_school.jpg", "./assets/bg-level1-schoolyard.png"],
-  riverTown: ["./assets/bg/river_town.png", "./assets/bg/river_town.jpg", "./assets/v2/v2-bg-pond.png"],
-  darkSwamp: ["./assets/bg/dark_swamp.png", "./assets/bg/dark_swamp.jpg", "./assets/v2/v2-bg-swamp-boss.png"],
+  schoolyard: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
+  forest: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
+  cityRoad: ["./assets/v2/v2-bg-city-road.png", "./assets/bg-level3-adventure.png"],
+  classroom: ["./assets/bg-level4-classroom.png", "./assets/bg-level1-schoolyard.png"],
+  pondSide: ["./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
+  wetland: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  swampBoss: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
+  adventure: ["./assets/bg-level3-adventure.png", "./assets/v2/v2-bg-city-road.png"],
+  courage: ["./assets/bg-level5-courage.jpg", "./assets/v2/v2-bg-pond.png"],
+  boss: ["./assets/bg-level6-boss.jpg", "./assets/v2/v2-bg-swamp-boss.png"],
+  forestSchool: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
+  riverTown: ["./assets/v2/v2-bg-city-road.png", "./assets/v2/v2-bg-pond.png"],
+  darkSwamp: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
 };
 
 const backgrounds = {};
@@ -156,7 +166,8 @@ const music = {
 
 function ensureBackground(key) {
   if (!key || backgrounds[key]) return backgrounds[key];
-  const candidates = backgroundSourceCandidates[key] || [backgroundSources[key]];
+  const candidates = (backgroundSourceCandidates[key] || [backgroundSources[key]]).filter(Boolean);
+  if (!candidates.length) return null;
   backgroundCandidateIndex[key] = 0;
   const image = new Image();
   image.decoding = "async";
@@ -1352,7 +1363,7 @@ const ART_PACK_PROP_KEYS = {
   leaf: "leafBroom",
   seed: "flowerSeeds",
   bell: "bell",
-  lantern: "lantern",
+  lantern: "hangingLantern",
   map: "map",
   guardBook: "guardBook",
   courageStar: "courageStar",
@@ -1385,7 +1396,7 @@ const ART_PACK_NPC_KEYS = {
 
 const ART_PACK_SCENE_PROP_KEYS = {
   chest: "treasureChest",
-  light: "leafLamp",
+  light: ["leafLamp", "flowerBulbLamp"],
   flower: "flowerBed",
 };
 
@@ -1478,10 +1489,13 @@ function drawNpcArtPackImage(kind) {
 }
 
 function drawScenePropArtPackImage(kind) {
-  const key = ART_PACK_SCENE_PROP_KEYS[kind];
-  const bounds = ART_PACK_ITEM_BOUNDS[key];
-  if (!key || !bounds) return false;
-  return drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h);
+  const keys = ART_PACK_SCENE_PROP_KEYS[kind];
+  const candidates = Array.isArray(keys) ? keys : [keys];
+  for (const key of candidates) {
+    const bounds = ART_PACK_ITEM_BOUNDS[key];
+    if (key && bounds && drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) return true;
+  }
+  return false;
 }
 
 function drawPond(x, y, r) {
