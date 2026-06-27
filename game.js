@@ -313,7 +313,7 @@ const levels = [
       delivery(486, 178, "\u5154\u8001\u5e08", "rabbit", ["book", "apple"], "\u6536\u4f5c\u4e1a\u548c\u5956\u52b1\u82f9\u679c"),
     ],
     puddles: [
-      { x: 355, y: 165, r: 34 },
+      { x: 448, y: 358, r: 30 },
       { x: 588, y: 305, r: 38 },
       { x: 810, y: 420, r: 30 },
     ],
@@ -344,7 +344,7 @@ const levels = [
     puddles: [
       { x: 245, y: 335, r: 32 },
       { x: 628, y: 338, r: 34 },
-      { x: 780, y: 152, r: 28 },
+      { x: 762, y: 372, r: 28 },
     ],
     obstacles: [
       { type: "bush", x: 558, y: 414, r: 38 },
@@ -383,7 +383,7 @@ const levels = [
     obstacles: [
       { type: "bush", x: 410, y: 360, r: 36 },
       { type: "pit", x: 718, y: 226, r: 28 },
-      { type: "pond", x: 520, y: 438, r: 37 },
+      { type: "pond", x: 612, y: 438, r: 34 },
     ],
   },
   {
@@ -464,9 +464,9 @@ const levels = [
     ],
     obstacles: [
       { type: "pit", x: 376, y: 392, r: 28 },
-      { type: "bush", x: 454, y: 220, r: 32 },
+      { type: "bush", x: 516, y: 282, r: 30 },
       { type: "pond", x: 660, y: 342, r: 35 },
-      { type: "pit", x: 828, y: 398, r: 25 },
+      { type: "pit", x: 812, y: 334, r: 25 },
     ],
   },
   {
@@ -492,13 +492,13 @@ const levels = [
       bossTask(480, 150, "\u9ed1\u718a\u602a Boss", "boss", ["courageStar", "magicPencil", "guardBook"], "\u9760\u8fd1 Boss \u4f7f\u7528\u9053\u5177\u6d88\u8017\u8840\u6761"),
     ],
     puddles: [
-      { x: 270, y: 360, r: 32 },
+      { x: 260, y: 394, r: 30 },
       { x: 646, y: 318, r: 34 },
-      { x: 828, y: 210, r: 28 },
+      { x: 820, y: 350, r: 28 },
     ],
     obstacles: [
-      { type: "bush", x: 192, y: 238, r: 34 },
-      { type: "pit", x: 390, y: 342, r: 30 },
+      { type: "bush", x: 228, y: 330, r: 34 },
+      { type: "pit", x: 412, y: 394, r: 30 },
       { type: "pond", x: 720, y: 438, r: 38 },
     ],
   },
@@ -1299,16 +1299,7 @@ function drawLeaves() {
 function drawSceneObjects() {
   drawObstacles();
   drawPropDecorations();
-  for (const puddle of state.puddles) {
-    const pulse = 1 + Math.sin(performance.now() / 420 + puddle.x) * 0.04;
-    ctx.fillStyle = "rgba(81, 161, 207, 0.5)";
-    ctx.beginPath();
-    ctx.ellipse(puddle.x, puddle.y, puddle.r * 1.35 * pulse, puddle.r * 0.62, -0.12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.65)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
+  for (const puddle of state.puddles) drawGroundPuddle(puddle);
 
   for (let i = 0; i < 30; i += 1) {
     const x = (i * 127) % 930 + 16;
@@ -1316,6 +1307,36 @@ function drawSceneObjects() {
     ctx.fillStyle = i % 2 ? "#f6c95f" : "#f59a8b";
     circle(x, y, 4);
   }
+}
+
+function drawGroundPuddle(puddle) {
+  const t = performance.now() / 520 + puddle.x * 0.05;
+  const stretch = 1 + Math.sin(t) * 0.025;
+  const tilt = Math.sin(puddle.x * 0.17) * 0.18;
+  ctx.save();
+  ctx.translate(puddle.x, puddle.y);
+  ctx.rotate(tilt);
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = "rgba(44, 74, 54, 0.16)";
+  ctx.beginPath();
+  ctx.ellipse(0, puddle.r * 0.18, puddle.r * 1.6, puddle.r * 0.36, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const water = ctx.createRadialGradient(-puddle.r * 0.32, -puddle.r * 0.12, 2, 0, 0, puddle.r * 1.55);
+  water.addColorStop(0, "rgba(210, 244, 238, 0.58)");
+  water.addColorStop(0.62, "rgba(82, 161, 177, 0.34)");
+  water.addColorStop(1, "rgba(31, 95, 116, 0.12)");
+  ctx.fillStyle = water;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, puddle.r * 1.36 * stretch, puddle.r * 0.42, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(255,255,255,0.28)";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.ellipse(-puddle.r * 0.12, -puddle.r * 0.04, puddle.r * 0.72, puddle.r * 0.18, -0.08, 0.08 * Math.PI, 0.92 * Math.PI);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawPropDecorations() {
@@ -1398,6 +1419,19 @@ const ART_PACK_SCENE_PROP_KEYS = {
   chest: "treasureChest",
   light: ["leafLamp", "flowerBulbLamp"],
   flower: "flowerBed",
+};
+
+const NPC_VISUAL_OFFSETS = {
+  deer: { x: 0, y: 14 },
+  squirrel: { x: 0, y: 10 },
+  rabbit: { x: 0, y: 24 },
+  ant: { x: 0, y: 14 },
+  butterfly: { x: 0, y: 6 },
+  fox: { x: 0, y: 12 },
+  firefly: { x: 0, y: 4 },
+  hedgehog: { x: 0, y: 10 },
+  owl: { x: 0, y: 8 },
+  boss: { x: 0, y: 26 },
 };
 
 const ART_PACK_ITEM_BOUNDS = {
@@ -1837,6 +1871,8 @@ function drawBossProgress(progress) {
 }
 
 function drawAnimal(kind) {
+  const visualOffset = NPC_VISUAL_OFFSETS[kind];
+  if (visualOffset) ctx.translate(visualOffset.x, visualOffset.y);
   if (drawNpcArtPackImage(kind)) return;
   if (drawScenePropArtPackImage(kind)) return;
   const npc = NPC_REGISTRY[kind];
