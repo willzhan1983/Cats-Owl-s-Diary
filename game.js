@@ -2230,6 +2230,9 @@ const ART_PACK_SCENE_PROP_KEYS = {
   chest: "treasureChest",
   light: ["leafLamp", "flowerBulbLamp"],
   flower: "flowerBed",
+  sign: "schoolSign",
+  spring: "bouncingMushroom",
+  finish: "finishFlag",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -2269,6 +2272,9 @@ const ART_PACK_ITEM_BOUNDS = {
   hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
   flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
   flowerBed: { x: -43, y: -18, w: 86, h: 36 },
+  schoolSign: { x: -40, y: -52, w: 80, h: 104 },
+  bouncingMushroom: { x: -34, y: -48, w: 68, h: 96 },
+  finishFlag: { x: -42, y: -72, w: 84, h: 120 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -2549,14 +2555,10 @@ function drawPotionStump(x, y, s) {
 
 function drawLandmarks() {
   const index = state.levelIndex;
-  if (index === 0) {
-    drawConcreteSchool(464, 116, 0.78);
-  }
   if (index === 1) {
     drawGroundFlowerBed(382, 414, 1);
   }
   if (index === 3) {
-    drawConcreteSchool(490, 128, 0.58);
     drawGroundFlowerBed(500, 104, 0.74);
   }
 }
