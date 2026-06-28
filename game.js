@@ -16,6 +16,16 @@ const quizPanel = document.getElementById("quizPanel");
 const quizTitle = document.getElementById("quizTitle");
 const quizQuestion = document.getElementById("quizQuestion");
 const quizOptions = document.getElementById("quizOptions");
+const dialoguePanel = document.getElementById("dialoguePanel");
+const dialogueAvatar = document.getElementById("dialogueAvatar");
+const dialogueName = document.getElementById("dialogueName");
+const dialogueRole = document.getElementById("dialogueRole");
+const dialogueText = document.getElementById("dialogueText");
+const dialogueCloseBtn = document.getElementById("dialogueCloseBtn");
+const dialogueNextBtn = document.getElementById("dialogueNextBtn");
+const dialogueGiveBtn = document.getElementById("dialogueGiveBtn");
+const dialogueQuizBtn = document.getElementById("dialogueQuizBtn");
+const dialogueBtn = document.getElementById("dialogueBtn");
 
 const text = {
   start: "\u5f00\u59cb",
@@ -185,6 +195,77 @@ const NPC_REGISTRY = {
   hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
+};
+
+const DIALOGUE_LIBRARY = {
+  deer: {
+    intro: ["你好呀，我今天想吃一个甜甜的苹果。"],
+    missing: ["如果你看到红红的苹果，可以带给我吗？"],
+    ready: ["你找到苹果啦！可以给我吗？"],
+    complete: ["谢谢你！苹果真甜。"],
+    after: ["谢谢 Mimi / 詹涞儿 和 Owlly / 姚头鹰！"],
+  },
+  squirrel: {
+    intro: ["我的铅笔不见了，今天还要写森林日记呢。"],
+    missing: ["铅笔可能掉在路边了。"],
+    ready: ["这就是我的铅笔！太好了。"],
+    complete: ["谢谢你，我可以继续写日记啦。"],
+    after: ["今天的森林日记会写下你的名字。"],
+  },
+  rabbit: {
+    intro: ["同学们的作业本要收齐啦。"],
+    missing: ["我还需要作业本和一个奖励苹果。"],
+    ready: ["你都带来了，真细心。"],
+    complete: ["森林学校为你加一颗爱心！"],
+    after: ["谢谢你，今天也要开心学习哦。"],
+  },
+  ant: {
+    intro: ["叶子把路挡住了，我需要一把叶子扫帚。"],
+    missing: ["小小的扫帚，可以帮大忙。"],
+    ready: ["这把叶子扫帚正合适。"],
+    complete: ["路又干净啦，谢谢你！"],
+  },
+  butterfly: {
+    intro: ["花园想开花，需要花种和叶子扫帚。"],
+    missing: ["有花种和扫帚，花园就会变漂亮。"],
+    ready: ["太好了，花园要开花啦。"],
+    complete: ["花香飘起来了，谢谢你！"],
+  },
+  fox: {
+    intro: ["我的小铃铛不见了，听不到叮铃声啦。"],
+    missing: ["如果看到小铃铛，请带给我。"],
+    ready: ["叮铃铃！这就是我的铃铛。"],
+    complete: ["谢谢你，我又能听到清脆的声音啦。"],
+  },
+  firefly: {
+    intro: ["天有点暗，我想找到一盏小灯笼。"],
+    missing: ["有了灯笼，夜路就不怕啦。"],
+    ready: ["灯笼亮起来了，好温暖。"],
+    complete: ["谢谢你帮我点亮小路。"],
+  },
+  owl: {
+    intro: ["回家的路线要看清楚，地图很重要。"],
+    missing: ["请帮我找地图和奖励苹果。"],
+    ready: ["路线清楚啦，准备回森林学校。"],
+    complete: ["谢谢你，冒险路线更安全了。"],
+  },
+  hedgehog: {
+    intro: ["我有点害怕，需要一颗勇气星。"],
+    missing: ["勇气星会让我更勇敢。"],
+    ready: ["这颗勇气星亮晶晶的。"],
+    complete: ["我不害怕了，谢谢你！"],
+  },
+  chest: {
+    intro: ["想打开我，需要魔法铅笔和守护书。"],
+    missing: ["把两个宝贝都带来，我就会打开。"],
+    ready: ["魔法准备好了，要打开宝箱吗？"],
+    complete: ["咔哒，宝箱打开啦！"],
+  },
+  boss: {
+    missing: ["黑熊怪很强，我们要先收集勇气星、魔法铅笔或守护书。"],
+    ready: ["准备好了吗？按攻击键，把道具发射出去！"],
+    after: ["黑熊怪已经被打败，森林又亮起来啦。"],
+  },
 };
 
 const WORLD_MAP = {
@@ -635,6 +716,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
   const level = levels[levelIndex];
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
+  closeDialogue();
   state = {
     levelIndex,
     running: false,
@@ -652,10 +734,12 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     hazards: [],
     projectiles: [],
     activeQuiz: null,
+    activeDialogue: null,
+    nearbyTask: null,
     shake: 0,
     player: { x: level.start.x, y: level.start.y, vx: 0, vy: 0, dir: 1, step: 0 },
     collectibles: level.collectibles.map((entry) => ({ ...entry })),
-    tasksList: level.tasks.map((entry) => prepareTask(entry)),
+    tasksList: level.tasks.map((entry, index) => prepareTask(entry, level, index)),
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
@@ -668,8 +752,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
 }
 
-function prepareTask(entry) {
+function prepareTask(entry, level, index) {
   const task = { ...entry };
+  task.id = task.id || `${level.bg || "level"}_${task.kind}_${task.animal}_${index}`;
   task.taskType = task.taskType || taskSystemType(task.kind);
   task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
   task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
@@ -834,6 +919,7 @@ function update(dt) {
   updateLeaves(dt);
   if (!state.running) return;
   if (state.activeQuiz) return;
+  if (state.activeDialogue) return;
 
   state.time -= dt;
   if (state.time <= 0) {
@@ -1002,7 +1088,7 @@ function spawnBossHazard(boss) {
 }
 
 function shootBossWeapon() {
-  if (!state.running || state.levelIndex !== levels.length - 1 || state.activeQuiz) return;
+  if (!state.running || state.levelIndex !== levels.length - 1 || state.activeQuiz || state.activeDialogue) return;
   const now = performance.now();
   if (now < state.attackCooldownUntil) return;
   const boss = state.tasksList.find((task) => task.kind === "boss" && !task.done);
@@ -1074,9 +1160,18 @@ function checkCollectibles() {
 
 function checkTasks(dt) {
   const p = state.player;
+  state.nearbyTask = null;
+  let nearestDistance = Infinity;
   for (const task of state.tasksList) {
-    if (task.done) continue;
     const near = distance(p, task) < 58;
+    if (near) {
+      const dist = distance(p, task);
+      if (dist < nearestDistance) {
+        nearestDistance = dist;
+        state.nearbyTask = task;
+      }
+    }
+    if (task.done) continue;
     if (!near) {
       task.progress = Math.max(0, task.progress - dt * 0.8);
       continue;
@@ -1084,25 +1179,21 @@ function checkTasks(dt) {
 
     if (task.kind === "delivery") {
       const missing = missingNeeds(task.need);
-      if (missing.length === 0) {
-        consumeNeeds(task.need);
-        completeTask(task, task.x, task.y);
-      } else {
-        messageEl.textContent = `${task.name}\u9700\u8981\uff1a${needLabels(missing)}`;
-      }
+      messageEl.textContent = missing.length
+        ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002`
+        : `${task.name}\u6b63\u7b49\u7740\u4f60\u3002\u6309 E \u5bf9\u8bdd\u540e\u4ea4\u7ed9TA\u3002`;
       continue;
     }
 
     if (task.kind === "quiz") {
-      messageEl.textContent = `${task.name}\uff1a${task.speech}`;
-      openQuiz(task);
+      messageEl.textContent = `${task.name}\uff1a${task.speech}\u3002\u6309 E \u5bf9\u8bdd\uff0c\u518d\u5f00\u59cb\u6311\u6218\u3002`;
       continue;
     }
 
     if (task.kind === "boss") {
       messageEl.textContent = firstBossWeapon()
-        ? "\u6309\u7a7a\u683c\u6216\u70b9\u201c\u653b\u51fb\u201d\uff0c\u628a\u9053\u5177\u8fdc\u7a0b\u53d1\u5c04\u51fa\u53bb\uff01"
-        : "\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u94c5\u7b14\u6216\u5b88\u62a4\u4e66\uff01";
+        ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u6309\u7a7a\u683c\u6216\u70b9\u201c\u653b\u51fb\u201d\uff01"
+        : "\u6309 E \u542c\u63d0\u793a\uff0c\u5148\u6536\u96c6\u52c7\u6c14\u661f\u3001\u9b54\u6cd5\u7b14\u6216\u5b88\u62a4\u4e66\uff01";
       continue;
     }
 
@@ -1111,6 +1202,9 @@ function checkTasks(dt) {
     if (task.progress >= 1.65) {
       completeTask(task, task.x, task.y);
     }
+  }
+  if (state.nearbyTask?.done) {
+    messageEl.textContent = `${state.nearbyTask.name}\u5df2\u7ecf\u5f88\u5f00\u5fc3\u5566\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   }
 }
 
@@ -1176,8 +1270,155 @@ function itemLabel(type) {
   }[type] || type;
 }
 
+function taskDialogueMode(task) {
+  if (task.done) return "after";
+  if (task.kind === "delivery") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
+  if (task.kind === "quiz") return task.dialogueSeen ? "ready" : "intro";
+  if (task.kind === "boss") return firstBossWeapon() ? "ready" : "missing";
+  return task.dialogueSeen ? "ready" : "intro";
+}
+
+function taskDialogueLines(task, mode) {
+  const library = task.dialogue || DIALOGUE_LIBRARY[task.animal] || {};
+  if (library[mode]?.length) return library[mode];
+  if (mode === "intro") return [`${task.name}\uff1a${task.speech}`];
+  if (mode === "missing" && task.need) return [`\u6211\u8fd8\u9700\u8981\uff1a${needLabels(missingNeeds(task.need))}\u3002`];
+  if (mode === "ready" && task.kind === "delivery") return [`\u4f60\u5df2\u7ecf\u627e\u5230${needLabels(task.need)}\u5566\uff01`];
+  if (mode === "ready" && task.kind === "quiz") return ["\u51c6\u5907\u597d\u4e86\u5417\uff1f\u6211\u4eec\u6765\u6311\u6218\u4e00\u9898\u5427\u3002"];
+  if (mode === "complete") return ["\u8c22\u8c22\u4f60\uff01\u4efb\u52a1\u5b8c\u6210\u5566\u3002"];
+  if (mode === "after") return ["\u8c22\u8c22\u4f60\uff0c\u4eca\u5929\u4e5f\u8981\u5f00\u5fc3\u5192\u9669\u54e6\uff01"];
+  return [task.speech || "\u4f60\u597d\u5440\uff01"];
+}
+
+function dialogueRoleLabel(task) {
+  if (task.kind === "delivery") return "\u9700\u8981\u5e2e\u5fd9";
+  if (task.kind === "quiz") return "\u9898\u76ee\u6311\u6218";
+  if (task.kind === "boss") return "Boss \u63d0\u793a";
+  return "\u573a\u666f\u5e2e\u5fd9";
+}
+
+function dialogueAvatarFallback(task) {
+  return {
+    deer: "\u9e7f",
+    squirrel: "\u677e",
+    rabbit: "\u5154",
+    ant: "\u8681",
+    butterfly: "\u8776",
+    fox: "\u72d0",
+    firefly: "\u5149",
+    hedgehog: "\u523a",
+    owl: "\u9e70",
+    chest: "\u7bb1",
+    boss: "\u718a",
+  }[task.animal] || task.name.slice(0, 1);
+}
+
+function setDialogueAvatar(task) {
+  if (!dialogueAvatar) return;
+  dialogueAvatar.innerHTML = "";
+  const artKey = typeof ART_PACK_NPC_KEYS !== "undefined" ? ART_PACK_NPC_KEYS[task.animal] : null;
+  const image =
+    (task.animal === "boss" && window.CATS_OWLS_ART_PACK_01?.get("boss", "blackBear")) ||
+    (artKey && window.CATS_OWLS_ART_PACK_01?.get("npc", artKey));
+  if (image && image.complete && image.naturalWidth > 0) {
+    const avatar = document.createElement("img");
+    avatar.alt = task.name;
+    avatar.src = image.src;
+    dialogueAvatar.appendChild(avatar);
+    return;
+  }
+  dialogueAvatar.textContent = dialogueAvatarFallback(task);
+}
+
+function openDialogue(task) {
+  if (!task || !dialoguePanel) return;
+  const mode = taskDialogueMode(task);
+  task.dialogueSeen = true;
+  state.activeDialogue = {
+    taskId: task.id,
+    task,
+    speaker: task.name,
+    lines: taskDialogueLines(task, mode),
+    index: 0,
+    mode,
+  };
+  keys.clear();
+  touchDirs.clear();
+  renderDialogue();
+}
+
+function renderDialogue() {
+  const dialogue = state?.activeDialogue;
+  if (!dialogue || !dialoguePanel) return;
+  const task = dialogue.task;
+  dialoguePanel.hidden = false;
+  dialogueName.textContent = dialogue.speaker;
+  dialogueRole.textContent = dialogueRoleLabel(task);
+  dialogueText.textContent = dialogue.lines[dialogue.index] || "";
+  setDialogueAvatar(task);
+  const hasNext = dialogue.index < dialogue.lines.length - 1;
+  dialogueNextBtn.hidden = !hasNext;
+  dialogueGiveBtn.hidden = !(task.kind === "delivery" && dialogue.mode === "ready" && !task.done);
+  dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext);
+}
+
+function nextDialogueLine() {
+  const dialogue = state?.activeDialogue;
+  if (!dialogue) return;
+  if (dialogue.index < dialogue.lines.length - 1) {
+    dialogue.index += 1;
+    renderDialogue();
+  } else if (!dialogueGiveBtn.hidden) {
+    finishDialogueDelivery();
+  } else if (!dialogueQuizBtn.hidden) {
+    startDialogueQuiz();
+  } else {
+    closeDialogue();
+  }
+}
+
+function closeDialogue() {
+  if (dialoguePanel) dialoguePanel.hidden = true;
+  if (state) state.activeDialogue = null;
+}
+
+function finishDialogueDelivery() {
+  const dialogue = state?.activeDialogue;
+  const task = dialogue?.task;
+  if (!task || task.kind !== "delivery" || task.done || missingNeeds(task.need).length) return;
+  consumeNeeds(task.need);
+  completeTask(task, task.x, task.y);
+  state.activeDialogue = {
+    taskId: task.id,
+    task,
+    speaker: task.name,
+    lines: taskDialogueLines(task, "complete"),
+    index: 0,
+    mode: "complete",
+  };
+  updateHud();
+  renderDialogue();
+}
+
+function startDialogueQuiz() {
+  const task = state?.activeDialogue?.task;
+  if (!task || task.kind !== "quiz" || task.done) return;
+  closeDialogue();
+  openQuiz(task);
+}
+
+function talkToNearbyTask() {
+  if (!state?.running || state.activeQuiz) return;
+  if (state.activeDialogue) {
+    nextDialogueLine();
+    return;
+  }
+  if (state.nearbyTask) openDialogue(state.nearbyTask);
+}
+
 function openQuiz(task) {
   if (state.activeQuiz === task) return;
+  closeDialogue();
   state.activeQuiz = task;
   quizTitle.textContent = task.quiz.title;
   quizQuestion.textContent = task.quiz.question;
@@ -3436,6 +3677,21 @@ const keyMap = {
 };
 
 window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && state?.activeDialogue) {
+    closeDialogue();
+    event.preventDefault();
+    return;
+  }
+  if ((event.key === "Enter" || event.key === "e" || event.key === "E") && state?.activeDialogue) {
+    nextDialogueLine();
+    event.preventDefault();
+    return;
+  }
+  if (event.key === "e" || event.key === "E") {
+    talkToNearbyTask();
+    event.preventDefault();
+    return;
+  }
   if (event.code === "Space") {
     shootBossWeapon();
     event.preventDefault();
@@ -3456,6 +3712,11 @@ window.addEventListener("keyup", (event) => {
 enterBtn.addEventListener("click", enterGame);
 soundBtn.addEventListener("click", toggleSound);
 attackBtn.addEventListener("click", shootBossWeapon);
+dialogueBtn?.addEventListener("click", talkToNearbyTask);
+dialogueCloseBtn?.addEventListener("click", closeDialogue);
+dialogueNextBtn?.addEventListener("click", nextDialogueLine);
+dialogueGiveBtn?.addEventListener("click", finishDialogueDelivery);
+dialogueQuizBtn?.addEventListener("click", startDialogueQuiz);
 
 document.querySelectorAll("[data-dir]").forEach((button) => {
   const dir = button.dataset.dir;
