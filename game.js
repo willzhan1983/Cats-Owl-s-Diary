@@ -1830,7 +1830,6 @@ const ART_PACK_ITEM_BOUNDS = {
   hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
   flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
   flowerBed: { x: -43, y: -18, w: 86, h: 36 },
-  forestSchoolBoard: { x: -135, y: -102, w: 270, h: 204 },
   schoolSign: { x: -40, y: -52, w: 80, h: 104 },
   bouncingMushroom: { x: -34, y: -48, w: 68, h: 96 },
   finishFlag: { x: -42, y: -72, w: 84, h: 120 },
@@ -2114,29 +2113,12 @@ function drawPotionStump(x, y, s) {
 
 function drawLandmarks() {
   const index = state.levelIndex;
-  if (index === 0) {
-    drawForestSchoolBoard(464, 116, 0.78, 270, 204);
-  }
   if (index === 1) {
     drawGroundFlowerBed(382, 414, 1);
   }
   if (index === 3) {
-    drawForestSchoolBoard(490, 128, 0.58, 210, 158);
     drawGroundFlowerBed(500, 104, 0.74);
   }
-}
-
-function drawForestSchoolBoard(x, y, fallbackScale, width, height) {
-  const bounds = ART_PACK_ITEM_BOUNDS.forestSchoolBoard;
-  let drawn = false;
-  if (window.ART_ASSETS?.props?.forestSchoolBoard) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(width / bounds.w, height / bounds.h);
-    drawn = drawPropImage(ctx, "forestSchoolBoard", bounds.x, bounds.y, bounds.w, bounds.h);
-    ctx.restore();
-  }
-  if (!drawn) drawConcreteSchool(x, y, fallbackScale);
 }
 
 function drawCollectibles() {
