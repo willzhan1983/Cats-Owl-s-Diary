@@ -22,6 +22,7 @@
     lampPost: "assets/props/lamp_post.png",
     lantern: "assets/props/lantern.png",
     schoolSign: "assets/props/school_sign.png",
+    forestSchoolBoard: "assets/props/forest_school_board.png",
     bouncingMushroom: "assets/props/bouncing_mushroom.png",
     finishFlag: "assets/props/finish_flag.png",
   };
@@ -68,6 +69,7 @@
       lampPost: window.ART_ASSETS.props.lampPost,
       lantern: window.ART_ASSETS.props.lantern,
       schoolSign: window.ART_ASSETS.props.schoolSign,
+      forestSchoolBoard: window.ART_ASSETS.props.forestSchoolBoard,
       bouncingMushroom: window.ART_ASSETS.props.bouncingMushroom,
       finishFlag: window.ART_ASSETS.props.finishFlag,
     },
