@@ -103,6 +103,21 @@ const PLAYER_CHARACTER_ASSETS = {
   },
 };
 
+const LEGACY_PLAYER_CHARACTER_ASSETS = {
+  cat: {
+    idle: ["./assets/characters/mimi/idle.svg"],
+    walk: ["./assets/characters/mimi/walk.svg", "./assets/characters/mimi/idle.svg"],
+    jump: ["./assets/characters/mimi/walk.svg"],
+    happy: ["./assets/characters/mimi/happy.svg"],
+  },
+  owl: {
+    idle: ["./assets/characters/owlly/idle.svg"],
+    walk: ["./assets/characters/owlly/fly.svg", "./assets/characters/owlly/idle.svg"],
+    jump: ["./assets/characters/owlly/fly.svg"],
+    happy: ["./assets/characters/owlly/idle.svg"],
+  },
+};
+
 const PLAYER_DRAW_SIZE = {
   cat: { width: 74, height: 94, footOffsetY: 24 },
   owl: { width: 78, height: 88, footOffsetY: 22 },
@@ -114,6 +129,7 @@ const PLAYER_DISPLAY_NAMES = {
 };
 
 const playerImages = {};
+const legacyPlayerImages = {};
 
 function mappedImage(src) {
   const image = new Image();
@@ -1969,6 +1985,10 @@ function drawPlayer() {
     ctx.restore();
     return;
   }
+  if (drawLegacyPlayerSprite(role, action, speed, p.step)) {
+    ctx.restore();
+    return;
+  }
   if (drawV2CharacterSprite(role === "owl" ? "owl" : "cat", speed, 1, p.step)) {
     ctx.restore();
     return;
@@ -1983,6 +2003,7 @@ function drawPlayer() {
 
 function preloadPlayerAssets() {
   preloadPlayerAssetGroup(PLAYER_CHARACTER_ASSETS, playerImages);
+  preloadPlayerAssetGroup(LEGACY_PLAYER_CHARACTER_ASSETS, legacyPlayerImages);
 }
 
 function preloadPlayerAssetGroup(assetGroup, imageStore) {
@@ -2033,6 +2054,10 @@ function drawPlayerSprite(role, action, speed, step, imageStore = playerImages) 
   ctx.drawImage(frame, -size.width / 2, -size.height + size.footOffsetY, size.width, size.height);
   ctx.restore();
   return true;
+}
+
+function drawLegacyPlayerSprite(role, action, speed, step) {
+  return drawPlayerSprite(role, action, speed, step, legacyPlayerImages);
 }
 
 function isImageReady(image) {
