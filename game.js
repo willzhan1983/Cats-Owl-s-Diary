@@ -1791,6 +1791,7 @@ const ART_PACK_NPC_KEYS = {
   butterfly: "butterfly",
   fox: "fox",
   firefly: "firefly",
+  owl: "owlPrincipal",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -1849,6 +1850,7 @@ const ART_PACK_NPC_BOUNDS = {
   butterfly: { x: -48, y: -62, w: 96, h: 98 },
   fox: { x: -38, y: -62, w: 76, h: 100 },
   firefly: { x: -40, y: -62, w: 80, h: 98 },
+  owl: { x: -44, y: -78, w: 88, h: 88 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
