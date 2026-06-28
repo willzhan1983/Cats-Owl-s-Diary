@@ -53,6 +53,24 @@
               <div id="quizOptions" class="quiz-options"></div>
             </div>
           </div>
+          <div id="dialoguePanel" class="dialogue-panel" hidden>
+            <div class="dialogue-card">
+              <button id="dialogueCloseBtn" class="dialogue-close" type="button" aria-label="关闭对话">×</button>
+              <div class="dialogue-speaker">
+                <div id="dialogueAvatar" class="dialogue-avatar"></div>
+                <div>
+                  <strong id="dialogueName"></strong>
+                  <span id="dialogueRole"></span>
+                </div>
+              </div>
+              <p id="dialogueText"></p>
+              <div class="dialogue-actions">
+                <button id="dialogueNextBtn" type="button">下一句</button>
+                <button id="dialogueGiveBtn" type="button" hidden>交给TA</button>
+                <button id="dialogueQuizBtn" type="button" hidden>开始挑战</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="controls" aria-label="移动按钮">
@@ -60,6 +78,7 @@
           <button data-dir="up" type="button" aria-label="向上">&#8963;</button>
           <button data-dir="down" type="button" aria-label="向下">&#8964;</button>
           <button data-dir="right" type="button" aria-label="向右">&rsaquo;</button>
+          <button id="dialogueBtn" class="dialogue-btn" type="button" aria-label="对话">对话</button>
           <button id="attackBtn" class="attack-btn" type="button" aria-label="攻击">攻击</button>
         </div>
       </section>
