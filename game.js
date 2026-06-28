@@ -450,11 +450,7 @@ const levels = [
       item(430, 245, "pencil", "\u94c5\u7b14"),
       item(260, 386, "apple", "\u82f9\u679c"),
     ],
-    propDecorations: [
-      propDecoration(125, 332, "map", 42, 34, "\u5730\u56fe"),
-      propDecoration(385, 186, "bell", 30, 30, "\u5c0f\u94c3\u94db"),
-      propDecoration(612, 240, "leafLamp", 34, 46, "\u53f6\u5b50\u706f"),
-    ],
+    propDecorations: [],
     tasks: [
       delivery(198, 322, "\u5c0f\u9e7f", "deer", "apple", "\u60f3\u5403\u82f9\u679c"),
       delivery(790, 298, "\u677e\u9f20", "squirrel", "pencil", "\u627e\u94c5\u7b14"),
