@@ -615,6 +615,7 @@ const levels = [
   {
     name: "\u68ee\u6797\u8bfe\u5802\u6311\u6218",
     bg: "classroom",
+    dialogueDisabled: true,
     time: 95,
     start: { x: 480, y: 430 },
     message: "\u7b2c\u56db\u5929\uff1a\u56de\u5230\u68ee\u6797\u6559\u5ba4\uff0c\u5b8c\u6210\u6570\u5b66\u3001\u79d1\u5b66\u3001\u8bed\u6587\u548c\u82f1\u6587\u5c0f\u6311\u6218\u3002",
@@ -1813,6 +1814,27 @@ function startDialogueQuiz() {
 
 function talkToNearbyTask() {
   if (!state?.running || state.activeQuiz) return;
+  if (levels[state.levelIndex]?.dialogueDisabled === true) {
+    const task = state.nearbyTask;
+    if (!task || task.done) return;
+    if (task.kind === "quiz") {
+      openQuiz(task);
+      return;
+    }
+    if (task.kind === "delivery") {
+      const missing = missingNeeds(task.need);
+      if (missing.length) {
+        messageEl.textContent = `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002`;
+        return;
+      }
+      consumeNeeds(task.need);
+      completeTask(task, task.x, task.y);
+      updateHud();
+      return;
+    }
+    messageEl.textContent = taskNearHint(task);
+    return;
+  }
   if (state.activeDialogue) {
     nextDialogueLine();
     return;
