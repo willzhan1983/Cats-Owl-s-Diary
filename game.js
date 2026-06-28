@@ -184,6 +184,13 @@ const TASK_TYPES = {
   BOSS_FIGHT: "boss_fight",
 };
 
+const PROP_USAGE_POLICY = {
+  taskItem: "only appears in levels where the task needs it",
+  decoration: "appears sparingly when it fits the scene",
+  reward: "appears in reward or hidden-object scenes",
+  keyItem: "appears only for route, story, or unlock moments",
+};
+
 const NPC_REGISTRY = {
   deer: { id: "deer", displayName: "\u5c0f\u9e7f", renderer: drawDeer, world: "forest_school" },
   squirrel: { id: "squirrel", displayName: "\u677e\u9f20", renderer: drawSquirrel, world: "forest_school" },
@@ -442,17 +449,11 @@ const levels = [
       item(748, 154, "apple", "\u82f9\u679c"),
       item(430, 245, "pencil", "\u94c5\u7b14"),
       item(260, 386, "apple", "\u82f9\u679c"),
-      item(665, 390, "book", "\u6545\u4e8b\u4e66"),
     ],
     propDecorations: [
       propDecoration(125, 332, "map", 42, 34, "\u5730\u56fe"),
-      propDecoration(330, 388, "flowerSeeds", 32, 32, "\u82b1\u79cd"),
       propDecoration(385, 186, "bell", 30, 30, "\u5c0f\u94c3\u94db"),
       propDecoration(612, 240, "leafLamp", 34, 46, "\u53f6\u5b50\u706f"),
-      propDecoration(552, 128, "hangingLantern", 34, 46, "\u706f\u7b3c"),
-      propDecoration(344, 146, "flowerBulbLamp", 32, 42, "\u82b1\u82de\u706f"),
-      propDecoration(238, 330, "leafBroom", 46, 46, "\u53f6\u5b50\u626b\u5e1a"),
-      propDecoration(92, 462, "treasureChest", 48, 40, "\u5b9d\u7bb1"),
     ],
     tasks: [
       delivery(198, 322, "\u5c0f\u9e7f", "deer", "apple", "\u60f3\u5403\u82f9\u679c"),
@@ -625,15 +626,11 @@ const levels = [
     collectibles: [
       item(176, 392, "courageStar", "\u52c7\u6c14\u661f"),
       item(306, 218, "courageStar", "\u52c7\u6c14\u661f"),
-      item(246, 318, "courageStar", "\u52c7\u6c14\u661f"),
       item(446, 196, "magicPencil", "\u9b54\u6cd5\u94c5\u7b14"),
       item(620, 316, "magicPencil", "\u9b54\u6cd5\u94c5\u7b14"),
       item(548, 420, "magicPencil", "\u9b54\u6cd5\u94c5\u7b14"),
       item(760, 382, "guardBook", "\u5b88\u62a4\u4e66"),
-      item(822, 178, "guardBook", "\u5b88\u62a4\u4e66"),
-      item(676, 212, "guardBook", "\u5b88\u62a4\u4e66"),
       item(314, 286, "potion", "\u7231\u5fc3\u836f\u6c34"),
-      item(850, 310, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
       bossTask(480, 150, "\u9ed1\u718a\u602a Boss", "boss", ["courageStar", "magicPencil", "guardBook"], "\u9760\u8fd1 Boss \u4f7f\u7528\u9053\u5177\u6d88\u8017\u8840\u6761"),
