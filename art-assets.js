@@ -21,6 +21,9 @@
     puddle: "assets/props/puddle.png",
     lampPost: "assets/props/lamp_post.png",
     lantern: "assets/props/lantern.png",
+    schoolSign: "assets/props/school_sign.png",
+    bouncingMushroom: "assets/props/bouncing_mushroom.png",
+    finishFlag: "assets/props/finish_flag.png",
   };
 
   const registry = {
@@ -64,6 +67,9 @@
       puddle: window.ART_ASSETS.props.puddle,
       lampPost: window.ART_ASSETS.props.lampPost,
       lantern: window.ART_ASSETS.props.lantern,
+      schoolSign: window.ART_ASSETS.props.schoolSign,
+      bouncingMushroom: window.ART_ASSETS.props.bouncingMushroom,
+      finishFlag: window.ART_ASSETS.props.finishFlag,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
