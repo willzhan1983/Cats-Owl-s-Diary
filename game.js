@@ -53,9 +53,9 @@ const backgroundSources = {
   forestSchool: "./assets/bg-level1-schoolyard.png",
   riverTown: "./assets/v2/v2-bg-city-road.png",
   darkSwamp: "./assets/v2/v2-bg-swamp-boss.png",
-  moonlightShore: "./assets/v2/v2-bg-pond.png",
+  moonlightShore: "./assets/bg/moonlight_shore.png",
   moonlitIsle: "./assets/v2/v2-bg-wetland.png",
-  underwaterGarden: "./assets/v2/v2-bg-pond.png",
+  underwaterGarden: "./assets/bg/underwater_garden.png",
   deepSeaRuins: "./assets/v2/v2-bg-swamp-boss.png",
   nessieLair: "./assets/v2/v2-bg-swamp-boss.png",
 };
@@ -74,9 +74,9 @@ const backgroundSourceCandidates = {
   forestSchool: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
   riverTown: ["./assets/v2/v2-bg-city-road.png", "./assets/v2/v2-bg-pond.png"],
   darkSwamp: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
-  moonlightShore: ["./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
+  moonlightShore: ["./assets/bg/moonlight_shore.png", "./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
   moonlitIsle: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
-  underwaterGarden: ["./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
+  underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
   deepSeaRuins: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
@@ -1942,6 +1942,8 @@ function drawBackground() {
     ctx.save();
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     ctx.restore();
+  } else if (levels[state.levelIndex]?.world === "moonlight_lake") {
+    drawMoonlightLakeFallbackBackground();
   } else {
     drawTree(90, 135, 1.15);
     drawTree(850, 125, 1.05);
@@ -1961,6 +1963,78 @@ function drawBackground() {
   ctx.beginPath();
   ctx.ellipse(480, 536, 520, 70, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawMoonlightLakeFallbackBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, "#17163f");
+  sky.addColorStop(0.48, "#253d76");
+  sky.addColorStop(1, "#1f4c68");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "rgba(245, 242, 205, 0.95)";
+  circle(742, 84, 42);
+  ctx.fillStyle = "rgba(245, 242, 205, 0.22)";
+  circle(742, 84, 66);
+
+  const lake = ctx.createLinearGradient(0, 210, 0, canvas.height);
+  lake.addColorStop(0, "rgba(48, 87, 142, 0.75)");
+  lake.addColorStop(1, "rgba(18, 57, 91, 0.92)");
+  ctx.fillStyle = lake;
+  ctx.beginPath();
+  ctx.moveTo(0, 218);
+  ctx.bezierCurveTo(180, 190, 306, 242, 480, 214);
+  ctx.bezierCurveTo(650, 188, 790, 220, 960, 198);
+  ctx.lineTo(960, 540);
+  ctx.lineTo(0, 540);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(245, 242, 205, 0.56)";
+  ctx.lineWidth = 5;
+  ctx.lineCap = "round";
+  for (let i = 0; i < 5; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(650 - i * 24, 180 + i * 42);
+    ctx.quadraticCurveTo(742, 196 + i * 46, 834 + i * 16, 190 + i * 42);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#303f5f";
+  ctx.beginPath();
+  ctx.moveTo(0, 410);
+  ctx.bezierCurveTo(220, 354, 420, 402, 604, 360);
+  ctx.bezierCurveTo(720, 334, 830, 360, 960, 330);
+  ctx.lineTo(960, 540);
+  ctx.lineTo(0, 540);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#72543d";
+  roundRect(116, 330, 250, 18, 6);
+  ctx.fill();
+  for (const x of [138, 214, 292, 344]) {
+    roundRect(x, 340, 14, 70, 5);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = "#7b8f72";
+  ctx.lineWidth = 5;
+  for (const x of [52, 76, 620, 646, 680, 902, 928]) {
+    ctx.beginPath();
+    ctx.moveTo(x, 438);
+    ctx.quadraticCurveTo(x - 12, 386, x + 6, 330);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#52617d";
+  circle(520, 392, 24);
+  circle(560, 382, 15);
+  ctx.fillStyle = "rgba(223, 246, 255, 0.7)";
+  circle(452, 306, 14);
+  ctx.fillStyle = "#6d5a4a";
+  roundRect(446, 316, 12, 60, 5);
 }
 
 function drawPath() {
@@ -2226,6 +2300,8 @@ const ART_PACK_PROP_KEYS = {
   leafLamp: "leafLamp",
   hangingLantern: "hangingLantern",
   flowerBulbLamp: "flowerBulbLamp",
+  divingHelmet: "bubbleDivingHelmet",
+  pearlOrb: "pearlOrb",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -2246,6 +2322,8 @@ const ART_PACK_NPC_KEYS = {
   fox: "fox",
   firefly: "firefly",
   owl: "owlPrincipal",
+  jellyfish: "jellyfishLady",
+  nessie: "nessieBoss",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -2297,6 +2375,8 @@ const ART_PACK_ITEM_BOUNDS = {
   schoolSign: { x: -40, y: -52, w: 80, h: 104 },
   bouncingMushroom: { x: -34, y: -48, w: 68, h: 96 },
   finishFlag: { x: -42, y: -72, w: 84, h: 120 },
+  divingHelmet: { x: -30, y: -34, w: 60, h: 60 },
+  pearlOrb: { x: -27, y: -29, w: 54, h: 54 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -2317,6 +2397,8 @@ const ART_PACK_NPC_BOUNDS = {
   fox: { x: -38, y: -62, w: 76, h: 100 },
   firefly: { x: -40, y: -62, w: 80, h: 98 },
   owl: { x: -44, y: -78, w: 88, h: 88 },
+  jellyfish: { x: -44, y: -76, w: 88, h: 88 },
+  nessie: { x: -70, y: -100, w: 140, h: 140 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {

@@ -24,6 +24,8 @@
     schoolSign: "assets/props/school_sign.png",
     bouncingMushroom: "assets/props/bouncing_mushroom.png",
     finishFlag: "assets/props/finish_flag.png",
+    bubbleDivingHelmet: "assets/items/bubble_diving_helmet.png",
+    pearlOrb: "assets/items/pearl_orb.png",
   };
 
   const registry = {
@@ -39,6 +41,8 @@
       fox: "./assets/asset-pack-01/npc/fox.png",
       firefly: "./assets/asset-pack-01/npc/firefly.png",
       owlPrincipal: "./assets/asset-pack-01/npc/owl_principal.png",
+      jellyfishLady: "./assets/npc/jellyfish_lady.png",
+      nessieBoss: "./assets/npc/nessie_boss.png",
     },
     boss: {
       blackBear: "./assets/asset-pack-01/boss/black-bear/idle.png",
@@ -70,6 +74,8 @@
       schoolSign: window.ART_ASSETS.props.schoolSign,
       bouncingMushroom: window.ART_ASSETS.props.bouncingMushroom,
       finishFlag: window.ART_ASSETS.props.finishFlag,
+      bubbleDivingHelmet: window.ART_ASSETS.props.bubbleDivingHelmet,
+      pearlOrb: window.ART_ASSETS.props.pearlOrb,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
