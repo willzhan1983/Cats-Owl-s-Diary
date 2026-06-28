@@ -35,6 +35,7 @@
       butterfly: "./assets/asset-pack-01/npc/butterfly.png",
       fox: "./assets/asset-pack-01/npc/fox.png",
       firefly: "./assets/asset-pack-01/npc/firefly.png",
+      owlPrincipal: "./assets/asset-pack-01/npc/owl_principal.png",
     },
     boss: {
       blackBear: "./assets/asset-pack-01/boss/black-bear/idle.png",
