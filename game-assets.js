@@ -2,12 +2,12 @@
 // Keeps art paths in one place and exposes safe lookup helpers for runtime patches.
 (() => {
   window.GAME_ASSETS = {
-    mimiIdle: "./assets/characters/mimi/v5/idle.png",
-    mimiWalk: "./assets/characters/mimi/v5/walk_1.png",
-    mimiHappy: "./assets/characters/mimi/v5/happy.png",
+    mimiIdle: "./assets/characters/mimi/v6/idle.png",
+    mimiWalk: "./assets/characters/mimi/v6/walk_1.png",
+    mimiHappy: "./assets/characters/mimi/v6/happy.png",
     mimiPortrait: "./assets/characters/mimi/portrait.svg",
-    owllyIdle: "./assets/characters/owlly/v5/idle.png",
-    owllyFly: "./assets/characters/owlly/v5/fly_1.png",
+    owllyIdle: "./assets/characters/owlly/v6/idle.png",
+    owllyFly: "./assets/characters/owlly/v6/fly_1.png",
     owllyWrite: "./assets/characters/owlly/write.svg",
     owllyPortrait: "./assets/characters/owlly/portrait.svg",
     lily: "./assets/npc/lily.svg",
