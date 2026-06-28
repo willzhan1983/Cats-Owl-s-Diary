@@ -1,0 +1,163 @@
+name: Backup to Google Drive
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Create and upload backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install zip and rclone
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y zip unzip curl
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Restore rclone config
+        shell: bash
+        env:
+          RCLONE_CONFIG_B64: ${{ secrets.RCLONE_CONFIG_B64 }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${RCLONE_CONFIG_B64:-}" ]; then
+            echo "Missing required secret: RCLONE_CONFIG_B64" >&2
+            exit 1
+          fi
+
+          mkdir -p "${HOME}/.config/rclone"
+          printf '%s' "${RCLONE_CONFIG_B64}" | base64 --decode > "${HOME}/.config/rclone/rclone.conf"
+          chmod 600 "${HOME}/.config/rclone/rclone.conf"
+
+      - name: Build backup package
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          timestamp="$(date -u +'%Y%m%d_%H%M%S')"
+          short_commit="$(git rev-parse --short HEAD)"
+          commit_message="$(git log -1 --pretty=%B | tr '\n' ' ' | sed 's/[[:space:]]\+/ /g')"
+          backup_name="Cats-Owl-Diary_backup_${timestamp}_${short_commit}.zip"
+          staging_dir="${RUNNER_TEMP}/cats_owl_diary_backup"
+
+          rm -rf "${staging_dir}"
+          mkdir -p "${staging_dir}"
+
+          copy_if_exists() {
+            local path="$1"
+            if [ -e "${path}" ]; then
+              mkdir -p "${staging_dir}/$(dirname "${path}")"
+              cp -R "${path}" "${staging_dir}/${path}"
+            fi
+          }
+
+          copy_if_exists "assets"
+          copy_if_exists "docs"
+          copy_if_exists "game.js"
+          copy_if_exists "game-assets.js"
+          copy_if_exists "art-assets.js"
+          copy_if_exists "world-map.js"
+          copy_if_exists "index.html"
+          copy_if_exists "style.css"
+          copy_if_exists "world-map.css"
+          copy_if_exists "README.md"
+          copy_if_exists "PROJECT_INDEX.md"
+          copy_if_exists "PR_STATUS.md"
+          copy_if_exists "IP_ASSET_RISK_AUDIT.md"
+          copy_if_exists "PROPS_V2_ASSET_CHECKLIST.md"
+          copy_if_exists "CHARACTER_V6_TEST_NOTES.md"
+          copy_if_exists "package.json"
+
+          find . -maxdepth 1 -type f -name '*.md' \
+            ! -name 'PROJECT_INDEX.md' \
+            ! -name 'PR_STATUS.md' \
+            ! -name 'IP_ASSET_RISK_AUDIT.md' \
+            ! -name 'PROPS_V2_ASSET_CHECKLIST.md' \
+            ! -name 'CHARACTER_V6_TEST_NOTES.md' \
+            -exec cp {} "${staging_dir}/" \;
+
+          find "${staging_dir}" \( \
+            -name '.DS_Store' -o \
+            -name 'Thumbs.db' -o \
+            -name 'desktop.ini' -o \
+            -name '__MACOSX' -o \
+            -name '*.tmp' -o \
+            -name '*.temp' \
+          \) -exec rm -rf {} +
+
+          cat > "${staging_dir}/BACKUP_MANIFEST.md" <<EOF
+          # Cats & Owl's Diary Backup Manifest
+
+          - Backup time (UTC): ${timestamp}
+          - Commit SHA: ${GITHUB_SHA}
+          - Branch: ${GITHUB_REF_NAME}
+          - GitHub run ID: ${GITHUB_RUN_ID}
+          - Latest commit message: ${commit_message:-N/A}
+          - PR / merge note: For push-to-main runs, check the latest commit message above. Merge commits usually include the PR number and title.
+
+          ## Included Main Directories
+
+          - assets/
+          - docs/
+          - selected root game files
+          - selected root Markdown documentation
+
+          ## Current Notes
+
+          - #24 is paused. Do not merge the wrong player character images.
+          - Official player images must be confirmed transparent PNGs for Mimi / 詹涞儿 and Owlly / 姚头鹰.
+          EOF
+
+          (cd "${staging_dir}" && zip -r "${GITHUB_WORKSPACE}/${backup_name}" .)
+
+          echo "backup_name=${backup_name}" >> "${GITHUB_OUTPUT}"
+          echo "backup_path=${GITHUB_WORKSPACE}/${backup_name}" >> "${GITHUB_OUTPUT}"
+
+      - name: Upload backup to Google Drive
+        shell: bash
+        env:
+          GDRIVE_BACKUP_PATH: ${{ secrets.GDRIVE_BACKUP_PATH }}
+          BACKUP_PATH: ${{ steps.package.outputs.backup_path }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${GDRIVE_BACKUP_PATH:-}" ]; then
+            echo "Missing required secret: GDRIVE_BACKUP_PATH" >&2
+            exit 1
+          fi
+
+          remote_name="$(awk -F'[][]' '/^\[.+\]$/ { print $2; exit }' "${HOME}/.config/rclone/rclone.conf")"
+          if [ -z "${remote_name:-}" ]; then
+            echo "Could not find an rclone remote in rclone.conf" >&2
+            exit 1
+          fi
+
+          if [[ "${GDRIVE_BACKUP_PATH}" == *:* ]]; then
+            rclone_destination="${GDRIVE_BACKUP_PATH}"
+          else
+            rclone_destination="${remote_name}:${GDRIVE_BACKUP_PATH}"
+          fi
+
+          rclone copy "${BACKUP_PATH}" "${rclone_destination}" --create-empty-src-dirs --progress
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.backup_name }}
+          path: ${{ steps.package.outputs.backup_path }}
+          if-no-files-found: error
+          retention-days: 30
