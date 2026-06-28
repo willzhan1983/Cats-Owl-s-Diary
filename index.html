@@ -8,10 +8,22 @@
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg?v=new-cover-20260626" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css?v=dialogue-20260628" />
     <link rel="stylesheet" href="./world-map.css" />
+    <link rel="stylesheet" href="./grade-quiz.css" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
       <img src="./assets/home-screen-fast.jpg?v=new-cover-20260626" alt="Cats & Owl's Diary 森林学校首页" decoding="async" fetchpriority="high" />
+      <div class="grade-picker" aria-label="选择在读年级">
+        <div class="grade-picker-title">选择在读年级 · 自动匹配题库难度</div>
+        <div class="grade-buttons">
+          <button class="grade-btn" data-grade="1" type="button">一年级</button>
+          <button class="grade-btn" data-grade="2" type="button">二年级</button>
+          <button class="grade-btn" data-grade="3" type="button">三年级</button>
+          <button class="grade-btn" data-grade="4" type="button">四年级</button>
+          <button class="grade-btn" data-grade="5" type="button">五年级</button>
+          <button class="grade-btn" data-grade="6" type="button">六年级</button>
+        </div>
+      </div>
       <div class="role-picker" aria-label="选择角色">
         <button class="role-btn is-selected" data-role="cat" type="button">Mimi / 詹涞儿</button>
         <button class="role-btn" data-role="owl" type="button">Owlly / 姚头鹰</button>
@@ -79,7 +91,7 @@
           <button data-dir="down" type="button" aria-label="向下">&#8964;</button>
           <button data-dir="right" type="button" aria-label="向右">&rsaquo;</button>
           <button id="dialogueBtn" class="dialogue-btn" type="button" aria-label="对话">对话</button>
-          <button id="attackBtn" class="attack-btn" type="button" aria-label="攻击">攻击</button>
+          <button id="attackBtn" class="attack-btn" type="button" aria-label="动作">&#25915;&#20987;</button>
         </div>
       </section>
     </main>
@@ -101,6 +113,8 @@
     </section>
 
     <script src="./game.js?v=dialogue-20260628"></script>
+    <script src="./grade-upper-quiz-bank.js"></script>
+    <script src="./grade-quiz.js"></script>
     <script src="./art-assets.js"></script>
     <script src="./life.js"></script>
     <script src="./world-map.js"></script>
