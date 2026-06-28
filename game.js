@@ -430,6 +430,51 @@ const quizBank = {
   ],
 };
 
+const QUIZ_DISPLAY = {
+  math: {
+    name: "\u6570\u5b66\u6811\u6869",
+    short: "\u7b97\u9898",
+    near: "\u6309 E \u7b97\u4e00\u7b97",
+    dialogue: "\u6765\u5e2e\u6211\u7b97\u4e00\u9053\u6570\u5b66\u9898\u5427\u3002",
+    sign: "\u7b97\u9898",
+  },
+  logic: {
+    name: "\u903b\u8f91\u661f\u661f\u724c",
+    short: "\u627e\u89c4\u5f8b",
+    near: "\u6309 E \u627e\u89c4\u5f8b",
+    dialogue: "\u89c2\u5bdf\u4e00\u4e0b\uff0c\u7b54\u6848\u85cf\u5728\u89c4\u5f8b\u91cc\u3002",
+    sign: "\u89c4\u5f8b",
+  },
+  science: {
+    name: "\u79d1\u5b66\u82b1\u575b",
+    short: "\u770b\u4e00\u770b",
+    near: "\u6309 E \u89c2\u5bdf",
+    dialogue: "\u4ed4\u7ec6\u89c2\u5bdf\u82b1\u56ed\u91cc\u7684\u5c0f\u79d8\u5bc6\u3002",
+    sign: "\u89c2\u5bdf",
+  },
+  language: {
+    name: "\u8bed\u6587\u6728\u724c",
+    short: "\u8ba4\u5b57",
+    near: "\u6309 E \u8ba4\u4e00\u8ba4",
+    dialogue: "\u8fd9\u4e2a\u6c49\u5b57\u4f60\u8ba4\u8bc6\u5417\uff1f",
+    sign: "\u8ba4\u5b57",
+  },
+  english: {
+    name: "\u82f1\u8bed\u62fc\u56fe\u684c",
+    short: "ABC",
+    near: "\u6309 E \u8bfb\u4e00\u8bfb",
+    dialogue: "\u4e00\u8d77\u8bfb\u4e00\u4e2a\u82f1\u6587\u5c0f\u5355\u8bcd\u5427\u3002",
+    sign: "ABC",
+  },
+  riddle: {
+    name: "\u731c\u5b57\u8c1c\u5c0f\u724c",
+    short: "\u731c\u8c1c",
+    near: "\u6309 E \u731c\u8c1c\u8bed",
+    dialogue: "\u6765\u731c\u4e00\u4e2a\u5c0f\u8c1c\u8bed\u3002",
+    sign: "\u731c\u8c1c",
+  },
+};
+
 const levels = [
   {
     name: "\u65e9\u6668\u4e0a\u5b66\u8def",
@@ -541,12 +586,12 @@ const levels = [
     message: "\u7b2c\u56db\u5929\uff1a\u56de\u5230\u68ee\u6797\u6559\u5ba4\uff0c\u5b8c\u6210\u6570\u5b66\u3001\u79d1\u5b66\u3001\u8bed\u6587\u548c\u82f1\u6587\u5c0f\u6311\u6218\u3002",
     collectibles: [],
     tasks: [
-      quizTask(138, 326, "\u6570\u5b66\u6811\u6869", "math", "\u7b97\u4e00\u7b97", "math"),
-      quizTask(322, 138, "\u903b\u8f91\u6811\u6869", "logic", "\u60f3\u4e00\u60f3", "logic"),
-      quizTask(500, 98, "\u79d1\u5b66\u82b1\u575b", "science", "\u60f3\u60f3\u770b", "science"),
-      quizTask(742, 160, "\u8bed\u6587\u6728\u724c", "language", "\u8ba4\u4e00\u8ba4", "language"),
-      quizTask(836, 354, "English Bell", "english", "ABC", "english"),
-      quizTask(462, 408, "\u731c\u5b57\u8c1c", "riddle", "\u731c\u4e00\u731c", "riddle"),
+      quizTask(138, 326, "\u6570\u5b66\u6811\u6869", "math", "\u7b97\u9898", "math"),
+      quizTask(322, 138, "\u903b\u8f91\u661f\u661f\u724c", "logic", "\u627e\u89c4\u5f8b", "logic"),
+      quizTask(500, 98, "\u79d1\u5b66\u82b1\u575b", "science", "\u770b\u4e00\u770b", "science"),
+      quizTask(742, 160, "\u8bed\u6587\u6728\u724c", "language", "\u8ba4\u5b57", "language"),
+      quizTask(836, 354, "\u82f1\u8bed\u62fc\u56fe\u684c", "english", "ABC", "english"),
+      quizTask(462, 408, "\u731c\u5b57\u8c1c\u5c0f\u724c", "riddle", "\u731c\u8c1c", "riddle"),
     ],
     puddles: [
       { x: 248, y: 360, r: 28 },
@@ -1186,7 +1231,7 @@ function checkTasks(dt) {
     }
 
     if (task.kind === "quiz") {
-      messageEl.textContent = `${task.name}\uff1a${task.speech}\u3002\u6309 E \u5bf9\u8bdd\uff0c\u518d\u5f00\u59cb\u6311\u6218\u3002`;
+      messageEl.textContent = taskNearHint(task);
       continue;
     }
 
@@ -1270,6 +1315,34 @@ function itemLabel(type) {
   }[type] || type;
 }
 
+function quizDisplay(taskOrKind) {
+  const key = typeof taskOrKind === "string" ? taskOrKind : taskOrKind?.quizKey || taskOrKind?.animal;
+  return QUIZ_DISPLAY[key] || null;
+}
+
+function taskShortHint(task) {
+  if (task.done) return "\u5b8c\u6210";
+  if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
+  if (task.kind === "delivery") return missingNeeds(task.need).length ? "\u5bf9\u8bdd" : "\u4ea4\u7ed9TA";
+  if (task.kind === "boss") return "Boss";
+  return "\u5e2e\u5fd9";
+}
+
+function taskNearHint(task) {
+  if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
+  if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
+  if (task.kind === "delivery") {
+    const missing = missingNeeds(task.need);
+    return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002` : "\u6309 E \u4ea4\u7ed9TA";
+  }
+  if (task.kind === "boss") return firstBossWeapon() ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u653b\u51fb\u3002" : "\u6309 E \u542c\u63d0\u793a\u3002";
+  return "\u6309 E \u5bf9\u8bdd";
+}
+
+function shouldShowTaskHint(task) {
+  return state.nearbyTask === task || state.activeDialogue?.task === task || (task.kind === "action" && task.progress > 0.08);
+}
+
 function taskDialogueMode(task) {
   if (task.done) return "after";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
@@ -1281,6 +1354,7 @@ function taskDialogueMode(task) {
 function taskDialogueLines(task, mode) {
   const library = task.dialogue || DIALOGUE_LIBRARY[task.animal] || {};
   if (library[mode]?.length) return library[mode];
+  if (mode === "intro" && task.kind === "quiz") return [quizDisplay(task)?.dialogue || task.speech];
   if (mode === "intro") return [`${task.name}\uff1a${task.speech}`];
   if (mode === "missing" && task.need) return [`\u6211\u8fd8\u9700\u8981\uff1a${needLabels(missingNeeds(task.need))}\u3002`];
   if (mode === "ready" && task.kind === "delivery") return [`\u4f60\u5df2\u7ecf\u627e\u5230${needLabels(task.need)}\u5566\uff01`];
@@ -2138,13 +2212,19 @@ function drawProjectiles() {
 }
 
 function drawSpeech(task) {
-  ctx.fillStyle = task.done ? "#ffffff" : "#fff7df";
-  roundRect(-52, -74, 104, 36, 8);
+  if (!shouldShowTaskHint(task)) return;
+  const label = task.done ? "\u5b8c\u6210" : taskShortHint(task);
+  const width = Math.max(48, Math.min(82, 24 + label.length * 14));
+  ctx.fillStyle = task.done ? "rgba(236, 255, 226, 0.9)" : "rgba(255, 247, 223, 0.88)";
+  roundRect(-width / 2, -70, width, 26, 8);
   ctx.fill();
+  ctx.strokeStyle = task.done ? "rgba(111, 180, 71, 0.58)" : "rgba(218, 156, 78, 0.42)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
   ctx.fillStyle = "#34563e";
   ctx.font = "900 11px Microsoft YaHei, Arial";
   ctx.textAlign = "center";
-  fitText(task.done ? "\u8c22\u8c22!" : task.speech, 0, -52, 92);
+  fitText(label, 0, -53, width - 12);
 }
 
 function drawTaskProgress(progress) {
@@ -2203,12 +2283,12 @@ function drawAnimal(kind) {
   else if (kind === "light") drawTreeLight();
   else if (kind === "spring") drawSpringMushroom();
   else if (kind === "finish") drawFinishFlag();
-  else if (kind === "math") drawQuizStand("#ffd75e", "27+16");
-  else if (kind === "logic") drawQuizStand("#ffffff", "\u2605?");
-  else if (kind === "science") drawQuizStand("#83b83d", "\u82b1");
-  else if (kind === "language") drawQuizStand("#f6d77b", "\u6728");
-  else if (kind === "english") drawQuizStand("#2f9dcc", "ABC");
-  else if (kind === "riddle") drawQuizStand("#f59a8b", "?");
+  else if (kind === "math") drawQuizStand("#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
+  else if (kind === "logic") drawQuizStand("#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
+  else if (kind === "science") drawQuizStand("#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
+  else if (kind === "language") drawQuizStand("#f6d77b", quizDisplay("language")?.sign || "\u8ba4\u5b57");
+  else if (kind === "english") drawQuizStand("#2f9dcc", quizDisplay("english")?.sign || "ABC");
+  else if (kind === "riddle") drawQuizStand("#f59a8b", quizDisplay("riddle")?.sign || "\u731c\u8c1c");
 }
 
 function drawPlayer() {
@@ -3500,21 +3580,26 @@ function drawFinishFlag() {
 }
 
 function drawQuizStand(color, label) {
+  drawShadow(0, 31, 34, 7);
   ctx.fillStyle = "#8b5b2b";
-  roundRect(-5, 0, 10, 42, 4);
+  roundRect(-4, -2, 8, 36, 4);
+  ctx.fill();
+  ctx.fillStyle = "rgba(91, 58, 36, 0.24)";
+  ctx.beginPath();
+  ctx.ellipse(0, 32, 22, 5, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.fillStyle = color;
-  roundRect(-34, -38, 68, 42, 8);
+  roundRect(-28, -34, 56, 32, 7);
   ctx.fill();
-  ctx.strokeStyle = "rgba(52,86,62,0.45)";
-  ctx.lineWidth = 3;
+  ctx.strokeStyle = "rgba(91, 58, 36, 0.52)";
+  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.fillStyle = "#244134";
-  ctx.font = "900 15px Microsoft YaHei, Arial";
+  ctx.font = "900 12px Microsoft YaHei, Arial";
   ctx.textAlign = "center";
-  ctx.fillText(label, 0, -13);
+  fitText(label, 0, -14, 46);
   ctx.fillStyle = "#ffd94a";
-  star(25, -31, 7);
+  star(22, -30, 5);
 }
 
 function drawFace(dx = 0, dy = 0) {
