@@ -211,6 +211,38 @@
     },
   };
 
+  Object.assign(CHARACTER_REGISTRY, {
+    otter: { name: "Otter", role: "NPC", description: "Moonlight Lake shore guide." },
+    frog: { name: "Frog", role: "NPC", description: "Bubble lift and floating isle helper." },
+    seaTurtle: { name: "Sea Turtle", role: "NPC", description: "Underwater garden guide." },
+    jellyfish: { name: "Jellyfish", role: "NPC", description: "Underwater light keeper." },
+    octopus: { name: "Octopus", role: "NPC", description: "Deep sea ruins puzzle keeper." },
+    nessie: { name: "Nessie", role: "Boss", description: "Moonlight Lake boss who returns to normal after the dark bubbles are cleared." },
+  });
+
+  Object.assign(WORLD_MAP.moonlight_lake, {
+    name: "月光湖 Moonlight Lake",
+    emoji: "🌙",
+    type: "lake",
+    description: "V4.0 月光湖篇包含 Moonlight Shore、Moonlit Isle、Underwater Garden、Deep Sea Ruins、Nessie's Lair 五个连续关卡。Mimi 和 Owlly 会遇到水獭、青蛙、海龟、水母、章鱼，并帮助 Nessie 恢复正常。",
+    background: "assets/v2/v2-bg-pond.png",
+    npcs: ["otter", "frog", "seaTurtle", "jellyfish", "octopus", "nessie", "owlly"],
+    neighbors: ["forest_school", "wetland_park"],
+    unlocked: true,
+    unlockCondition: "完成原有森林学校、湿地和 Boss 主线后可继续游玩",
+    position: { column: 1, row: 3 },
+    theme: "月光湖岸、湖心浮岛、水底花园、深海遗迹、Nessie Boss",
+    previous: "Dark Swamp / 原有 Boss 关卡",
+    next: "Moonlight Lake ending",
+    tasks: [
+      { id: "ml_moonlight_shore", name: "月光湖岸 Moonlight Shore", npc: "otter", gameplay: "收集 Moon Lamp、Boat Paddle、Shell Badge，并点亮月光石柱", reward: "进入湖心浮岛" },
+      { id: "ml_moonlit_isle", name: "湖心浮岛 Moonlit Isle", npc: "frog", gameplay: "使用泡泡升降点与 Moon Key、Coral Key 打开浮岛路线", reward: "进入水底花园" },
+      { id: "ml_underwater_garden", name: "水底花园 Underwater Garden", npc: "seaTurtle", gameplay: "使用 Diving Helmet、Jellyfish Core、Aqua Gem 和珍珠机关修复花园光源", reward: "进入深海遗迹" },
+      { id: "ml_deep_sea_ruins", name: "深海遗迹 Deep Sea Ruins", npc: "octopus", gameplay: "收集 Deep Rune、Spiral Shell、Pearl Crown，穿过漩涡和水流", reward: "进入 Nessie 巢穴" },
+      { id: "ml_nessie_lair", name: "尼斯湖怪巢穴 Nessie's Lair", npc: "nessie", gameplay: "三阶段 Boss：点亮 3 根石柱、收集 3 个珍珠能量球关闭漩涡、击破 3 个黑暗泡泡", reward: "Moon Pearl Badge" },
+    ],
+  });
+
   const REGION_ORDER = [
     "starlight_mountain",
     "mist_swamp",
@@ -227,6 +259,7 @@
     { from: "starlight_mountain", to: "mist_swamp", direction: "vertical" },
     { from: "mist_swamp", to: "forest_school", direction: "vertical" },
     { from: "moonlight_lake", to: "forest_school", direction: "horizontal-left" },
+    { from: "moonlight_lake", to: "wetland_park", direction: "vertical" },
     { from: "forest_school", to: "apple_valley", direction: "horizontal-right" },
     { from: "forest_school", to: "forest_road", direction: "vertical" },
     { from: "forest_road", to: "acorn_town", direction: "vertical" },

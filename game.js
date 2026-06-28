@@ -53,6 +53,11 @@ const backgroundSources = {
   forestSchool: "./assets/bg-level1-schoolyard.png",
   riverTown: "./assets/v2/v2-bg-city-road.png",
   darkSwamp: "./assets/v2/v2-bg-swamp-boss.png",
+  moonlightShore: "./assets/v2/v2-bg-pond.png",
+  moonlitIsle: "./assets/v2/v2-bg-wetland.png",
+  underwaterGarden: "./assets/v2/v2-bg-pond.png",
+  deepSeaRuins: "./assets/v2/v2-bg-swamp-boss.png",
+  nessieLair: "./assets/v2/v2-bg-swamp-boss.png",
 };
 
 const backgroundSourceCandidates = {
@@ -69,6 +74,11 @@ const backgroundSourceCandidates = {
   forestSchool: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
   riverTown: ["./assets/v2/v2-bg-city-road.png", "./assets/v2/v2-bg-pond.png"],
   darkSwamp: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  moonlightShore: ["./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
+  moonlitIsle: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  underwaterGarden: ["./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
+  deepSeaRuins: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  nessieLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
 const backgrounds = {};
@@ -200,6 +210,12 @@ const NPC_REGISTRY = {
   fox: { id: "fox", displayName: "\u5c0f\u72d0", renderer: drawFox, world: "river_town" },
   firefly: { id: "firefly", displayName: "\u8424\u706b\u866b", renderer: drawFirefly, world: "river_town" },
   hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
+  otter: { id: "otter", displayName: "Otter", renderer: drawOtter, world: "moonlight_lake" },
+  frog: { id: "frog", displayName: "Frog", renderer: drawFrog, world: "moonlight_lake" },
+  seaTurtle: { id: "seaTurtle", displayName: "Sea Turtle", renderer: drawSeaTurtle, world: "moonlight_lake" },
+  jellyfish: { id: "jellyfish", displayName: "Jellyfish", renderer: drawJellyfish, world: "moonlight_lake" },
+  octopus: { id: "octopus", displayName: "Octopus", renderer: drawOctopus, world: "moonlight_lake" },
+  nessie: { id: "nessie", displayName: "Nessie", renderer: drawNessie, world: "moonlight_lake" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
 };
@@ -298,9 +314,30 @@ const WORLD_MAP = {
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.BOSS_FIGHT],
     boss: "blackBear",
   },
+  moonlight_lake: {
+    id: "moonlight_lake",
+    name: "Moonlight Lake",
+    background: "moonlightShore",
+    levels: [7, 8, 9, 10, 11],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE, TASK_TYPES.BOSS_FIGHT],
+    boss: "nessie",
+  },
 };
 
-const dayNames = ["\u7b2c\u4e00\u5929", "\u7b2c\u4e8c\u5929", "\u7b2c\u4e09\u5929", "\u7b2c\u56db\u5929", "\u7b2c\u4e94\u5929", "\u7b2c\u516d\u5929", "\u7b2c\u4e03\u5929"];
+const dayNames = [
+  "\u7b2c\u4e00\u5929",
+  "\u7b2c\u4e8c\u5929",
+  "\u7b2c\u4e09\u5929",
+  "\u7b2c\u56db\u5929",
+  "\u7b2c\u4e94\u5929",
+  "\u7b2c\u516d\u5929",
+  "\u7b2c\u4e03\u5929",
+  "Moonlight Shore",
+  "Moonlit Isle",
+  "Underwater Garden",
+  "Deep Sea Ruins",
+  "Nessie's Lair",
+];
 
 const keys = new Set();
 const touchDirs = new Set();
@@ -646,6 +683,160 @@ const levels = [
       { type: "pond", x: 720, y: 438, r: 38 },
     ],
   },
+  {
+    name: "Moonlight Shore",
+    bg: "moonlightShore",
+    world: "moonlight_lake",
+    time: 92,
+    start: { x: 116, y: 430 },
+    message: "V4.0 Moonlight Lake: reach the shore, collect moon tools, and help Otter light the lake path.",
+    collectibles: [
+      item(186, 360, "moonLamp", "Moon Lamp"),
+      item(332, 202, "boatPaddle", "Boat Paddle"),
+      item(560, 388, "shellBadge", "Shell Badge"),
+      item(734, 244, "bubbleStone", "Bubble Stone"),
+      item(830, 410, "potion", "\u7231\u5fc3\u836f\u6c34"),
+    ],
+    propDecorations: [
+      propDecoration(468, 120, "moonLamp", 44, 58, "Moon Lamp"),
+      propDecoration(704, 334, "spiralShell", 42, 36, "Spiral Shell"),
+    ],
+    tasks: [
+      delivery(230, 302, "Otter", "otter", "moonLamp", "Light the shore stones"),
+      delivery(616, 226, "Frog", "frog", ["boatPaddle", "shellBadge"], "Prepare the little moon boat"),
+      actionTask(790, 332, "Moon Pillar", "moonPillar", "Stand near the pillar to turn moonlight toward the lake"),
+    ],
+    puddles: [
+      { x: 280, y: 420, r: 28 },
+      { x: 706, y: 386, r: 32 },
+    ],
+    obstacles: [
+      { type: "current", x: 444, y: 374, r: 40, vx: 78, vy: -14 },
+      { type: "moonPillar", x: 790, y: 332, r: 34 },
+      { type: "pond", x: 548, y: 162, r: 34 },
+    ],
+  },
+  {
+    name: "Moonlit Isle",
+    bg: "moonlitIsle",
+    world: "moonlight_lake",
+    time: 96,
+    start: { x: 122, y: 420 },
+    message: "V4.0 Moonlight Lake: ride bubbles, cross the floating isle, and find the moon key.",
+    collectibles: [
+      item(172, 166, "moonKey", "Moon Key"),
+      item(356, 398, "pearlOrb", "Pearl Orb"),
+      item(530, 190, "coralKey", "Coral Key"),
+      item(750, 380, "bubbleStone", "Bubble Stone"),
+    ],
+    tasks: [
+      delivery(298, 292, "Frog", "frog", "bubbleStone", "Wake the bubble lift"),
+      delivery(608, 318, "Sea Turtle", "seaTurtle", ["moonKey", "coralKey"], "Open the isle gate"),
+      actionTask(446, 170, "Bubble Lift", "bubbleLift", "Stand on the bubble lift to float over the water"),
+    ],
+    puddles: [
+      { x: 254, y: 238, r: 28 },
+      { x: 678, y: 218, r: 32 },
+    ],
+    obstacles: [
+      { type: "bubbleLift", x: 446, y: 170, r: 34, vy: -125 },
+      { type: "current", x: 540, y: 388, r: 40, vx: 92, vy: 0 },
+      { type: "whirlpool", x: 820, y: 262, r: 44 },
+    ],
+  },
+  {
+    name: "Underwater Garden",
+    bg: "underwaterGarden",
+    world: "moonlight_lake",
+    time: 100,
+    start: { x: 126, y: 416 },
+    message: "V4.0 Moonlight Lake: explore the underwater garden and trim the tangled seaweed.",
+    collectibles: [
+      item(198, 206, "divingHelmet", "Diving Helmet"),
+      item(354, 386, "jellyfishCore", "Jellyfish Core"),
+      item(558, 248, "seaweedScissors", "Seaweed Scissors"),
+      item(744, 166, "aquaGem", "Aqua Gem"),
+      item(816, 398, "pearlOrb", "Pearl Orb"),
+    ],
+    tasks: [
+      delivery(260, 320, "Sea Turtle", "seaTurtle", "divingHelmet", "Check the safe diving path"),
+      delivery(620, 356, "Jellyfish", "jellyfish", ["jellyfishCore", "aquaGem"], "Restore the garden glow"),
+      actionTask(760, 246, "Pearl Switch", "pearlSwitch", "Stand near the pearl switch to open the coral gate"),
+    ],
+    puddles: [
+      { x: 268, y: 178, r: 28 },
+      { x: 690, y: 414, r: 30 },
+    ],
+    obstacles: [
+      { type: "current", x: 428, y: 296, r: 46, vx: -78, vy: 24 },
+      { type: "bubbleLift", x: 574, y: 180, r: 34, vy: -110 },
+      { type: "pearlSwitch", x: 760, y: 246, r: 34 },
+    ],
+  },
+  {
+    name: "Deep Sea Ruins",
+    bg: "deepSeaRuins",
+    world: "moonlight_lake",
+    time: 106,
+    start: { x: 118, y: 430 },
+    message: "V4.0 Moonlight Lake: solve the ruin path and gather the runes before the whirlpools grow.",
+    collectibles: [
+      item(180, 372, "deepRune", "Deep Rune"),
+      item(336, 182, "spiralShell", "Spiral Shell"),
+      item(512, 412, "coralKey", "Coral Key"),
+      item(690, 226, "pearlCrown", "Pearl Crown"),
+      item(822, 372, "aquaGem", "Aqua Gem"),
+    ],
+    tasks: [
+      delivery(278, 300, "Octopus", "octopus", ["deepRune", "spiralShell"], "Read the ruin pattern"),
+      delivery(650, 336, "Jellyfish", "jellyfish", ["coralKey", "aquaGem"], "Turn on the ruin lights"),
+      actionTask(502, 188, "Moon Pillar", "moonPillar", "Hold the moon pillar steady"),
+    ],
+    puddles: [
+      { x: 238, y: 230, r: 30 },
+      { x: 720, y: 430, r: 32 },
+    ],
+    obstacles: [
+      { type: "whirlpool", x: 420, y: 346, r: 48 },
+      { type: "current", x: 618, y: 236, r: 42, vx: 0, vy: 82 },
+      { type: "moonPillar", x: 502, y: 188, r: 34 },
+    ],
+  },
+  {
+    name: "Nessie's Lair",
+    bg: "nessieLair",
+    world: "moonlight_lake",
+    time: 118,
+    start: { x: 480, y: 438 },
+    message: "V4.0 Moonlight Lake Boss: light 3 pillars, collect 3 pearl orbs, then break 3 dark bubbles to help Nessie.",
+    collectibles: [
+      item(150, 382, "pearlOrb", "Pearl Orb"),
+      item(332, 218, "pearlOrb", "Pearl Orb"),
+      item(642, 214, "pearlOrb", "Pearl Orb"),
+      item(808, 382, "moonPearlBadge", "Moon Pearl Badge"),
+      item(480, 398, "potion", "\u7231\u5fc3\u836f\u6c34"),
+    ],
+    tasks: [
+      moonBossTask(480, 152),
+    ],
+    puddles: [
+      { x: 266, y: 392, r: 30 },
+      { x: 694, y: 392, r: 30 },
+    ],
+    obstacles: [
+      { type: "moonPillar", x: 260, y: 200, r: 32, bossPart: "pillar" },
+      { type: "moonPillar", x: 480, y: 112, r: 32, bossPart: "pillar" },
+      { type: "moonPillar", x: 700, y: 200, r: 32, bossPart: "pillar" },
+      { type: "pearlSwitch", x: 308, y: 346, r: 34 },
+      { type: "pearlSwitch", x: 652, y: 346, r: 34 },
+      { type: "whirlpool", x: 480, y: 292, r: 58, bossPart: "whirlpool" },
+    ],
+    darkBubbles: [
+      { x: 332, y: 268, r: 24, broken: false },
+      { x: 480, y: 228, r: 24, broken: false },
+      { x: 628, y: 268, r: 24, broken: false },
+    ],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -656,6 +847,11 @@ const LEVEL_WORLD_SEQUENCE = [
   "river_town",
   "river_town",
   "dark_swamp",
+  "moonlight_lake",
+  "moonlight_lake",
+  "moonlight_lake",
+  "moonlight_lake",
+  "moonlight_lake",
 ];
 
 levels.forEach((level, index) => {
@@ -709,6 +905,22 @@ function bossTask(x, y, name, animal, need, speech) {
   return { x, y, name, animal, need, speech, kind: "boss", done: false, progress: 0, hp: 9, maxHp: 9 };
 }
 
+function moonBossTask(x, y) {
+  return {
+    x,
+    y,
+    name: "Nessie",
+    animal: "nessie",
+    need: ["moonPearlBadge"],
+    speech: "Help Nessie clear the dark whirlpool",
+    kind: "moon_boss",
+    done: false,
+    progress: 0,
+    phase: 1,
+    phaseProgress: 0,
+  };
+}
+
 function resetGame(levelIndex = 0, keepHearts = false) {
   const level = levels[levelIndex];
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
@@ -740,6 +952,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
+    darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
     sparkles: [],
     floaters: [],
     leaves: makeLeaves(levelIndex),
@@ -929,6 +1142,8 @@ function update(dt) {
   }
 
   updatePlayer(dt);
+  updateUnderwaterMechanisms(dt);
+  updateMoonBoss();
   updateBossHazards(dt);
   updateProjectiles(dt);
   checkPuddles();
@@ -981,6 +1196,75 @@ function updatePlayer(dt) {
   p.step += Math.hypot(p.vx, p.vy) * dt * 0.055;
   p.x = clamp(p.x + p.vx * dt, 58, canvas.width - 58);
   p.y = clamp(p.y + p.vy * dt, 92, canvas.height - 58);
+}
+
+function updateUnderwaterMechanisms(dt) {
+  const p = state.player;
+  const now = performance.now();
+  for (const obstacle of state.obstacles) {
+    if (distance(p, obstacle) >= obstacle.r + 24) continue;
+    if (obstacle.type === "current") {
+      p.x = clamp(p.x + (obstacle.vx || 70) * dt, 58, canvas.width - 58);
+      p.y = clamp(p.y + (obstacle.vy || 0) * dt, 92, canvas.height - 58);
+      if (now > state.puddleCooldownUntil) {
+        state.puddleCooldownUntil = now + 520;
+        addFloatingText(p.x, p.y - 42, "current", "#5bc4e6");
+        messageEl.textContent = "The moon current gently pushes you along.";
+      }
+    } else if (obstacle.type === "bubbleLift") {
+      p.vy = Math.min(p.vy, obstacle.vy || -115);
+      p.y = clamp(p.y - 78 * dt, 92, canvas.height - 58);
+      if (now > state.puddleCooldownUntil) {
+        state.puddleCooldownUntil = now + 580;
+        burst(p.x, p.y, "#c9f7ff", 8);
+        addFloatingText(p.x, p.y - 42, "bubble lift", "#2f9dcc");
+      }
+    } else if (obstacle.type === "whirlpool" && !obstacle.closed) {
+      state.slowUntil = now + 700;
+      if (now > state.puddleCooldownUntil) {
+        state.puddleCooldownUntil = now + 780;
+        state.shake = 0.06;
+        addFloatingText(p.x, p.y - 42, "whirlpool", "#4d7bbf");
+        messageEl.textContent = "The whirlpool slows your steps.";
+      }
+    }
+  }
+}
+
+function updateMoonBoss() {
+  const boss = state.tasksList.find((task) => task.kind === "moon_boss" && !task.done);
+  if (!boss) return;
+  const p = state.player;
+  if (boss.phase === 1) {
+    const pillar = state.obstacles.find((entry) => entry.type === "moonPillar" && entry.bossPart === "pillar" && !entry.lit && distance(p, entry) < entry.r + 30);
+    if (pillar) {
+      pillar.lit = true;
+      boss.phaseProgress += 1;
+      burst(pillar.x, pillar.y, "#dff6ff", 18);
+      addFloatingText(pillar.x, pillar.y - 42, `${boss.phaseProgress}/3 pillars`, "#dff6ff");
+      messageEl.textContent = "A moon pillar lights up.";
+      if (boss.phaseProgress >= 3) {
+        boss.phase = 2;
+        boss.phaseProgress = 0;
+        messageEl.textContent = "Phase 2: bring 3 Pearl Orbs to the whirlpool.";
+      }
+    }
+  } else if (boss.phase === 2) {
+    const whirlpool = state.obstacles.find((entry) => entry.type === "whirlpool" && entry.bossPart === "whirlpool" && !entry.closed);
+    const pearlCount = state.inventory.filter((type) => type === "pearlOrb").length;
+    if (whirlpool && pearlCount >= 3 && distance(p, whirlpool) < whirlpool.r + 34) {
+      consumeNeeds(["pearlOrb", "pearlOrb", "pearlOrb"]);
+      whirlpool.closed = true;
+      boss.phase = 3;
+      burst(whirlpool.x, whirlpool.y, "#fff7df", 28);
+      messageEl.textContent = "Phase 3: press attack near each dark bubble.";
+    }
+  } else if (boss.phase === 3 && state.darkBubbles.every((bubble) => bubble.broken)) {
+    completeTask(boss, boss.x, boss.y);
+    state.inventory.push("moonPearlBadge");
+    burst(boss.x, boss.y, "#dff6ff", 44);
+    messageEl.textContent = "Nessie is calm again. Moonlight Lake is safe.";
+  }
 }
 
 function checkPuddles() {
@@ -1037,7 +1321,7 @@ function checkObstacles() {
 }
 
 function updateBossHazards(dt) {
-  if (state.levelIndex !== levels.length - 1 || !state.running || state.activeQuiz) return;
+  if (!state.running || state.activeQuiz) return;
   const boss = state.tasksList.find((task) => task.kind === "boss" && !task.done);
   if (!boss) return;
 
@@ -1085,7 +1369,8 @@ function spawnBossHazard(boss) {
 }
 
 function shootBossWeapon() {
-  if (!state.running || state.levelIndex !== levels.length - 1 || state.activeQuiz || state.activeDialogue) return;
+  if (!state.running || state.activeQuiz || state.activeDialogue) return;
+  if (breakNearbyDarkBubble()) return;
   const now = performance.now();
   if (now < state.attackCooldownUntil) return;
   const boss = state.tasksList.find((task) => task.kind === "boss" && !task.done);
@@ -1109,6 +1394,25 @@ function shootBossWeapon() {
     life: 1.45,
   });
   messageEl.textContent = `\u53d1\u5c04${itemLabel(weapon)}\uff01`;
+}
+
+function breakNearbyDarkBubble() {
+  const boss = state.tasksList.find((task) => task.kind === "moon_boss" && task.phase === 3 && !task.done);
+  if (!boss) return false;
+  const now = performance.now();
+  if (now < state.attackCooldownUntil) return true;
+  const p = state.player;
+  const bubble = state.darkBubbles.find((entry) => !entry.broken && distance(p, entry) < entry.r + 54);
+  if (!bubble) {
+    messageEl.textContent = "Move closer to a dark bubble, then attack.";
+    return true;
+  }
+  bubble.broken = true;
+  state.attackCooldownUntil = now + 420;
+  burst(bubble.x, bubble.y, "#a77cff", 24);
+  addFloatingText(bubble.x, bubble.y - 36, "bubble cleared", "#d9c8ff");
+  messageEl.textContent = "A dark bubble pops and releases moonlight.";
+  return true;
 }
 
 function updateProjectiles(dt) {
@@ -1194,6 +1498,16 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "moon_boss") {
+      const hints = {
+        1: "Phase 1: walk to each moon pillar and light all 3.",
+        2: "Phase 2: collect 3 Pearl Orbs, then stand by the whirlpool.",
+        3: "Phase 3: stand near each dark bubble and press attack.",
+      };
+      messageEl.textContent = hints[task.phase] || task.speech;
+      continue;
+    }
+
     task.progress += dt;
     messageEl.textContent = task.speech;
     if (task.progress >= 1.65) {
@@ -1264,6 +1578,21 @@ function itemLabel(type) {
     courageStar: "\u52c7\u6c14\u661f",
     magicPencil: "\u9b54\u6cd5\u94c5\u7b14",
     guardBook: "\u5b88\u62a4\u4e66",
+    moonLamp: "Moon Lamp",
+    boatPaddle: "Boat Paddle",
+    bubbleStone: "Bubble Stone",
+    divingHelmet: "Diving Helmet",
+    moonKey: "Moon Key",
+    shellBadge: "Shell Badge",
+    pearlOrb: "Pearl Orb",
+    coralKey: "Coral Key",
+    jellyfishCore: "Jellyfish Core",
+    seaweedScissors: "Seaweed Scissors",
+    deepRune: "Deep Rune",
+    spiralShell: "Spiral Shell",
+    aquaGem: "Aqua Gem",
+    pearlCrown: "Pearl Crown",
+    moonPearlBadge: "Moon Pearl Badge",
   }[type] || type;
 }
 
@@ -1272,6 +1601,7 @@ function taskDialogueMode(task) {
   if (task.kind === "delivery") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
   if (task.kind === "quiz") return task.dialogueSeen ? "ready" : "intro";
   if (task.kind === "boss") return firstBossWeapon() ? "ready" : "missing";
+  if (task.kind === "moon_boss") return "intro";
   return task.dialogueSeen ? "ready" : "intro";
 }
 
@@ -1291,6 +1621,7 @@ function dialogueRoleLabel(task) {
   if (task.kind === "delivery") return "\u9700\u8981\u5e2e\u5fd9";
   if (task.kind === "quiz") return "\u9898\u76ee\u6311\u6218";
   if (task.kind === "boss") return "Boss \u63d0\u793a";
+  if (task.kind === "moon_boss") return "Moonlight Boss";
   return "\u573a\u666f\u5e2e\u5fd9";
 }
 
@@ -1304,6 +1635,12 @@ function dialogueAvatarFallback(task) {
     fox: "\u72d0",
     firefly: "\u5149",
     hedgehog: "\u523a",
+    otter: "O",
+    frog: "F",
+    seaTurtle: "T",
+    jellyfish: "J",
+    octopus: "8",
+    nessie: "N",
     owl: "\u9e70",
     chest: "\u7bb1",
     boss: "\u718a",
@@ -1603,6 +1940,7 @@ function drawLeaves() {
 function drawSceneObjects() {
   drawObstacles();
   drawPropDecorations();
+  drawDarkBubbles();
   for (const puddle of state.puddles) drawGroundPuddle(puddle);
 
   for (let i = 0; i < 30; i += 1) {
@@ -1678,7 +2016,105 @@ function drawObstacles() {
     if (obstacle.type === "pond") drawPond(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "bush") drawBush(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "pit") drawPit(obstacle.x, obstacle.y, obstacle.r);
+    else if (obstacle.type === "current") drawMoonCurrent(obstacle);
+    else if (obstacle.type === "bubbleLift") drawBubbleLift(obstacle);
+    else if (obstacle.type === "whirlpool") drawWhirlpool(obstacle);
+    else if (obstacle.type === "moonPillar") drawMoonPillar(obstacle);
+    else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
   }
+}
+
+function drawDarkBubbles() {
+  for (const bubble of state.darkBubbles || []) {
+    if (bubble.broken) continue;
+    const t = performance.now() / 260 + bubble.x;
+    ctx.save();
+    ctx.translate(bubble.x, bubble.y + Math.sin(t) * 4);
+    ctx.fillStyle = "rgba(56, 36, 96, 0.52)";
+    circle(0, 0, bubble.r + Math.sin(t) * 2);
+    ctx.strokeStyle = "rgba(217, 200, 255, 0.75)";
+    ctx.lineWidth = 3;
+    circleStroke(0, 0, bubble.r + 5);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
+    circle(-7, -8, 5);
+    ctx.restore();
+  }
+}
+
+function drawMoonCurrent(obstacle) {
+  const t = performance.now() / 360;
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  ctx.rotate(Math.atan2(obstacle.vy || 0, obstacle.vx || 1));
+  ctx.strokeStyle = "rgba(91, 196, 230, 0.68)";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  for (let i = -1; i <= 1; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(-obstacle.r * 1.1, i * 14);
+    ctx.quadraticCurveTo(Math.sin(t + i) * 18, i * 14 - 12, obstacle.r * 1.1, i * 14);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawBubbleLift(obstacle) {
+  const t = performance.now() / 260;
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  ctx.strokeStyle = "rgba(201, 247, 255, 0.72)";
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 5; i += 1) {
+    const y = 32 - ((t + i * 18) % 78);
+    circleStroke(Math.sin(t * 0.04 + i) * 14, y, 7 + (i % 3));
+  }
+  ctx.restore();
+}
+
+function drawWhirlpool(obstacle) {
+  const t = performance.now() / 420;
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  ctx.globalAlpha = obstacle.closed ? 0.32 : 1;
+  ctx.strokeStyle = obstacle.closed ? "rgba(255,247,223,0.7)" : "rgba(77, 123, 191, 0.82)";
+  ctx.lineWidth = 4;
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.arc(0, 0, obstacle.r * (0.35 + i * 0.22), t + i, t + Math.PI * 1.55 + i);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawMoonPillar(obstacle) {
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  drawShadow(0, 28, 30, 8);
+  const glow = obstacle.lit ? "rgba(223,246,255,0.55)" : "rgba(141,170,190,0.18)";
+  ctx.fillStyle = glow;
+  circle(0, -18, 38);
+  ctx.fillStyle = obstacle.lit ? "#dff6ff" : "#8daabe";
+  roundRect(-14, -46, 28, 72, 8);
+  ctx.fill();
+  ctx.fillStyle = "#fff7df";
+  circle(0, -54, 10);
+  ctx.restore();
+}
+
+function drawPearlSwitch(obstacle) {
+  ctx.save();
+  ctx.translate(obstacle.x, obstacle.y);
+  drawShadow(0, 24, 32, 8);
+  ctx.fillStyle = "#6c8bb5";
+  roundRect(-26, 4, 52, 22, 8);
+  ctx.fill();
+  const pearl = ctx.createRadialGradient(-5, -10, 2, 0, -8, 22);
+  pearl.addColorStop(0, "#ffffff");
+  pearl.addColorStop(0.6, "#f7e8ff");
+  pearl.addColorStop(1, "#91d7e9");
+  ctx.fillStyle = pearl;
+  circle(0, -8, 19);
+  ctx.restore();
 }
 
 const ART_PACK_PROP_KEYS = {
@@ -1734,6 +2170,12 @@ const NPC_VISUAL_OFFSETS = {
   fox: { x: 0, y: 12 },
   firefly: { x: 0, y: 4 },
   hedgehog: { x: 0, y: 10 },
+  otter: { x: 0, y: 12 },
+  frog: { x: 0, y: 18 },
+  seaTurtle: { x: 0, y: 16 },
+  jellyfish: { x: 0, y: 10 },
+  octopus: { x: 0, y: 14 },
+  nessie: { x: 0, y: 26 },
   owl: { x: 0, y: 8 },
   boss: { x: 0, y: 26 },
 };
@@ -2079,6 +2521,7 @@ function drawItem(type) {
   else if (type === "courageStar") drawCourageStar();
   else if (type === "magicPencil") drawMagicPencil();
   else if (type === "guardBook") drawGuardBook();
+  else drawMoonItem(type);
 }
 
 function drawTasks() {
@@ -2857,6 +3300,68 @@ function drawGuardBook() {
   ctx.restore();
 }
 
+function drawMoonItem(type) {
+  const color = itemColor(type);
+  ctx.save();
+  ctx.fillStyle = "rgba(223, 246, 255, 0.34)";
+  circle(0, 0, 28);
+  ctx.fillStyle = color;
+  if (type.includes("Key")) {
+    roundRect(-22, -5, 32, 10, 5);
+    ctx.fill();
+    circle(-22, 0, 11);
+    ctx.fillStyle = "#fff7df";
+    circle(-22, 0, 5);
+    ctx.fillStyle = color;
+    roundRect(8, -11, 7, 10, 2);
+    roundRect(18, -11, 7, 10, 2);
+  } else if (type.includes("Badge") || type === "pearlCrown") {
+    star(0, -3, 22);
+    ctx.fillStyle = "#fff7df";
+    circle(0, -3, 8);
+  } else if (type.includes("Orb") || type.includes("Gem") || type.includes("Core") || type.includes("Stone")) {
+    const gem = ctx.createRadialGradient(-7, -8, 2, 0, 0, 24);
+    gem.addColorStop(0, "#ffffff");
+    gem.addColorStop(0.55, color);
+    gem.addColorStop(1, "#4d7bbf");
+    ctx.fillStyle = gem;
+    circle(0, 0, 20);
+    ctx.fillStyle = "rgba(255,255,255,0.58)";
+    circle(-7, -8, 5);
+  } else if (type === "boatPaddle" || type === "seaweedScissors") {
+    ctx.rotate(type === "boatPaddle" ? -0.62 : 0.35);
+    roundRect(-26, -4, 52, 8, 4);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(28, 0, 12, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (type === "divingHelmet") {
+    ctx.beginPath();
+    ctx.arc(0, 0, 22, Math.PI, 0);
+    ctx.lineTo(22, 16);
+    ctx.lineTo(-22, 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#dff6ff";
+    circle(0, -2, 10);
+  } else if (type === "spiralShell") {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 24, 17, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#fff7df";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(-2, 0, 13, 0.2, Math.PI * 1.8);
+    ctx.stroke();
+  } else {
+    roundRect(-15, -24, 30, 48, 8);
+    ctx.fill();
+    ctx.fillStyle = "#fff7df";
+    circle(0, -26, 10);
+  }
+  ctx.restore();
+}
+
 function drawLeafBroom() {
   ctx.fillStyle = "#8b5b2b";
   roundRect(-3, -24, 6, 42, 3);
@@ -3332,6 +3837,104 @@ function drawHedgehog() {
   ctx.stroke();
 }
 
+function drawOtter() {
+  drawMoonNpc("#9b6a42", "#f1c28b", "otter");
+}
+
+function drawFrog() {
+  drawMoonNpc("#62b95d", "#d8f08d", "frog");
+}
+
+function drawSeaTurtle() {
+  drawMoonNpc("#4f9b7d", "#f1d78b", "turtle");
+}
+
+function drawJellyfish() {
+  drawMoonNpc("#b98cff", "#f7e8ff", "jelly");
+}
+
+function drawOctopus() {
+  drawMoonNpc("#d27ac2", "#ffd1ef", "octopus");
+}
+
+function drawNessie() {
+  drawMoonNpc("#5477c7", "#dff6ff", "nessie");
+}
+
+function drawMoonNpc(bodyColor, accentColor, kind) {
+  const t = performance.now() / 360;
+  drawShadow(0, 34, kind === "nessie" ? 64 : 34, 8);
+  ctx.save();
+  ctx.translate(0, Math.sin(t) * 1.8);
+  ctx.fillStyle = bodyColor;
+  if (kind === "nessie") {
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 46, 28, 0, 0, Math.PI * 2);
+    ctx.ellipse(34, -24, 20, 28, -0.25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = 14;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(12, -4);
+    ctx.quadraticCurveTo(28, -30, 38, -44);
+    ctx.stroke();
+  } else if (kind === "jelly") {
+    ctx.beginPath();
+    ctx.ellipse(0, -10, 28, 24, 0, Math.PI, 0);
+    ctx.lineTo(28, 8);
+    ctx.quadraticCurveTo(0, 22, -28, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = 4;
+    for (const x of [-16, -6, 6, 16]) {
+      ctx.beginPath();
+      ctx.moveTo(x, 8);
+      ctx.quadraticCurveTo(x + Math.sin(t + x) * 8, 26, x, 38);
+      ctx.stroke();
+    }
+  } else if (kind === "octopus") {
+    circle(0, -5, 27);
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = 6;
+    for (let i = 0; i < 6; i += 1) {
+      const x = -24 + i * 10;
+      ctx.beginPath();
+      ctx.moveTo(x, 15);
+      ctx.quadraticCurveTo(x + Math.sin(t + i) * 8, 30, x + 6, 40);
+      ctx.stroke();
+    }
+  } else if (kind === "turtle") {
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 32, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = accentColor;
+    circle(30, -2, 12);
+    ctx.fillStyle = bodyColor;
+    circle(-24, 20, 8);
+    circle(20, 20, 8);
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(0, 4, 26, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (kind === "frog") {
+      circle(-14, -20, 9);
+      circle(14, -20, 9);
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(24, 10, 10, 26, -0.65, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.ellipse(0, 9, 14, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  drawFace(kind === "nessie" ? 34 : 0, kind === "nessie" ? -28 : -4);
+  ctx.restore();
+}
+
 function drawTreasureChest() {
   drawShadow(0, 31, 40, 8);
   ctx.fillStyle = "#8b5b2b";
@@ -3598,6 +4201,21 @@ function itemColor(type) {
     magicPencil: "#8fd6ff",
     guardBook: "#2f9dcc",
     potion: "#ff8fb0",
+    moonLamp: "#dff6ff",
+    boatPaddle: "#c78645",
+    bubbleStone: "#91d7e9",
+    divingHelmet: "#d8b15f",
+    moonKey: "#dff6ff",
+    shellBadge: "#f7e8ff",
+    pearlOrb: "#fff7df",
+    coralKey: "#ff8d68",
+    jellyfishCore: "#c69cff",
+    seaweedScissors: "#6fb447",
+    deepRune: "#4d7bbf",
+    spiralShell: "#f7c7d7",
+    aquaGem: "#5bc4e6",
+    pearlCrown: "#f4d35e",
+    moonPearlBadge: "#d9c8ff",
   }[type] || "#ffd94a";
 }
 
