@@ -483,7 +483,7 @@ const levels = [
       delivery(162, 382, "\u8682\u8681", "ant", "leaf", "\u8def\u88ab\u53f6\u5b50\u6321\u4f4f"),
       delivery(384, 414, "\u8774\u8776", "butterfly", ["seed", "leaf"], "\u82b1\u5703\u9700\u8981\u82b1\u79cd\u548c\u53f6\u5b50\u626b\u5e1a"),
       delivery(805, 306, "\u5c0f\u72d0", "fox", "bell", "\u94c3\u94db\u4e0d\u89c1\u4e86"),
-      actionTask(500, 320, "\u6d47\u82b1", "flower", "\u6309\u4e00\u4e0b\u7ad9\u4f4f\u5c31\u80fd\u6d47\u82b1"),
+      actionTask(650, 220, "\u6d47\u82b1", "flower", "\u6309\u4e00\u4e0b\u7ad9\u4f4f\u5c31\u80fd\u6d47\u82b1"),
     ],
     puddles: [
       { x: 245, y: 335, r: 32 },
