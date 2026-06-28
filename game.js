@@ -54,9 +54,9 @@ const backgroundSources = {
   riverTown: "./assets/v2/v2-bg-city-road.png",
   darkSwamp: "./assets/v2/v2-bg-swamp-boss.png",
   moonlightShore: "./assets/bg/moonlight_shore.png",
-  moonlitIsle: "./assets/v2/v2-bg-wetland.png",
+  moonlitIsle: "./assets/bg/moonlit_isle.png",
   underwaterGarden: "./assets/bg/underwater_garden.png",
-  deepSeaRuins: "./assets/v2/v2-bg-swamp-boss.png",
+  deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
   nessieLair: "./assets/v2/v2-bg-swamp-boss.png",
 };
 
@@ -75,9 +75,9 @@ const backgroundSourceCandidates = {
   riverTown: ["./assets/v2/v2-bg-city-road.png", "./assets/v2/v2-bg-pond.png"],
   darkSwamp: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   moonlightShore: ["./assets/bg/moonlight_shore.png", "./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
-  moonlitIsle: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  moonlitIsle: ["./assets/bg/moonlit_isle.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
   underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
-  deepSeaRuins: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
@@ -215,6 +215,8 @@ const NPC_REGISTRY = {
   seaTurtle: { id: "seaTurtle", displayName: "Sea Turtle", renderer: drawSeaTurtle, world: "moonlight_lake" },
   jellyfish: { id: "jellyfish", displayName: "Jellyfish", renderer: drawJellyfish, world: "moonlight_lake" },
   octopus: { id: "octopus", displayName: "Octopus", renderer: drawOctopus, world: "moonlight_lake" },
+  seahorseGuard: { id: "seahorseGuard", displayName: "Seahorse Guard", renderer: drawSeahorseGuard, world: "moonlight_lake" },
+  lanternFish: { id: "lanternFish", displayName: "Lantern Fish", renderer: drawLanternFish, world: "moonlight_lake" },
   nessie: { id: "nessie", displayName: "Nessie", renderer: drawNessie, world: "moonlight_lake" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
@@ -776,6 +778,9 @@ const levels = [
       delivery(608, 318, "Sea Turtle", "seaTurtle", ["moonKey", "coralKey"], "Open the isle gate"),
       actionTask(446, 170, "Bubble Lift", "bubbleLift", "Stand on the bubble lift to float over the water"),
     ],
+    npcDecorations: [
+      npcDecoration(760, 306, "seahorseGuard", 0.9, "Seahorse Guard"),
+    ],
     puddles: [
       { x: 254, y: 238, r: 28 },
       { x: 678, y: 218, r: 32 },
@@ -833,6 +838,9 @@ const levels = [
       delivery(278, 300, "Octopus", "octopus", ["deepRune", "spiralShell"], "Read the ruin pattern"),
       delivery(650, 336, "Jellyfish", "jellyfish", ["coralKey", "aquaGem"], "Turn on the ruin lights"),
       actionTask(502, 188, "Moon Pillar", "moonPillar", "Hold the moon pillar steady"),
+    ],
+    npcDecorations: [
+      npcDecoration(774, 292, "lanternFish", 0.9, "Lantern Fish"),
     ],
     puddles: [
       { x: 238, y: 230, r: 30 },
@@ -931,6 +939,10 @@ function propDecoration(x, y, type, width, height, label) {
   return { x, y, type, width, height, label };
 }
 
+function npcDecoration(x, y, kind, scale = 1, label = "") {
+  return { x, y, kind, scale, label };
+}
+
 function delivery(x, y, name, animal, need, speech) {
   return { x, y, name, animal, need: Array.isArray(need) ? need : [need], speech, kind: "delivery", done: false, progress: 0 };
 }
@@ -994,6 +1006,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
+    npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
     sparkles: [],
     floaters: [],
@@ -2106,6 +2119,7 @@ function drawLeaves() {
 function drawSceneObjects() {
   drawObstacles();
   drawPropDecorations();
+  drawNpcDecorations();
   drawDarkBubbles();
   for (const puddle of state.puddles) drawGroundPuddle(puddle);
 
@@ -2155,6 +2169,23 @@ function drawPropDecorations() {
     drawItemShadow(0, prop.height * 0.5, prop.width * 0.36, Math.max(4, prop.height * 0.08));
     if (!drawPropImage(ctx, prop.type, -prop.width / 2, -prop.height / 2, prop.width, prop.height)) {
       drawMiniPropFallback(prop);
+    }
+    ctx.restore();
+  }
+}
+
+function drawNpcDecorations() {
+  const decorations = state.npcDecorations || [];
+  for (const entry of decorations) {
+    ctx.save();
+    ctx.translate(entry.x, entry.y);
+    ctx.scale(entry.scale || 1, entry.scale || 1);
+    drawAnimal(entry.kind);
+    if (entry.label) {
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "800 10px Microsoft YaHei, Arial";
+      ctx.textAlign = "center";
+      fitText(entry.label, 0, 46, 92);
     }
     ctx.restore();
   }
@@ -2302,6 +2333,8 @@ const ART_PACK_PROP_KEYS = {
   flowerBulbLamp: "flowerBulbLamp",
   divingHelmet: "bubbleDivingHelmet",
   pearlOrb: "pearlOrb",
+  coralKey: "coralKey",
+  spiralShell: "spiralShell",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -2324,6 +2357,10 @@ const ART_PACK_NPC_KEYS = {
   owl: "owlPrincipal",
   jellyfish: "jellyfishLady",
   nessie: "nessieBoss",
+  seaTurtle: "seaTurtle",
+  octopus: "octopusDoctor",
+  seahorseGuard: "seahorseGuard",
+  lanternFish: "lanternFish",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -2349,6 +2386,8 @@ const NPC_VISUAL_OFFSETS = {
   seaTurtle: { x: 0, y: 16 },
   jellyfish: { x: 0, y: 10 },
   octopus: { x: 0, y: 14 },
+  seahorseGuard: { x: 0, y: 12 },
+  lanternFish: { x: 0, y: 8 },
   nessie: { x: 0, y: 26 },
   owl: { x: 0, y: 8 },
   boss: { x: 0, y: 26 },
@@ -2377,6 +2416,8 @@ const ART_PACK_ITEM_BOUNDS = {
   finishFlag: { x: -42, y: -72, w: 84, h: 120 },
   divingHelmet: { x: -30, y: -34, w: 60, h: 60 },
   pearlOrb: { x: -27, y: -29, w: 54, h: 54 },
+  coralKey: { x: -27, y: -29, w: 54, h: 54 },
+  spiralShell: { x: -27, y: -29, w: 54, h: 54 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -2398,6 +2439,10 @@ const ART_PACK_NPC_BOUNDS = {
   firefly: { x: -40, y: -62, w: 80, h: 98 },
   owl: { x: -44, y: -78, w: 88, h: 88 },
   jellyfish: { x: -44, y: -76, w: 88, h: 88 },
+  seaTurtle: { x: -44, y: -76, w: 88, h: 88 },
+  octopus: { x: -44, y: -76, w: 88, h: 88 },
+  seahorseGuard: { x: -44, y: -76, w: 88, h: 88 },
+  lanternFish: { x: -44, y: -76, w: 88, h: 88 },
   nessie: { x: -70, y: -100, w: 140, h: 140 },
 };
 
@@ -4041,6 +4086,14 @@ function drawOctopus() {
   drawMoonNpc("#d27ac2", "#ffd1ef", "octopus");
 }
 
+function drawSeahorseGuard() {
+  drawMoonNpc("#dca15f", "#fff0ba", "seahorse");
+}
+
+function drawLanternFish() {
+  drawMoonNpc("#4f8ec7", "#ffe77a", "fish");
+}
+
 function drawNessie() {
   drawMoonNpc("#5477c7", "#dff6ff", "nessie");
 }
@@ -4098,6 +4151,32 @@ function drawMoonNpc(bodyColor, accentColor, kind) {
     ctx.fillStyle = bodyColor;
     circle(-24, 20, 8);
     circle(20, 20, 8);
+  } else if (kind === "fish") {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 32, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-30, 0);
+    ctx.lineTo(-52, -18);
+    ctx.lineTo(-52, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = accentColor;
+    circle(24, -12, 9);
+  } else if (kind === "seahorse") {
+    ctx.beginPath();
+    ctx.ellipse(4, 8, 20, 30, -0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, -28, 18, 16, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = 9;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-8, 24);
+    ctx.quadraticCurveTo(-30, 38, -12, 48);
+    ctx.stroke();
   } else {
     ctx.beginPath();
     ctx.ellipse(0, 4, 26, 25, 0, 0, Math.PI * 2);
