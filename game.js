@@ -69,6 +69,42 @@ characterSheet.src = "./assets/v2/v2-main-character-spritesheet-3d-clean.png";
 
 const PLAYER_CHARACTER_ASSETS = {
   cat: {
+    displayName: "Mimi / \u8a79\u6d9e\u513f",
+    characterId: "mimi",
+    idle: ["./assets/characters/mimi/v5/idle.png"],
+    walk: [
+      "./assets/characters/mimi/v5/walk_1.png",
+      "./assets/characters/mimi/v5/walk_2.png",
+      "./assets/characters/mimi/v5/walk_3.png",
+      "./assets/characters/mimi/v5/walk_4.png",
+    ],
+    jump: ["./assets/characters/mimi/v5/jump.png"],
+    happy: ["./assets/characters/mimi/v5/happy.png"],
+    sit: [],
+    thinking: [],
+    holdDiary: [],
+  },
+  owl: {
+    displayName: "Owlly / \u59da\u5934\u9e70",
+    characterId: "owlly",
+    idle: ["./assets/characters/owlly/v5/idle.png"],
+    walk: [
+      "./assets/characters/owlly/v5/fly_1.png",
+      "./assets/characters/owlly/v5/fly_2.png",
+      "./assets/characters/owlly/v5/fly_3.png",
+    ],
+    jump: ["./assets/characters/owlly/v5/fly_2.png"],
+    write: ["./assets/characters/owlly/v5/write.png"],
+    happy: ["./assets/characters/owlly/v5/happy.png"],
+    nod: [],
+    thinking: [],
+    turnAround: [],
+    wink: [],
+  },
+};
+
+const LEGACY_PLAYER_CHARACTER_ASSETS = {
+  cat: {
     idle: ["./assets/characters/mimi/idle.svg"],
     walk: ["./assets/characters/mimi/walk.svg", "./assets/characters/mimi/idle.svg"],
     jump: ["./assets/characters/mimi/walk.svg"],
@@ -93,6 +129,7 @@ const PLAYER_DISPLAY_NAMES = {
 };
 
 const playerImages = {};
+const legacyPlayerImages = {};
 
 function mappedImage(src) {
   const image = new Image();
@@ -108,8 +145,8 @@ const CHARACTER_REGISTRY = {
     displayName: "Mimi / \u8a79\u6d9e\u513f",
     role: "player",
     species: "white_cat",
-    asset: "./assets/characters/mimi/idle.svg",
-    image: mappedImage("./assets/characters/mimi/idle.svg"),
+    asset: "./assets/characters/mimi/v5/idle.png",
+    image: mappedImage("./assets/characters/mimi/v5/idle.png"),
   },
   owlly: {
     id: "owlly",
@@ -117,16 +154,16 @@ const CHARACTER_REGISTRY = {
     displayName: "Owlly / \u59da\u5934\u9e70",
     role: "companion",
     species: "owl",
-    asset: "./assets/characters/owlly/idle.svg",
-    image: mappedImage("./assets/characters/owlly/idle.svg"),
+    asset: "./assets/characters/owlly/v5/idle.png",
+    image: mappedImage("./assets/characters/owlly/v5/idle.png"),
   },
   blackBear: {
     id: "blackBear",
     name: "Black Bear",
     role: "boss",
     species: "bear",
-    asset: "./assets/characters/black_bear.png",
-    image: mappedImage("./assets/characters/black_bear.png"),
+    asset: "./assets/boss/black-bear/idle.svg",
+    image: mappedImage("./assets/boss/black-bear/idle.svg"),
   },
 };
 
@@ -1948,6 +1985,10 @@ function drawPlayer() {
     ctx.restore();
     return;
   }
+  if (drawLegacyPlayerSprite(role, action, speed, p.step)) {
+    ctx.restore();
+    return;
+  }
   if (drawV2CharacterSprite(role === "owl" ? "owl" : "cat", speed, 1, p.step)) {
     ctx.restore();
     return;
@@ -1961,24 +2002,30 @@ function drawPlayer() {
 }
 
 function preloadPlayerAssets() {
-  Object.entries(PLAYER_CHARACTER_ASSETS).forEach(([role, actions]) => {
-    playerImages[role] = playerImages[role] || {};
+  preloadPlayerAssetGroup(PLAYER_CHARACTER_ASSETS, playerImages);
+  preloadPlayerAssetGroup(LEGACY_PLAYER_CHARACTER_ASSETS, legacyPlayerImages);
+}
+
+function preloadPlayerAssetGroup(assetGroup, imageStore) {
+  Object.entries(assetGroup).forEach(([role, actions]) => {
+    imageStore[role] = imageStore[role] || {};
     Object.entries(actions).forEach(([action, sources]) => {
-      playerImages[role][action] = playerImages[role][action] || [];
+      if (!Array.isArray(sources)) return;
+      imageStore[role][action] = imageStore[role][action] || [];
       sources.forEach((src, index) => {
-        if (playerImages[role][action][index]) return;
+        if (imageStore[role][action][index]) return;
         const image = new Image();
         image.decoding = "async";
         image.onerror = () => console.warn(`Missing player asset: ${src}`);
         image.src = src;
-        playerImages[role][action][index] = image;
+        imageStore[role][action][index] = image;
       });
     });
   });
 }
 
-function getPlayerFrames(role, action) {
-  const roleImages = playerImages[role] || {};
+function getPlayerFrames(role, action, imageStore = playerImages) {
+  const roleImages = imageStore[role] || {};
   const frames = roleImages[action] || [];
   const ready = frames.filter(isImageReady);
   if (ready.length) return ready;
@@ -1986,19 +2033,19 @@ function getPlayerFrames(role, action) {
   return idleFrames.filter(isImageReady);
 }
 
-function getPlayerFrame(role, action, frameIndex) {
-  const frames = getPlayerFrames(role, action);
+function getPlayerFrame(role, action, frameIndex, imageStore = playerImages) {
+  const frames = getPlayerFrames(role, action, imageStore);
   if (!frames.length) return null;
   return frames[frameIndex % frames.length];
 }
 
-function drawPlayerSprite(role, action, speed, step) {
-  const frames = getPlayerFrames(role, action);
+function drawPlayerSprite(role, action, speed, step, imageStore = playerImages) {
+  const frames = getPlayerFrames(role, action, imageStore);
   if (!frames.length) return false;
   const frameDuration = role === "owl" ? 135 : 150;
   const moving = speed > 8;
   const frameIndex = moving ? Math.floor(performance.now() / frameDuration) : 0;
-  const frame = getPlayerFrame(role, action, frameIndex);
+  const frame = getPlayerFrame(role, action, frameIndex, imageStore);
   if (!frame) return false;
   const size = PLAYER_DRAW_SIZE[role] || PLAYER_DRAW_SIZE.cat;
   const sway = moving ? Math.sin(step * 0.85) * 1.8 : 0;
@@ -2007,6 +2054,10 @@ function drawPlayerSprite(role, action, speed, step) {
   ctx.drawImage(frame, -size.width / 2, -size.height + size.footOffsetY, size.width, size.height);
   ctx.restore();
   return true;
+}
+
+function drawLegacyPlayerSprite(role, action, speed, step) {
+  return drawPlayerSprite(role, action, speed, step, legacyPlayerImages);
 }
 
 function isImageReady(image) {
