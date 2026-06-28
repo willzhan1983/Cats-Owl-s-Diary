@@ -1368,6 +1368,12 @@ function nextDialogueLine() {
   if (dialogue.index < dialogue.lines.length - 1) {
     dialogue.index += 1;
     renderDialogue();
+  } else if (!dialogueGiveBtn.hidden) {
+    finishDialogueDelivery();
+  } else if (!dialogueQuizBtn.hidden) {
+    startDialogueQuiz();
+  } else {
+    closeDialogue();
   }
 }
 
