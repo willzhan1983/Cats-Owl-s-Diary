@@ -57,7 +57,7 @@ const backgroundSources = {
   moonlitIsle: "./assets/bg/moonlit_isle.png",
   underwaterGarden: "./assets/bg/underwater_garden.png",
   deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
-  nessieLair: "./assets/v2/v2-bg-swamp-boss.png",
+  nessieLair: "./assets/bg/nessie_lair.png",
 };
 
 const backgroundSourceCandidates = {
@@ -78,7 +78,7 @@ const backgroundSourceCandidates = {
   moonlitIsle: ["./assets/bg/moonlit_isle.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
   underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
   deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
-  nessieLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
+  nessieLair: ["./assets/bg/nessie_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
 const backgrounds = {};
@@ -212,6 +212,9 @@ const NPC_REGISTRY = {
   hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
   otter: { id: "otter", displayName: "水獭邮差", renderer: drawOtter, world: "moonlight_lake" },
   frog: { id: "frog", displayName: "青蛙老师", renderer: drawFrog, world: "moonlight_lake" },
+  seagull: { id: "seagull", displayName: "海鸥侦察员", renderer: drawSeagull, world: "moonlight_lake" },
+  beaver: { id: "beaver", displayName: "小海狸工程师", renderer: drawBeaver, world: "moonlight_lake" },
+  clownfish: { id: "clownfish", displayName: "小丑鱼兄妹", renderer: drawClownfish, world: "moonlight_lake" },
   seaTurtle: { id: "seaTurtle", displayName: "小海龟", renderer: drawSeaTurtle, world: "moonlight_lake" },
   jellyfish: { id: "jellyfish", displayName: "发光水母", renderer: drawJellyfish, world: "moonlight_lake" },
   octopus: { id: "octopus", displayName: "章鱼博士", renderer: drawOctopus, world: "moonlight_lake" },
@@ -788,9 +791,11 @@ const levels = [
         options: ["蓝色", "黄色", "粉色", "绿色"],
         answer: 2,
       }),
-      actionTask(446, 170, "泡泡升降点", "bubbleLift", "靠近泡泡，它会把你轻轻托起来。"),
+      actionTask(446, 170, "泡泡滑梯", "bubbleLift", "靠近泡泡滑梯，它会把你轻轻托起来。"),
     ],
     npcDecorations: [
+      npcDecoration(848, 150, "seagull", 0.82, "海鸥侦察员"),
+      npcDecoration(246, 344, "beaver", 0.82, "小海狸工程师"),
       npcDecoration(856, 332, "seahorseGuard", 0.9, "海马守卫"),
     ],
     puddles: [
@@ -827,6 +832,9 @@ const levels = [
         answer: 0,
       }),
       actionTask(760, 246, "珍珠机关", "pearlSwitch", "靠近珍珠机关，打开珊瑚门。"),
+    ],
+    npcDecorations: [
+      npcDecoration(850, 282, "clownfish", 0.82, "小丑鱼兄妹"),
     ],
     puddles: [
       { x: 268, y: 178, r: 28 },
@@ -2280,13 +2288,15 @@ function drawDarkBubbles() {
     const t = performance.now() / 260 + bubble.x;
     ctx.save();
     ctx.translate(bubble.x, bubble.y + Math.sin(t) * 4);
-    ctx.fillStyle = "rgba(56, 36, 96, 0.52)";
-    circle(0, 0, bubble.r + Math.sin(t) * 2);
-    ctx.strokeStyle = "rgba(217, 200, 255, 0.75)";
-    ctx.lineWidth = 3;
-    circleStroke(0, 0, bubble.r + 5);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
-    circle(-7, -8, 5);
+    if (!drawEffectArtPackImage("darkBubble", -bubble.r - 12, -bubble.r - 12, bubble.r * 2 + 24, bubble.r * 2 + 24)) {
+      ctx.fillStyle = "rgba(56, 36, 96, 0.52)";
+      circle(0, 0, bubble.r + Math.sin(t) * 2);
+      ctx.strokeStyle = "rgba(217, 200, 255, 0.75)";
+      ctx.lineWidth = 3;
+      circleStroke(0, 0, bubble.r + 5);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
+      circle(-7, -8, 5);
+    }
     ctx.restore();
   }
 }
@@ -2328,6 +2338,7 @@ function drawBubbleLift(obstacle) {
     const y = 42 - ((t + i * 17) % 94);
     circleStroke(Math.sin(t * 0.04 + i) * 18, y, 8 + (i % 3));
   }
+  drawPropImage(ctx, "bubbleSlide", -obstacle.r - 18, -obstacle.r - 18, obstacle.r * 2 + 36, obstacle.r * 2 + 36);
   ctx.restore();
 }
 
@@ -2391,6 +2402,11 @@ const ART_PACK_PROP_KEYS = {
   magicPencil: "magicPencil",
   potion: "potion",
   treasureChest: "treasureChest",
+  moonLamp: "moonLamp",
+  boatPaddle: "boatPaddle",
+  moonKey: "moonKey",
+  shellBadge: "shellBadge",
+  seaweedScissors: "seaweedScissors",
   leafLamp: "leafLamp",
   hangingLantern: "hangingLantern",
   flowerBulbLamp: "flowerBulbLamp",
@@ -2407,6 +2423,9 @@ const ART_PACK_OBSTACLE_KEYS = {
   pit: "pit",
   stump: "stump",
   rock: "rock",
+  moonPillar: "moonPillar",
+  pearlSwitch: "pearlSwitch",
+  whirlpool: "whirlpool",
 };
 
 const ART_PACK_NPC_KEYS = {
@@ -2419,6 +2438,11 @@ const ART_PACK_NPC_KEYS = {
   fox: "fox",
   firefly: "firefly",
   owl: "owlPrincipal",
+  otter: "otterPostman",
+  frog: "frogTeacher",
+  seagull: "seagullScout",
+  beaver: "beaverEngineer",
+  clownfish: "clownfishTwins",
   jellyfish: "jellyfishLady",
   nessie: "nessieBoss",
   seaTurtle: "seaTurtle",
@@ -2447,6 +2471,9 @@ const NPC_VISUAL_OFFSETS = {
   hedgehog: { x: 0, y: 10 },
   otter: { x: 0, y: 12 },
   frog: { x: 0, y: 18 },
+  seagull: { x: 0, y: 12 },
+  beaver: { x: 0, y: 14 },
+  clownfish: { x: 0, y: 10 },
   seaTurtle: { x: 0, y: 16 },
   jellyfish: { x: 0, y: 10 },
   octopus: { x: 0, y: 14 },
@@ -2471,6 +2498,11 @@ const ART_PACK_ITEM_BOUNDS = {
   magicPencil: { x: -27, y: -13, w: 54, h: 26 },
   potion: { x: -22, y: -30, w: 44, h: 54 },
   treasureChest: { x: -24, y: -20, w: 48, h: 40 },
+  moonLamp: { x: -24, y: -36, w: 48, h: 72 },
+  boatPaddle: { x: -32, y: -18, w: 64, h: 36 },
+  moonKey: { x: -28, y: -30, w: 56, h: 56 },
+  shellBadge: { x: -28, y: -30, w: 56, h: 56 },
+  seaweedScissors: { x: -30, y: -30, w: 60, h: 60 },
   leafLamp: { x: -17, y: -23, w: 34, h: 46 },
   hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
   flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
@@ -2491,6 +2523,9 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   pit: (r) => ({ x: -r * 1.2, y: -r * 0.82, w: r * 2.4, h: r * 1.64 }),
   stump: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
   rock: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
+  moonPillar: (r) => ({ x: -r * 1.35, y: -r * 1.85, w: r * 2.7, h: r * 2.7 }),
+  pearlSwitch: (r) => ({ x: -r * 1.25, y: -r * 1.25, w: r * 2.5, h: r * 2.5 }),
+  whirlpool: (r) => ({ x: -r * 1.15, y: -r * 1.15, w: r * 2.3, h: r * 2.3 }),
 };
 
 const ART_PACK_NPC_BOUNDS = {
@@ -2503,6 +2538,11 @@ const ART_PACK_NPC_BOUNDS = {
   fox: { x: -38, y: -62, w: 76, h: 100 },
   firefly: { x: -40, y: -62, w: 80, h: 98 },
   owl: { x: -44, y: -78, w: 88, h: 88 },
+  otter: { x: -44, y: -76, w: 88, h: 88 },
+  frog: { x: -44, y: -76, w: 88, h: 88 },
+  seagull: { x: -44, y: -76, w: 88, h: 88 },
+  beaver: { x: -44, y: -76, w: 88, h: 88 },
+  clownfish: { x: -44, y: -76, w: 88, h: 88 },
   jellyfish: { x: -44, y: -76, w: 88, h: 88 },
   seaTurtle: { x: -44, y: -76, w: 88, h: 88 },
   octopus: { x: -44, y: -76, w: 88, h: 88 },
@@ -2517,6 +2557,10 @@ function drawArtPackImage(category, key, x, y, w, h) {
   if (!image || !image.complete || image.naturalWidth <= 0) return false;
   ctx.drawImage(image, x, y, w, h);
   return true;
+}
+
+function drawEffectArtPackImage(key, x, y, w, h) {
+  return drawArtPackImage("effects", key, x, y, w, h);
 }
 
 function drawPropImage(ctxArg, key, x, y, width, height) {
@@ -2538,6 +2582,11 @@ function drawObstacleArtPackImage(obstacle, key) {
   const bounds = getBounds(obstacle.r);
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
+  if (obstacle.type === "moonPillar") {
+    ctx.fillStyle = obstacle.lit ? "rgba(223,246,255,0.55)" : "rgba(141,170,190,0.18)";
+    circle(0, -obstacle.r * 0.55, obstacle.r * 1.12);
+  }
+  if (obstacle.closed) ctx.globalAlpha = 0.36;
   const drawn = drawArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h);
   ctx.restore();
   return drawn;
@@ -4137,6 +4186,18 @@ function drawOtter() {
 
 function drawFrog() {
   drawMoonNpc("#62b95d", "#d8f08d", "frog");
+}
+
+function drawSeagull() {
+  drawMoonNpc("#f4f7fb", "#6da8d9", "fish");
+}
+
+function drawBeaver() {
+  drawMoonNpc("#8a5a38", "#f1c28b", "otter");
+}
+
+function drawClownfish() {
+  drawMoonNpc("#ff8a3d", "#fff7df", "fish");
 }
 
 function drawSeaTurtle() {
