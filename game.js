@@ -53,10 +53,10 @@ const backgroundSources = {
   forestSchool: "./assets/bg-level1-schoolyard.png",
   riverTown: "./assets/v2/v2-bg-city-road.png",
   darkSwamp: "./assets/v2/v2-bg-swamp-boss.png",
-  moonlightShore: "./assets/v2/v2-bg-pond.png",
-  moonlitIsle: "./assets/v2/v2-bg-wetland.png",
-  underwaterGarden: "./assets/v2/v2-bg-pond.png",
-  deepSeaRuins: "./assets/v2/v2-bg-swamp-boss.png",
+  moonlightShore: "./assets/bg/moonlight_shore.png",
+  moonlitIsle: "./assets/bg/moonlit_isle.png",
+  underwaterGarden: "./assets/bg/underwater_garden.png",
+  deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
   nessieLair: "./assets/v2/v2-bg-swamp-boss.png",
 };
 
@@ -74,10 +74,10 @@ const backgroundSourceCandidates = {
   forestSchool: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
   riverTown: ["./assets/v2/v2-bg-city-road.png", "./assets/v2/v2-bg-pond.png"],
   darkSwamp: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
-  moonlightShore: ["./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
-  moonlitIsle: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
-  underwaterGarden: ["./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
-  deepSeaRuins: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  moonlightShore: ["./assets/bg/moonlight_shore.png", "./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
+  moonlitIsle: ["./assets/bg/moonlit_isle.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
+  deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
@@ -210,12 +210,14 @@ const NPC_REGISTRY = {
   fox: { id: "fox", displayName: "\u5c0f\u72d0", renderer: drawFox, world: "river_town" },
   firefly: { id: "firefly", displayName: "\u8424\u706b\u866b", renderer: drawFirefly, world: "river_town" },
   hedgehog: { id: "hedgehog", displayName: "\u523a\u732c\u540c\u5b66", renderer: drawHedgehog, world: "river_town" },
-  otter: { id: "otter", displayName: "Otter", renderer: drawOtter, world: "moonlight_lake" },
-  frog: { id: "frog", displayName: "Frog", renderer: drawFrog, world: "moonlight_lake" },
-  seaTurtle: { id: "seaTurtle", displayName: "Sea Turtle", renderer: drawSeaTurtle, world: "moonlight_lake" },
-  jellyfish: { id: "jellyfish", displayName: "Jellyfish", renderer: drawJellyfish, world: "moonlight_lake" },
-  octopus: { id: "octopus", displayName: "Octopus", renderer: drawOctopus, world: "moonlight_lake" },
-  nessie: { id: "nessie", displayName: "Nessie", renderer: drawNessie, world: "moonlight_lake" },
+  otter: { id: "otter", displayName: "水獭邮差", renderer: drawOtter, world: "moonlight_lake" },
+  frog: { id: "frog", displayName: "青蛙老师", renderer: drawFrog, world: "moonlight_lake" },
+  seaTurtle: { id: "seaTurtle", displayName: "小海龟", renderer: drawSeaTurtle, world: "moonlight_lake" },
+  jellyfish: { id: "jellyfish", displayName: "发光水母", renderer: drawJellyfish, world: "moonlight_lake" },
+  octopus: { id: "octopus", displayName: "章鱼博士", renderer: drawOctopus, world: "moonlight_lake" },
+  seahorseGuard: { id: "seahorseGuard", displayName: "海马守卫", renderer: drawSeahorseGuard, world: "moonlight_lake" },
+  lanternFish: { id: "lanternFish", displayName: "灯笼鱼", renderer: drawLanternFish, world: "moonlight_lake" },
+  nessie: { id: "nessie", displayName: "尼斯湖怪", renderer: drawNessie, world: "moonlight_lake" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
 };
@@ -316,7 +318,7 @@ const WORLD_MAP = {
   },
   moonlight_lake: {
     id: "moonlight_lake",
-    name: "Moonlight Lake",
+    name: "月光湖",
     background: "moonlightShore",
     levels: [7, 8, 9, 10, 11],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE, TASK_TYPES.BOSS_FIGHT],
@@ -332,11 +334,11 @@ const dayNames = [
   "\u7b2c\u4e94\u5929",
   "\u7b2c\u516d\u5929",
   "\u7b2c\u4e03\u5929",
-  "Moonlight Shore",
-  "Moonlit Isle",
-  "Underwater Garden",
-  "Deep Sea Ruins",
-  "Nessie's Lair",
+  "月光湖岸",
+  "湖心浮岛",
+  "水底花园",
+  "深海遗迹",
+  "尼斯湖怪巢穴",
 ];
 
 const keys = new Set();
@@ -726,27 +728,33 @@ const levels = [
     ],
   },
   {
-    name: "Moonlight Shore",
+    name: "月光湖岸",
     bg: "moonlightShore",
     world: "moonlight_lake",
     time: 92,
     start: { x: 116, y: 430 },
-    message: "V4.0 Moonlight Lake: reach the shore, collect moon tools, and help Otter light the lake path.",
+    message: "月光湖岸出现了奇怪的光，帮水獭邮差点亮湖边道路吧！",
     collectibles: [
-      item(186, 360, "moonLamp", "Moon Lamp"),
-      item(332, 202, "boatPaddle", "Boat Paddle"),
-      item(560, 388, "shellBadge", "Shell Badge"),
-      item(734, 244, "bubbleStone", "Bubble Stone"),
+      item(186, 360, "moonLamp", "月光灯"),
+      item(332, 202, "boatPaddle", "小船桨"),
+      item(560, 388, "shellBadge", "贝壳徽章"),
+      item(734, 244, "bubbleStone", "发光水泡石"),
       item(830, 410, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     propDecorations: [
-      propDecoration(468, 120, "moonLamp", 44, 58, "Moon Lamp"),
-      propDecoration(704, 334, "spiralShell", 42, 36, "Spiral Shell"),
+      propDecoration(468, 120, "moonLamp", 44, 58, "月光灯"),
+      propDecoration(704, 334, "spiralShell", 42, 36, "螺旋贝壳"),
     ],
     tasks: [
-      delivery(230, 302, "Otter", "otter", "moonLamp", "Light the shore stones"),
-      delivery(616, 226, "Frog", "frog", ["boatPaddle", "shellBadge"], "Prepare the little moon boat"),
-      actionTask(790, 332, "Moon Pillar", "moonPillar", "Stand near the pillar to turn moonlight toward the lake"),
+      delivery(230, 302, "水獭邮差", "otter", "moonLamp", "请把月光灯放到湖岸石头旁。"),
+      delivery(616, 226, "青蛙老师", "frog", ["boatPaddle", "shellBadge"], "请帮小船准备好船桨和贝壳徽章。"),
+      quizTask(506, 338, "青蛙老师", "frog", "青蛙老师想考考你：湖面为什么能看到月亮？", {
+        title: "月光科学题",
+        question: "晚上湖面上看到月亮，是因为水面发生了什么？",
+        options: ["反射", "燃烧", "下雨", "结冰"],
+        answer: 0,
+      }),
+      actionTask(790, 332, "月光石柱", "moonPillar", "靠近月光石柱，让月光照向湖面。"),
     ],
     puddles: [
       { x: 280, y: 420, r: 28 },
@@ -759,22 +767,31 @@ const levels = [
     ],
   },
   {
-    name: "Moonlit Isle",
+    name: "湖心浮岛",
     bg: "moonlitIsle",
     world: "moonlight_lake",
     time: 96,
     start: { x: 122, y: 420 },
-    message: "V4.0 Moonlight Lake: ride bubbles, cross the floating isle, and find the moon key.",
+    message: "湖心浮岛的机关醒来了，跟着泡泡找到月光钥匙吧！",
     collectibles: [
-      item(172, 166, "moonKey", "Moon Key"),
-      item(356, 398, "pearlOrb", "Pearl Orb"),
-      item(530, 190, "coralKey", "Coral Key"),
-      item(750, 380, "bubbleStone", "Bubble Stone"),
+      item(172, 166, "moonKey", "月光钥匙"),
+      item(356, 398, "pearlOrb", "珍珠能量球"),
+      item(530, 190, "coralKey", "珊瑚钥匙"),
+      item(750, 380, "bubbleStone", "发光水泡石"),
     ],
     tasks: [
-      delivery(298, 292, "Frog", "frog", "bubbleStone", "Wake the bubble lift"),
-      delivery(608, 318, "Sea Turtle", "seaTurtle", ["moonKey", "coralKey"], "Open the isle gate"),
-      actionTask(446, 170, "Bubble Lift", "bubbleLift", "Stand on the bubble lift to float over the water"),
+      delivery(298, 292, "青蛙老师", "frog", "bubbleStone", "唤醒泡泡升降点。"),
+      delivery(608, 318, "小海龟", "seaTurtle", ["moonKey", "coralKey"], "打开浮岛小门。"),
+      quizTask(704, 208, "水獭邮差", "otter", "水獭邮差想确认贝壳机关的顺序。", {
+        title: "贝壳顺序题",
+        question: "贝壳机关的顺序是：蓝色、黄色、粉色。第三个应该按哪个？",
+        options: ["蓝色", "黄色", "粉色", "绿色"],
+        answer: 2,
+      }),
+      actionTask(446, 170, "泡泡升降点", "bubbleLift", "靠近泡泡，它会把你轻轻托起来。"),
+    ],
+    npcDecorations: [
+      npcDecoration(856, 332, "seahorseGuard", 0.9, "海马守卫"),
     ],
     puddles: [
       { x: 254, y: 238, r: 28 },
@@ -787,23 +804,29 @@ const levels = [
     ],
   },
   {
-    name: "Underwater Garden",
+    name: "水底花园",
     bg: "underwaterGarden",
     world: "moonlight_lake",
     time: 100,
     start: { x: 126, y: 416 },
-    message: "V4.0 Moonlight Lake: explore the underwater garden and trim the tangled seaweed.",
+    message: "水底花园的海草缠在一起了，帮小海龟和发光水母整理花园吧！",
     collectibles: [
-      item(198, 206, "divingHelmet", "Diving Helmet"),
-      item(354, 386, "jellyfishCore", "Jellyfish Core"),
-      item(558, 248, "seaweedScissors", "Seaweed Scissors"),
-      item(744, 166, "aquaGem", "Aqua Gem"),
-      item(816, 398, "pearlOrb", "Pearl Orb"),
+      item(198, 206, "divingHelmet", "泡泡潜水帽"),
+      item(354, 386, "jellyfishCore", "水母灯芯"),
+      item(558, 248, "seaweedScissors", "海草剪刀"),
+      item(744, 166, "aquaGem", "海蓝宝石"),
+      item(816, 398, "pearlOrb", "珍珠能量球"),
     ],
     tasks: [
-      delivery(260, 320, "Sea Turtle", "seaTurtle", "divingHelmet", "Check the safe diving path"),
-      delivery(620, 356, "Jellyfish", "jellyfish", ["jellyfishCore", "aquaGem"], "Restore the garden glow"),
-      actionTask(760, 246, "Pearl Switch", "pearlSwitch", "Stand near the pearl switch to open the coral gate"),
+      delivery(260, 320, "小海龟", "seaTurtle", "divingHelmet", "检查安全的潜水路线。"),
+      delivery(620, 356, "发光水母", "jellyfish", ["jellyfishCore", "aquaGem"], "让水底花园重新发光。"),
+      quizTask(486, 236, "发光水母", "jellyfish", "发光水母想考一个水底英语词。", {
+        title: "水底英语题",
+        question: "turtle 的中文意思是？",
+        options: ["海龟", "月亮", "珍珠", "石头"],
+        answer: 0,
+      }),
+      actionTask(760, 246, "珍珠机关", "pearlSwitch", "靠近珍珠机关，打开珊瑚门。"),
     ],
     puddles: [
       { x: 268, y: 178, r: 28 },
@@ -816,23 +839,32 @@ const levels = [
     ],
   },
   {
-    name: "Deep Sea Ruins",
+    name: "深海遗迹",
     bg: "deepSeaRuins",
     world: "moonlight_lake",
     time: 106,
     start: { x: 118, y: 430 },
-    message: "V4.0 Moonlight Lake: solve the ruin path and gather the runes before the whirlpools grow.",
+    message: "深海遗迹里藏着古老符文，帮章鱼博士点亮遗迹吧！",
     collectibles: [
-      item(180, 372, "deepRune", "Deep Rune"),
-      item(336, 182, "spiralShell", "Spiral Shell"),
-      item(512, 412, "coralKey", "Coral Key"),
-      item(690, 226, "pearlCrown", "Pearl Crown"),
-      item(822, 372, "aquaGem", "Aqua Gem"),
+      item(180, 372, "deepRune", "深海符文"),
+      item(336, 182, "spiralShell", "螺旋贝壳"),
+      item(512, 412, "coralKey", "珊瑚钥匙"),
+      item(690, 226, "pearlCrown", "深海珍珠王冠"),
+      item(822, 372, "aquaGem", "海蓝宝石"),
     ],
     tasks: [
-      delivery(278, 300, "Octopus", "octopus", ["deepRune", "spiralShell"], "Read the ruin pattern"),
-      delivery(650, 336, "Jellyfish", "jellyfish", ["coralKey", "aquaGem"], "Turn on the ruin lights"),
-      actionTask(502, 188, "Moon Pillar", "moonPillar", "Hold the moon pillar steady"),
+      delivery(278, 300, "章鱼博士", "octopus", ["deepRune", "spiralShell"], "读取遗迹上的图案。"),
+      delivery(650, 336, "发光水母", "jellyfish", ["coralKey", "aquaGem"], "点亮遗迹里的灯。"),
+      quizTask(520, 340, "章鱼博士", "octopus", "章鱼博士想请你分一分珍珠能量球。", {
+        title: "深海数学题",
+        question: "章鱼博士找到 12 个珍珠能量球，平均放进 3 个贝壳里，每个贝壳放几个？",
+        options: ["3", "4", "6", "9"],
+        answer: 1,
+      }),
+      actionTask(502, 188, "月光石柱", "moonPillar", "稳稳靠近月光石柱，让它保持发光。"),
+    ],
+    npcDecorations: [
+      npcDecoration(828, 290, "lanternFish", 0.9, "灯笼鱼"),
     ],
     puddles: [
       { x: 238, y: 230, r: 30 },
@@ -845,20 +877,26 @@ const levels = [
     ],
   },
   {
-    name: "Nessie's Lair",
+    name: "尼斯湖怪巢穴",
     bg: "nessieLair",
     world: "moonlight_lake",
     time: 118,
     start: { x: 480, y: 438 },
-    message: "V4.0 Moonlight Lake Boss: light 3 pillars, collect 3 pearl orbs, then break 3 dark bubbles to help Nessie.",
+    message: "尼斯湖怪被黑暗泡泡困住了，先完成勇气问答，再帮它恢复正常！",
     collectibles: [
-      item(150, 382, "pearlOrb", "Pearl Orb"),
-      item(332, 218, "pearlOrb", "Pearl Orb"),
-      item(642, 214, "pearlOrb", "Pearl Orb"),
-      item(808, 382, "moonPearlBadge", "Moon Pearl Badge"),
-      item(480, 398, "potion", "\u7231\u5fc3\u836f\u6c34"),
+      item(92, 430, "pearlOrb", "珍珠能量球"),
+      item(332, 218, "pearlOrb", "珍珠能量球"),
+      item(642, 214, "pearlOrb", "珍珠能量球"),
+      item(808, 382, "moonPearlBadge", "月光珍珠徽章"),
+      item(880, 430, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
+      quizTask(172, 318, "尼斯湖怪", "nessie", "尼斯湖怪想听听你会怎么帮助朋友。", {
+        title: "勇气复习题",
+        question: "如果朋友被黑暗泡泡影响了，我们应该怎么做？",
+        options: ["帮助它恢复正常", "马上逃走不管它", "把湖水弄脏", "抢走它的王冠"],
+        answer: 0,
+      }),
       moonBossTask(480, 152),
     ],
     puddles: [
@@ -931,6 +969,10 @@ function propDecoration(x, y, type, width, height, label) {
   return { x, y, type, width, height, label };
 }
 
+function npcDecoration(x, y, kind, scale = 1, label = "") {
+  return { x, y, kind, scale, label };
+}
+
 function delivery(x, y, name, animal, need, speech) {
   return { x, y, name, animal, need: Array.isArray(need) ? need : [need], speech, kind: "delivery", done: false, progress: 0 };
 }
@@ -951,10 +993,10 @@ function moonBossTask(x, y) {
   return {
     x,
     y,
-    name: "Nessie",
+    name: "尼斯湖怪",
     animal: "nessie",
     need: ["moonPearlBadge"],
-    speech: "Help Nessie clear the dark whirlpool",
+    speech: "帮助尼斯湖怪清除黑暗漩涡。",
     kind: "moon_boss",
     done: false,
     progress: 0,
@@ -979,6 +1021,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     inventory: [],
     slowUntil: 0,
     puddleCooldownUntil: 0,
+    bubbleLiftUntil: 0,
+    activeBubbleLift: null,
+    bubbleLiftCooldownUntil: 0,
     hurtCooldownUntil: 0,
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
@@ -994,6 +1039,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
+    npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
     sparkles: [],
     floaters: [],
@@ -1201,10 +1247,16 @@ function update(dt) {
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
       startBtn.textContent = text.again;
-      messageEl.textContent = text.allDone;
+      messageEl.textContent =
+        levels[state.levelIndex]?.world === "moonlight_lake"
+          ? "尼斯湖怪恢复平静了，月光湖安全啦！"
+          : text.allDone;
     } else {
       startBtn.textContent = text.next;
-      messageEl.textContent = `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
+      messageEl.textContent =
+        levels[state.levelIndex]?.world === "moonlight_lake"
+          ? `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u6708\u5149\u6e56\u5730\u70b9\u3002`
+          : `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
     }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
   }
@@ -1243,31 +1295,45 @@ function updatePlayer(dt) {
 function updateUnderwaterMechanisms(dt) {
   const p = state.player;
   const now = performance.now();
+  const lifting = now < state.bubbleLiftUntil && state.activeBubbleLift;
+  if (lifting) {
+    const lift = state.activeBubbleLift;
+    const liftSpeed = Math.max(90, Math.abs(lift.vy || -110) * 0.78);
+    p.x = clamp(p.x + (lift.x - p.x) * 3 * dt, 58, canvas.width - 58);
+    p.y = clamp(p.y - liftSpeed * dt, 92, canvas.height - 58);
+    p.vy = Math.min(p.vy, -liftSpeed * 0.35);
+  }
+
   for (const obstacle of state.obstacles) {
+    if (obstacle.type === "bubbleLift") {
+      if (distance(p, obstacle) >= obstacle.r + 55) continue;
+      if (now >= state.bubbleLiftCooldownUntil && now >= state.bubbleLiftUntil) {
+        state.activeBubbleLift = obstacle;
+        state.bubbleLiftUntil = now + 1000;
+        state.bubbleLiftCooldownUntil = now + 1800;
+        burst(p.x, p.y, "#c9f7ff", 12);
+        addFloatingText(p.x, p.y - 42, "泡泡升降", "#2f9dcc");
+        messageEl.textContent = "\u6ce1\u6ce1\u6258\u8d77\u4f60\u5566\uff01";
+      }
+      continue;
+    }
     if (distance(p, obstacle) >= obstacle.r + 24) continue;
+    if (lifting && (obstacle.type === "current" || obstacle.type === "whirlpool")) continue;
     if (obstacle.type === "current") {
       p.x = clamp(p.x + (obstacle.vx || 70) * dt, 58, canvas.width - 58);
       p.y = clamp(p.y + (obstacle.vy || 0) * dt, 92, canvas.height - 58);
       if (now > state.puddleCooldownUntil) {
         state.puddleCooldownUntil = now + 520;
-        addFloatingText(p.x, p.y - 42, "current", "#5bc4e6");
-        messageEl.textContent = "The moon current gently pushes you along.";
-      }
-    } else if (obstacle.type === "bubbleLift") {
-      p.vy = Math.min(p.vy, obstacle.vy || -115);
-      p.y = clamp(p.y - 78 * dt, 92, canvas.height - 58);
-      if (now > state.puddleCooldownUntil) {
-        state.puddleCooldownUntil = now + 580;
-        burst(p.x, p.y, "#c9f7ff", 8);
-        addFloatingText(p.x, p.y - 42, "bubble lift", "#2f9dcc");
+        addFloatingText(p.x, p.y - 42, "水流", "#5bc4e6");
+        messageEl.textContent = "月光水流轻轻推着你前进。";
       }
     } else if (obstacle.type === "whirlpool" && !obstacle.closed) {
       state.slowUntil = now + 700;
       if (now > state.puddleCooldownUntil) {
         state.puddleCooldownUntil = now + 780;
         state.shake = 0.06;
-        addFloatingText(p.x, p.y - 42, "whirlpool", "#4d7bbf");
-        messageEl.textContent = "The whirlpool slows your steps.";
+        addFloatingText(p.x, p.y - 42, "漩涡", "#4d7bbf");
+        messageEl.textContent = "漩涡让脚步慢了下来。";
       }
     }
   }
@@ -1283,12 +1349,12 @@ function updateMoonBoss() {
       pillar.lit = true;
       boss.phaseProgress += 1;
       burst(pillar.x, pillar.y, "#dff6ff", 18);
-      addFloatingText(pillar.x, pillar.y - 42, `${boss.phaseProgress}/3 pillars`, "#dff6ff");
-      messageEl.textContent = "A moon pillar lights up.";
+      addFloatingText(pillar.x, pillar.y - 42, `${boss.phaseProgress}/3 石柱`, "#dff6ff");
+      messageEl.textContent = "一根月光石柱亮起来了。";
       if (boss.phaseProgress >= 3) {
         boss.phase = 2;
         boss.phaseProgress = 0;
-        messageEl.textContent = "Phase 2: bring 3 Pearl Orbs to the whirlpool.";
+        messageEl.textContent = "第二步：收集 3 个珍珠能量球，放到漩涡旁。";
       }
     }
   } else if (boss.phase === 2) {
@@ -1299,13 +1365,13 @@ function updateMoonBoss() {
       whirlpool.closed = true;
       boss.phase = 3;
       burst(whirlpool.x, whirlpool.y, "#fff7df", 28);
-      messageEl.textContent = "Phase 3: press attack near each dark bubble.";
+      messageEl.textContent = "第三步：靠近黑暗泡泡，点击攻击把它们清除。";
     }
   } else if (boss.phase === 3 && state.darkBubbles.every((bubble) => bubble.broken)) {
     completeTask(boss, boss.x, boss.y);
     state.inventory.push("moonPearlBadge");
     burst(boss.x, boss.y, "#dff6ff", 44);
-    messageEl.textContent = "Nessie is calm again. Moonlight Lake is safe.";
+    messageEl.textContent = "尼斯湖怪恢复平静了，月光湖安全啦！";
   }
 }
 
@@ -1446,14 +1512,14 @@ function breakNearbyDarkBubble() {
   const p = state.player;
   const bubble = state.darkBubbles.find((entry) => !entry.broken && distance(p, entry) < entry.r + 54);
   if (!bubble) {
-    messageEl.textContent = "Move closer to a dark bubble, then attack.";
+    messageEl.textContent = "再靠近黑暗泡泡一点，然后点击攻击。";
     return true;
   }
   bubble.broken = true;
   state.attackCooldownUntil = now + 420;
   burst(bubble.x, bubble.y, "#a77cff", 24);
-  addFloatingText(bubble.x, bubble.y - 36, "bubble cleared", "#d9c8ff");
-  messageEl.textContent = "A dark bubble pops and releases moonlight.";
+  addFloatingText(bubble.x, bubble.y - 36, "泡泡清除", "#d9c8ff");
+  messageEl.textContent = "黑暗泡泡散开了，月光回来了。";
   return true;
 }
 
@@ -1542,9 +1608,9 @@ function checkTasks(dt) {
 
     if (task.kind === "moon_boss") {
       const hints = {
-        1: "Phase 1: walk to each moon pillar and light all 3.",
-        2: "Phase 2: collect 3 Pearl Orbs, then stand by the whirlpool.",
-        3: "Phase 3: stand near each dark bubble and press attack.",
+        1: "第一步：点亮 3 根月光石柱。",
+        2: "第二步：收集 3 个珍珠能量球，放到漩涡旁。",
+        3: "第三步：靠近黑暗泡泡，点击攻击把它们清除。",
       };
       messageEl.textContent = hints[task.phase] || task.speech;
       continue;
@@ -1620,21 +1686,21 @@ function itemLabel(type) {
     courageStar: "\u52c7\u6c14\u661f",
     magicPencil: "\u9b54\u6cd5\u94c5\u7b14",
     guardBook: "\u5b88\u62a4\u4e66",
-    moonLamp: "Moon Lamp",
-    boatPaddle: "Boat Paddle",
-    bubbleStone: "Bubble Stone",
-    divingHelmet: "Diving Helmet",
-    moonKey: "Moon Key",
-    shellBadge: "Shell Badge",
-    pearlOrb: "Pearl Orb",
-    coralKey: "Coral Key",
-    jellyfishCore: "Jellyfish Core",
-    seaweedScissors: "Seaweed Scissors",
-    deepRune: "Deep Rune",
-    spiralShell: "Spiral Shell",
-    aquaGem: "Aqua Gem",
-    pearlCrown: "Pearl Crown",
-    moonPearlBadge: "Moon Pearl Badge",
+    moonLamp: "月光灯",
+    boatPaddle: "小船桨",
+    bubbleStone: "发光水泡石",
+    divingHelmet: "泡泡潜水帽",
+    moonKey: "月光钥匙",
+    shellBadge: "贝壳徽章",
+    pearlOrb: "珍珠能量球",
+    coralKey: "珊瑚钥匙",
+    jellyfishCore: "水母灯芯",
+    seaweedScissors: "海草剪刀",
+    deepRune: "深海符文",
+    spiralShell: "螺旋贝壳",
+    aquaGem: "海蓝宝石",
+    pearlCrown: "深海珍珠王冠",
+    moonPearlBadge: "月光珍珠徽章",
   }[type] || type;
 }
 
@@ -1692,7 +1758,7 @@ function dialogueRoleLabel(task) {
   if (task.kind === "delivery") return "\u9700\u8981\u5e2e\u5fd9";
   if (task.kind === "quiz") return "\u9898\u76ee\u6311\u6218";
   if (task.kind === "boss") return "Boss \u63d0\u793a";
-  if (task.kind === "moon_boss") return "Moonlight Boss";
+  if (task.kind === "moon_boss") return "月光湖 Boss";
   return "\u573a\u666f\u5e2e\u5fd9";
 }
 
@@ -1942,6 +2008,8 @@ function drawBackground() {
     ctx.save();
     ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     ctx.restore();
+  } else if (levels[state.levelIndex]?.world === "moonlight_lake") {
+    drawMoonlightLakeFallbackBackground();
   } else {
     drawTree(90, 135, 1.15);
     drawTree(850, 125, 1.05);
@@ -1961,6 +2029,78 @@ function drawBackground() {
   ctx.beginPath();
   ctx.ellipse(480, 536, 520, 70, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawMoonlightLakeFallbackBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, "#17163f");
+  sky.addColorStop(0.48, "#253d76");
+  sky.addColorStop(1, "#1f4c68");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "rgba(245, 242, 205, 0.95)";
+  circle(742, 84, 42);
+  ctx.fillStyle = "rgba(245, 242, 205, 0.22)";
+  circle(742, 84, 66);
+
+  const lake = ctx.createLinearGradient(0, 210, 0, canvas.height);
+  lake.addColorStop(0, "rgba(48, 87, 142, 0.75)");
+  lake.addColorStop(1, "rgba(18, 57, 91, 0.92)");
+  ctx.fillStyle = lake;
+  ctx.beginPath();
+  ctx.moveTo(0, 218);
+  ctx.bezierCurveTo(180, 190, 306, 242, 480, 214);
+  ctx.bezierCurveTo(650, 188, 790, 220, 960, 198);
+  ctx.lineTo(960, 540);
+  ctx.lineTo(0, 540);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "rgba(245, 242, 205, 0.56)";
+  ctx.lineWidth = 5;
+  ctx.lineCap = "round";
+  for (let i = 0; i < 5; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(650 - i * 24, 180 + i * 42);
+    ctx.quadraticCurveTo(742, 196 + i * 46, 834 + i * 16, 190 + i * 42);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#303f5f";
+  ctx.beginPath();
+  ctx.moveTo(0, 410);
+  ctx.bezierCurveTo(220, 354, 420, 402, 604, 360);
+  ctx.bezierCurveTo(720, 334, 830, 360, 960, 330);
+  ctx.lineTo(960, 540);
+  ctx.lineTo(0, 540);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#72543d";
+  roundRect(116, 330, 250, 18, 6);
+  ctx.fill();
+  for (const x of [138, 214, 292, 344]) {
+    roundRect(x, 340, 14, 70, 5);
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = "#7b8f72";
+  ctx.lineWidth = 5;
+  for (const x of [52, 76, 620, 646, 680, 902, 928]) {
+    ctx.beginPath();
+    ctx.moveTo(x, 438);
+    ctx.quadraticCurveTo(x - 12, 386, x + 6, 330);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = "#52617d";
+  circle(520, 392, 24);
+  circle(560, 382, 15);
+  ctx.fillStyle = "rgba(223, 246, 255, 0.7)";
+  circle(452, 306, 14);
+  ctx.fillStyle = "#6d5a4a";
+  roundRect(446, 316, 12, 60, 5);
 }
 
 function drawPath() {
@@ -2032,6 +2172,7 @@ function drawLeaves() {
 function drawSceneObjects() {
   drawObstacles();
   drawPropDecorations();
+  drawNpcDecorations();
   drawDarkBubbles();
   for (const puddle of state.puddles) drawGroundPuddle(puddle);
 
@@ -2081,6 +2222,23 @@ function drawPropDecorations() {
     drawItemShadow(0, prop.height * 0.5, prop.width * 0.36, Math.max(4, prop.height * 0.08));
     if (!drawPropImage(ctx, prop.type, -prop.width / 2, -prop.height / 2, prop.width, prop.height)) {
       drawMiniPropFallback(prop);
+    }
+    ctx.restore();
+  }
+}
+
+function drawNpcDecorations() {
+  const decorations = state.npcDecorations || [];
+  for (const entry of decorations) {
+    ctx.save();
+    ctx.translate(entry.x, entry.y);
+    ctx.scale(entry.scale || 1, entry.scale || 1);
+    drawAnimal(entry.kind);
+    if (entry.label) {
+      ctx.fillStyle = "rgba(255,255,255,0.92)";
+      ctx.font = "800 10px Microsoft YaHei, Arial";
+      ctx.textAlign = "center";
+      fitText(entry.label, 0, 46, 92);
     }
     ctx.restore();
   }
@@ -2152,13 +2310,23 @@ function drawMoonCurrent(obstacle) {
 
 function drawBubbleLift(obstacle) {
   const t = performance.now() / 260;
+  const active =
+    state?.activeBubbleLift === obstacle &&
+    performance.now() < (state?.bubbleLiftUntil || 0);
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
+  ctx.globalAlpha = active ? 0.46 : 0.26;
+  ctx.fillStyle = "#c9f7ff";
+  circle(0, 0, obstacle.r + 55);
+  ctx.globalAlpha = active ? 0.95 : 0.58;
+  ctx.strokeStyle = active ? "rgba(255,255,255,0.9)" : "rgba(201, 247, 255, 0.72)";
+  ctx.lineWidth = active ? 4 : 2;
+  circleStroke(0, 0, obstacle.r + 55);
   ctx.strokeStyle = "rgba(201, 247, 255, 0.72)";
   ctx.lineWidth = 3;
-  for (let i = 0; i < 5; i += 1) {
-    const y = 32 - ((t + i * 18) % 78);
-    circleStroke(Math.sin(t * 0.04 + i) * 14, y, 7 + (i % 3));
+  for (let i = 0; i < 7; i += 1) {
+    const y = 42 - ((t + i * 17) % 94);
+    circleStroke(Math.sin(t * 0.04 + i) * 18, y, 8 + (i % 3));
   }
   ctx.restore();
 }
@@ -2226,6 +2394,11 @@ const ART_PACK_PROP_KEYS = {
   leafLamp: "leafLamp",
   hangingLantern: "hangingLantern",
   flowerBulbLamp: "flowerBulbLamp",
+  divingHelmet: "bubbleDivingHelmet",
+  bubbleStone: "bubbleStone",
+  pearlOrb: "pearlOrb",
+  coralKey: "coralKey",
+  spiralShell: "spiralShell",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -2246,6 +2419,12 @@ const ART_PACK_NPC_KEYS = {
   fox: "fox",
   firefly: "firefly",
   owl: "owlPrincipal",
+  jellyfish: "jellyfishLady",
+  nessie: "nessieBoss",
+  seaTurtle: "seaTurtle",
+  octopus: "octopusDoctor",
+  seahorseGuard: "seahorseGuard",
+  lanternFish: "lanternFish",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -2271,6 +2450,8 @@ const NPC_VISUAL_OFFSETS = {
   seaTurtle: { x: 0, y: 16 },
   jellyfish: { x: 0, y: 10 },
   octopus: { x: 0, y: 14 },
+  seahorseGuard: { x: 0, y: 12 },
+  lanternFish: { x: 0, y: 8 },
   nessie: { x: 0, y: 26 },
   owl: { x: 0, y: 8 },
   boss: { x: 0, y: 26 },
@@ -2297,6 +2478,11 @@ const ART_PACK_ITEM_BOUNDS = {
   schoolSign: { x: -40, y: -52, w: 80, h: 104 },
   bouncingMushroom: { x: -34, y: -48, w: 68, h: 96 },
   finishFlag: { x: -42, y: -72, w: 84, h: 120 },
+  divingHelmet: { x: -30, y: -34, w: 60, h: 60 },
+  bubbleStone: { x: -28, y: -30, w: 56, h: 56 },
+  pearlOrb: { x: -27, y: -29, w: 54, h: 54 },
+  coralKey: { x: -27, y: -29, w: 54, h: 54 },
+  spiralShell: { x: -27, y: -29, w: 54, h: 54 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -2317,6 +2503,12 @@ const ART_PACK_NPC_BOUNDS = {
   fox: { x: -38, y: -62, w: 76, h: 100 },
   firefly: { x: -40, y: -62, w: 80, h: 98 },
   owl: { x: -44, y: -78, w: 88, h: 88 },
+  jellyfish: { x: -44, y: -76, w: 88, h: 88 },
+  seaTurtle: { x: -44, y: -76, w: 88, h: 88 },
+  octopus: { x: -44, y: -76, w: 88, h: 88 },
+  seahorseGuard: { x: -44, y: -76, w: 88, h: 88 },
+  lanternFish: { x: -44, y: -76, w: 88, h: 88 },
+  nessie: { x: -70, y: -100, w: 140, h: 140 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
@@ -3959,6 +4151,14 @@ function drawOctopus() {
   drawMoonNpc("#d27ac2", "#ffd1ef", "octopus");
 }
 
+function drawSeahorseGuard() {
+  drawMoonNpc("#dca15f", "#fff0ba", "seahorse");
+}
+
+function drawLanternFish() {
+  drawMoonNpc("#4f8ec7", "#ffe77a", "fish");
+}
+
 function drawNessie() {
   drawMoonNpc("#5477c7", "#dff6ff", "nessie");
 }
@@ -4016,6 +4216,32 @@ function drawMoonNpc(bodyColor, accentColor, kind) {
     ctx.fillStyle = bodyColor;
     circle(-24, 20, 8);
     circle(20, 20, 8);
+  } else if (kind === "fish") {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 32, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-30, 0);
+    ctx.lineTo(-52, -18);
+    ctx.lineTo(-52, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = accentColor;
+    circle(24, -12, 9);
+  } else if (kind === "seahorse") {
+    ctx.beginPath();
+    ctx.ellipse(4, 8, 20, 30, -0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(8, -28, 18, 16, 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = bodyColor;
+    ctx.lineWidth = 9;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-8, 24);
+    ctx.quadraticCurveTo(-30, 38, -12, 48);
+    ctx.stroke();
   } else {
     ctx.beginPath();
     ctx.ellipse(0, 4, 26, 25, 0, 0, Math.PI * 2);

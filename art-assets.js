@@ -24,6 +24,11 @@
     schoolSign: "assets/props/school_sign.png",
     bouncingMushroom: "assets/props/bouncing_mushroom.png",
     finishFlag: "assets/props/finish_flag.png",
+    bubbleDivingHelmet: "assets/items/bubble_diving_helmet.png",
+    bubbleStone: "assets/items/bubble_stone.png",
+    pearlOrb: "assets/items/pearl_orb.png",
+    coralKey: "assets/items/coral_key.png",
+    spiralShell: "assets/items/spiral_shell.png",
   };
 
   const registry = {
@@ -39,6 +44,12 @@
       fox: "./assets/asset-pack-01/npc/fox.png",
       firefly: "./assets/asset-pack-01/npc/firefly.png",
       owlPrincipal: "./assets/asset-pack-01/npc/owl_principal.png",
+      jellyfishLady: "./assets/npc/jellyfish_lady.png",
+      nessieBoss: "./assets/npc/nessie_boss.png",
+      seaTurtle: "./assets/npc/sea_turtle.png",
+      octopusDoctor: "./assets/npc/octopus_doctor.png",
+      seahorseGuard: "./assets/npc/seahorse_guard.png",
+      lanternFish: "./assets/npc/lantern_fish.png",
     },
     boss: {
       blackBear: "./assets/asset-pack-01/boss/black-bear/idle.png",
@@ -70,6 +81,11 @@
       schoolSign: window.ART_ASSETS.props.schoolSign,
       bouncingMushroom: window.ART_ASSETS.props.bouncingMushroom,
       finishFlag: window.ART_ASSETS.props.finishFlag,
+      bubbleDivingHelmet: window.ART_ASSETS.props.bubbleDivingHelmet,
+      bubbleStone: window.ART_ASSETS.props.bubbleStone,
+      pearlOrb: window.ART_ASSETS.props.pearlOrb,
+      coralKey: window.ART_ASSETS.props.coralKey,
+      spiralShell: window.ART_ASSETS.props.spiralShell,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
