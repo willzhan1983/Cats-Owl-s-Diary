@@ -791,7 +791,7 @@ const levels = [
         options: ["蓝色", "黄色", "粉色", "绿色"],
         answer: 2,
       }),
-      actionTask(446, 170, "泡泡升降点", "bubbleLift", "靠近泡泡，它会把你轻轻托起来。"),
+      actionTask(446, 170, "泡泡滑梯", "bubbleLift", "靠近泡泡滑梯，它会把你轻轻托起来。"),
     ],
     npcDecorations: [
       npcDecoration(848, 150, "seagull", 0.82, "海鸥侦察员"),
@@ -2288,13 +2288,15 @@ function drawDarkBubbles() {
     const t = performance.now() / 260 + bubble.x;
     ctx.save();
     ctx.translate(bubble.x, bubble.y + Math.sin(t) * 4);
-    ctx.fillStyle = "rgba(56, 36, 96, 0.52)";
-    circle(0, 0, bubble.r + Math.sin(t) * 2);
-    ctx.strokeStyle = "rgba(217, 200, 255, 0.75)";
-    ctx.lineWidth = 3;
-    circleStroke(0, 0, bubble.r + 5);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
-    circle(-7, -8, 5);
+    if (!drawEffectArtPackImage("darkBubble", -bubble.r - 12, -bubble.r - 12, bubble.r * 2 + 24, bubble.r * 2 + 24)) {
+      ctx.fillStyle = "rgba(56, 36, 96, 0.52)";
+      circle(0, 0, bubble.r + Math.sin(t) * 2);
+      ctx.strokeStyle = "rgba(217, 200, 255, 0.75)";
+      ctx.lineWidth = 3;
+      circleStroke(0, 0, bubble.r + 5);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.38)";
+      circle(-7, -8, 5);
+    }
     ctx.restore();
   }
 }
@@ -2336,6 +2338,7 @@ function drawBubbleLift(obstacle) {
     const y = 42 - ((t + i * 17) % 94);
     circleStroke(Math.sin(t * 0.04 + i) * 18, y, 8 + (i % 3));
   }
+  drawPropImage(ctx, "bubbleSlide", -obstacle.r - 18, -obstacle.r - 18, obstacle.r * 2 + 36, obstacle.r * 2 + 36);
   ctx.restore();
 }
 
@@ -2403,6 +2406,7 @@ const ART_PACK_PROP_KEYS = {
   boatPaddle: "boatPaddle",
   moonKey: "moonKey",
   shellBadge: "shellBadge",
+  seaweedScissors: "seaweedScissors",
   leafLamp: "leafLamp",
   hangingLantern: "hangingLantern",
   flowerBulbLamp: "flowerBulbLamp",
@@ -2419,6 +2423,9 @@ const ART_PACK_OBSTACLE_KEYS = {
   pit: "pit",
   stump: "stump",
   rock: "rock",
+  moonPillar: "moonPillar",
+  pearlSwitch: "pearlSwitch",
+  whirlpool: "whirlpool",
 };
 
 const ART_PACK_NPC_KEYS = {
@@ -2495,6 +2502,7 @@ const ART_PACK_ITEM_BOUNDS = {
   boatPaddle: { x: -32, y: -18, w: 64, h: 36 },
   moonKey: { x: -28, y: -30, w: 56, h: 56 },
   shellBadge: { x: -28, y: -30, w: 56, h: 56 },
+  seaweedScissors: { x: -30, y: -30, w: 60, h: 60 },
   leafLamp: { x: -17, y: -23, w: 34, h: 46 },
   hangingLantern: { x: -17, y: -23, w: 34, h: 46 },
   flowerBulbLamp: { x: -16, y: -21, w: 32, h: 42 },
@@ -2515,6 +2523,9 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   pit: (r) => ({ x: -r * 1.2, y: -r * 0.82, w: r * 2.4, h: r * 1.64 }),
   stump: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
   rock: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
+  moonPillar: (r) => ({ x: -r * 1.35, y: -r * 1.85, w: r * 2.7, h: r * 2.7 }),
+  pearlSwitch: (r) => ({ x: -r * 1.25, y: -r * 1.25, w: r * 2.5, h: r * 2.5 }),
+  whirlpool: (r) => ({ x: -r * 1.15, y: -r * 1.15, w: r * 2.3, h: r * 2.3 }),
 };
 
 const ART_PACK_NPC_BOUNDS = {
@@ -2548,6 +2559,10 @@ function drawArtPackImage(category, key, x, y, w, h) {
   return true;
 }
 
+function drawEffectArtPackImage(key, x, y, w, h) {
+  return drawArtPackImage("effects", key, x, y, w, h);
+}
+
 function drawPropImage(ctxArg, key, x, y, width, height) {
   const pack = window.CATS_OWLS_ART_PACK_01;
   const image = pack?.get?.("props", key);
@@ -2567,6 +2582,11 @@ function drawObstacleArtPackImage(obstacle, key) {
   const bounds = getBounds(obstacle.r);
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
+  if (obstacle.type === "moonPillar") {
+    ctx.fillStyle = obstacle.lit ? "rgba(223,246,255,0.55)" : "rgba(141,170,190,0.18)";
+    circle(0, -obstacle.r * 0.55, obstacle.r * 1.12);
+  }
+  if (obstacle.closed) ctx.globalAlpha = 0.36;
   const drawn = drawArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h);
   ctx.restore();
   return drawn;

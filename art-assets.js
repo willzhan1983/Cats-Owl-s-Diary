@@ -24,6 +24,9 @@
     schoolSign: "assets/props/school_sign.png",
     bouncingMushroom: "assets/props/bouncing_mushroom.png",
     finishFlag: "assets/props/finish_flag.png",
+    moonPillar: "assets/props/moon_pillar.png",
+    bubbleSlide: "assets/props/bubble_slide.png",
+    pearlSwitch: "assets/props/pearl_switch.png",
     moonLamp: "assets/items/moon_lamp.png",
     boatPaddle: "assets/items/boat_paddle.png",
     moonKey: "assets/items/moon_key.png",
@@ -33,6 +36,7 @@
     pearlOrb: "assets/items/pearl_orb.png",
     coralKey: "assets/items/coral_key.png",
     spiralShell: "assets/items/spiral_shell.png",
+    seaweedScissors: "assets/items/seaweed_scissors.png",
   };
 
   const registry = {
@@ -90,6 +94,9 @@
       schoolSign: window.ART_ASSETS.props.schoolSign,
       bouncingMushroom: window.ART_ASSETS.props.bouncingMushroom,
       finishFlag: window.ART_ASSETS.props.finishFlag,
+      moonPillar: window.ART_ASSETS.props.moonPillar,
+      bubbleSlide: window.ART_ASSETS.props.bubbleSlide,
+      pearlSwitch: window.ART_ASSETS.props.pearlSwitch,
       moonLamp: window.ART_ASSETS.props.moonLamp,
       boatPaddle: window.ART_ASSETS.props.boatPaddle,
       moonKey: window.ART_ASSETS.props.moonKey,
@@ -99,6 +106,7 @@
       pearlOrb: window.ART_ASSETS.props.pearlOrb,
       coralKey: window.ART_ASSETS.props.coralKey,
       spiralShell: window.ART_ASSETS.props.spiralShell,
+      seaweedScissors: window.ART_ASSETS.props.seaweedScissors,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
@@ -106,6 +114,12 @@
       pit: "./assets/asset-pack-01/obstacles/pit.png",
       stump: "./assets/asset-pack-01/obstacles/stump.png",
       rock: "./assets/asset-pack-01/obstacles/rock.png",
+      moonPillar: "./assets/props/moon_pillar.png",
+      pearlSwitch: "./assets/props/pearl_switch.png",
+      whirlpool: "./assets/effects/whirlpool.png",
+    },
+    effects: {
+      darkBubble: "./assets/effects/dark_bubble.png",
     },
   };
 
