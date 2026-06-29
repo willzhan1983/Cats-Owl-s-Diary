@@ -4,6 +4,7 @@
   const STORAGE_KEY='catsOwlGrade';
   const DEFAULT_GRADE=3;
   const gradeButtons=document.querySelectorAll('[data-grade]');
+  if(!gradeButtons.length)return;
   function clampGrade(value){const n=Number(value);return Number.isFinite(n)?Math.max(1,Math.min(6,Math.round(n))):DEFAULT_GRADE;}
   let selectedGrade=clampGrade(localStorage.getItem(STORAGE_KEY)||DEFAULT_GRADE);
   function matchesGrade(q){
