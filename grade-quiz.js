@@ -1,25 +1,101 @@
-/* Grade selector and grade-aware quiz picking. */
-(function setupGradeAwareQuizzes(){
-  if(typeof quizBank==='undefined')return;
-  const STORAGE_KEY='catsOwlGrade';
-  const DEFAULT_GRADE=3;
-  const gradeButtons=document.querySelectorAll('[data-grade]');
-  if(!gradeButtons.length)return;
-  function clampGrade(value){const n=Number(value);return Number.isFinite(n)?Math.max(1,Math.min(6,Math.round(n))):DEFAULT_GRADE;}
-  let selectedGrade=clampGrade(localStorage.getItem(STORAGE_KEY)||DEFAULT_GRADE);
-  function matchesGrade(q){
-    if(!q.grade&&!q.minGrade&&!q.maxGrade)return selectedGrade<=3&&!['hard','expert'].includes(q.difficulty);
-    const min=clampGrade(q.minGrade||q.grade||1);
-    const max=clampGrade(q.maxGrade||q.grade||6);
-    return min<=selectedGrade&&selectedGrade<=max;
+/* Difficulty-aware quiz picking. */
+(function setupDifficultyAwareQuizzes() {
+  if (typeof quizBank === "undefined" || typeof randomQuiz !== "function") return;
+
+  const STORAGE_KEY = "catsOwlDifficulty";
+  const DIFFICULTIES = ["easy", "normal", "hard", "crazy"];
+  const DIFFICULTY_ALIASES = {
+    easy: "easy",
+    simple: "easy",
+    basic: "easy",
+    normal: "normal",
+    medium: "normal",
+    hard: "hard",
+    difficult: "hard",
+    crazy: "crazy",
+    expert: "crazy",
+    challenge: "crazy",
+  };
+  const FALLBACK_ORDER = {
+    easy: ["easy"],
+    normal: ["normal", "easy"],
+    hard: ["hard", "normal", "easy"],
+    crazy: ["crazy", "hard", "normal", "easy"],
+  };
+
+  function normalizeMode(value) {
+    return DIFFICULTIES.includes(value) ? value : "normal";
   }
-  function sync(){gradeButtons.forEach(btn=>{const on=clampGrade(btn.dataset.grade)===selectedGrade;btn.classList.toggle('is-selected',on);btn.setAttribute('aria-pressed',on?'true':'false');});}
-  function pick(list){const exact=list.filter(q=>Number(q.grade)===selectedGrade);const matched=list.filter(matchesGrade);const candidates=exact.length?exact:matched.length?matched:list;return candidates[Math.floor(Math.random()*candidates.length)]||quizBank.math[0];}
-  randomQuiz=function randomGradeQuiz(key){return pick(quizBank[key]||[]);};
-  function rerollCurrentQuizLevel(){if(typeof state==='undefined'||!state||state.running)return;const hasQuiz=state.tasksList?.some(task=>task.kind==='quiz');if(!hasQuiz||typeof resetGame!=='function')return;resetGame(state.levelIndex,state.levelIndex>0);if(typeof messageEl!=='undefined')messageEl.textContent=`已切换为小学${selectedGrade}年级题库，点击开始继续挑战。`;}
-  function setGrade(grade,reroll=true){selectedGrade=clampGrade(grade);localStorage.setItem(STORAGE_KEY,String(selectedGrade));sync();if(reroll)rerollCurrentQuizLevel();}
-  gradeButtons.forEach(btn=>btn.addEventListener('click',()=>setGrade(btn.dataset.grade)));
-  window.catsOwlQuizGrade={get:()=>selectedGrade,set:grade=>setGrade(grade)};
-  sync();
-  rerollCurrentQuizLevel();
+
+  function numericGrade(value) {
+    const grade = Number(value);
+    return Number.isFinite(grade) ? Math.max(1, Math.min(6, Math.round(grade))) : null;
+  }
+
+  function difficultyFromGrade(question) {
+    const grade = numericGrade(question.grade);
+    if (grade) {
+      if (grade <= 2) return "easy";
+      if (grade <= 4) return "normal";
+      return "hard";
+    }
+
+    const min = numericGrade(question.minGrade);
+    const max = numericGrade(question.maxGrade);
+    if (!min && !max) return "normal";
+
+    const low = min || max;
+    const high = max || min;
+    const midpoint = (low + high) / 2;
+    if (midpoint <= 2) return "easy";
+    if (midpoint <= 4) return "normal";
+    return "hard";
+  }
+
+  function normalizeQuizDifficulty(question) {
+    const raw = String(question?.difficulty || "").trim().toLowerCase();
+    return DIFFICULTY_ALIASES[raw] || difficultyFromGrade(question || {});
+  }
+
+  function getQuizDifficultyForSelectedMode() {
+    const selected = window.catsOwlDifficulty?.get?.() || localStorage.getItem(STORAGE_KEY);
+    return normalizeMode(selected);
+  }
+
+  function filterQuizByDifficulty(list, selectedDifficulty) {
+    return list.filter((question) => normalizeQuizDifficulty(question) === selectedDifficulty);
+  }
+
+  function pickQuizForDifficulty(list, selectedDifficulty) {
+    const source = Array.isArray(list) ? list : [];
+    const mode = normalizeMode(selectedDifficulty);
+    const fallbackOrder = FALLBACK_ORDER[mode] || FALLBACK_ORDER.normal;
+
+    for (const difficulty of fallbackOrder) {
+      const candidates = filterQuizByDifficulty(source, difficulty);
+      if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    return source[Math.floor(Math.random() * source.length)] || quizBank.math?.[0];
+  }
+
+  function refreshCurrentQuizTasks() {
+    if (typeof state === "undefined" || !state) return;
+    state.tasksList?.forEach((task) => {
+      if (task.kind === "quiz" && task.quizKey) task.quiz = randomQuiz(task.quizKey);
+    });
+  }
+
+  randomQuiz = function randomDifficultyQuiz(key) {
+    return pickQuizForDifficulty(quizBank[key] || [], getQuizDifficultyForSelectedMode());
+  };
+
+  window.catsOwlQuizDifficulty = {
+    get: getQuizDifficultyForSelectedMode,
+    normalize: normalizeQuizDifficulty,
+    filter: filterQuizByDifficulty,
+    pick: pickQuizForDifficulty,
+  };
+
+  refreshCurrentQuizTasks();
 })();
