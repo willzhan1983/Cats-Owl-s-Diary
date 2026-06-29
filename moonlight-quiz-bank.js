@@ -45,8 +45,27 @@
     { minGrade: 4, maxGrade: 6, difficulty: "hard", title: "月光湖混合挑战", question: "如果不收集珍珠就不能关闭漩涡。现在漩涡关闭了，最可能说明什么？", options: ["已经收集了珍珠", "没有珍珠", "湖水消失了", "不能推理"], answer: 0 },
   ];
 
-  if (!Array.isArray(quizBank[MOONLIGHT_QUIZ_KEY])) quizBank[MOONLIGHT_QUIZ_KEY] = [];
-  quizBank[MOONLIGHT_QUIZ_KEY].push(...moonlightQuestions);
+  const moonlightCategoryQuestions = {
+    math: [moonlightQuestions[0], moonlightQuestions[5], moonlightQuestions[6], moonlightQuestions[7], moonlightQuestions[12], moonlightQuestions[13], moonlightQuestions[14], moonlightQuestions[18], moonlightQuestions[19], moonlightQuestions[20], moonlightQuestions[21]],
+    logic: [moonlightQuestions[1], moonlightQuestions[8], moonlightQuestions[11], moonlightQuestions[15], moonlightQuestions[26], moonlightQuestions[29]],
+    science: [moonlightQuestions[4], moonlightQuestions[24], moonlightQuestions[25]],
+    language: [moonlightQuestions[2], moonlightQuestions[9], moonlightQuestions[16], moonlightQuestions[22], moonlightQuestions[27]],
+    english: [moonlightQuestions[3], moonlightQuestions[10], moonlightQuestions[17], moonlightQuestions[23], moonlightQuestions[28]],
+  };
+
+  function appendUniqueQuestions(key, questions) {
+    if (!Array.isArray(quizBank[key])) quizBank[key] = [];
+    const existingQuestions = new Set(quizBank[key].map((question) => question.question));
+    questions.forEach((question) => {
+      if (!existingQuestions.has(question.question)) {
+        quizBank[key].push(question);
+        existingQuestions.add(question.question);
+      }
+    });
+  }
+
+  appendUniqueQuestions(MOONLIGHT_QUIZ_KEY, moonlightQuestions);
+  Object.entries(moonlightCategoryQuestions).forEach(([key, questions]) => appendUniqueQuestions(key, questions));
 
   const moonlightQuizPlacements = [
     { level: "Moonlight Shore", x: 446, y: 246, name: "月光贝壳题", animal: "shellBadge", speech: "答对一道题，贝壳会照亮湖岸。" },
@@ -82,5 +101,6 @@
   window.CATS_OWLS_MOONLIGHT_QUIZ = {
     key: MOONLIGHT_QUIZ_KEY,
     count: moonlightQuestions.length,
+    sharedCategories: Object.keys(moonlightCategoryQuestions),
   };
 })();
