@@ -2415,6 +2415,10 @@ const ART_PACK_PROP_KEYS = {
   pearlOrb: "pearlOrb",
   coralKey: "coralKey",
   spiralShell: "spiralShell",
+  jellyfishCore: "jellyfishCore",
+  aquaGem: "aquaGem",
+  deepRune: "deepRune",
+  moonPearlBadge: "moonPearl",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -2515,6 +2519,10 @@ const ART_PACK_ITEM_BOUNDS = {
   pearlOrb: { x: -27, y: -29, w: 54, h: 54 },
   coralKey: { x: -27, y: -29, w: 54, h: 54 },
   spiralShell: { x: -27, y: -29, w: 54, h: 54 },
+  jellyfishCore: { x: -27, y: -29, w: 54, h: 54 },
+  aquaGem: { x: -27, y: -29, w: 54, h: 54 },
+  deepRune: { x: -27, y: -29, w: 54, h: 54 },
+  moonPearlBadge: { x: -28, y: -30, w: 56, h: 56 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
