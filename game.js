@@ -1247,10 +1247,16 @@ function update(dt) {
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
       startBtn.textContent = text.again;
-      messageEl.textContent = text.allDone;
+      messageEl.textContent =
+        levels[state.levelIndex]?.world === "moonlight_lake"
+          ? "尼斯湖怪恢复平静了，月光湖安全啦！"
+          : text.allDone;
     } else {
       startBtn.textContent = text.next;
-      messageEl.textContent = `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
+      messageEl.textContent =
+        levels[state.levelIndex]?.world === "moonlight_lake"
+          ? `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u6708\u5149\u6e56\u5730\u70b9\u3002`
+          : `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
     }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
   }
