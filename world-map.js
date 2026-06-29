@@ -212,34 +212,34 @@
   };
 
   Object.assign(CHARACTER_REGISTRY, {
-    otter: { name: "Otter", role: "NPC", description: "Moonlight Lake shore guide." },
-    frog: { name: "Frog", role: "NPC", description: "Bubble lift and floating isle helper." },
-    seaTurtle: { name: "Sea Turtle", role: "NPC", description: "Underwater garden guide." },
-    jellyfish: { name: "Jellyfish", role: "NPC", description: "Underwater light keeper." },
-    octopus: { name: "Octopus", role: "NPC", description: "Deep sea ruins puzzle keeper." },
-    nessie: { name: "Nessie", role: "Boss", description: "Moonlight Lake boss who returns to normal after the dark bubbles are cleared." },
+    otter: { name: "水獭邮差", role: "NPC", description: "月光湖岸的带路伙伴。" },
+    frog: { name: "青蛙老师", role: "NPC", description: "会讲泡泡升降点和浮岛机关。" },
+    seaTurtle: { name: "小海龟", role: "NPC", description: "水底花园的安全向导。" },
+    jellyfish: { name: "发光水母", role: "NPC", description: "守护水底花园光源。" },
+    octopus: { name: "章鱼博士", role: "NPC", description: "深海遗迹里的题目老师。" },
+    nessie: { name: "尼斯湖怪", role: "Boss", description: "被黑暗泡泡影响，恢复后会守护月光湖。" },
   });
 
   Object.assign(WORLD_MAP.moonlight_lake, {
-    name: "月光湖 Moonlight Lake",
+    name: "月光湖",
     emoji: "🌙",
     type: "lake",
-    description: "V4.0 月光湖篇包含 Moonlight Shore、Moonlit Isle、Underwater Garden、Deep Sea Ruins、Nessie's Lair 五个连续关卡。Mimi 和 Owlly 会遇到水獭、青蛙、海龟、水母、章鱼，并帮助 Nessie 恢复正常。",
+    description: "V4.0 月光湖篇包含月光湖岸、湖心浮岛、水底花园、深海遗迹、尼斯湖怪巢穴五个连续关卡。Mimi 和 Owlly 会遇到水獭邮差、青蛙老师、小海龟、发光水母、章鱼博士，并帮助尼斯湖怪恢复正常。",
     background: "assets/v2/v2-bg-pond.png",
     npcs: ["otter", "frog", "seaTurtle", "jellyfish", "octopus", "nessie", "owlly"],
     neighbors: ["forest_school", "wetland_park"],
     unlocked: true,
     unlockCondition: "完成原有森林学校、湿地和 Boss 主线后可继续游玩",
     position: { column: 1, row: 3 },
-    theme: "月光湖岸、湖心浮岛、水底花园、深海遗迹、Nessie Boss",
-    previous: "Dark Swamp / 原有 Boss 关卡",
-    next: "Moonlight Lake ending",
+    theme: "月光湖岸、湖心浮岛、水底花园、深海遗迹、尼斯湖怪 Boss",
+    previous: "黑暗沼泽 / 原有 Boss 关卡",
+    next: "月光湖结局",
     tasks: [
-      { id: "ml_moonlight_shore", name: "月光湖岸 Moonlight Shore", npc: "otter", gameplay: "收集 Moon Lamp、Boat Paddle、Shell Badge，并点亮月光石柱", reward: "进入湖心浮岛" },
-      { id: "ml_moonlit_isle", name: "湖心浮岛 Moonlit Isle", npc: "frog", gameplay: "使用泡泡升降点与 Moon Key、Coral Key 打开浮岛路线", reward: "进入水底花园" },
-      { id: "ml_underwater_garden", name: "水底花园 Underwater Garden", npc: "seaTurtle", gameplay: "使用 Diving Helmet、Jellyfish Core、Aqua Gem 和珍珠机关修复花园光源", reward: "进入深海遗迹" },
-      { id: "ml_deep_sea_ruins", name: "深海遗迹 Deep Sea Ruins", npc: "octopus", gameplay: "收集 Deep Rune、Spiral Shell、Pearl Crown，穿过漩涡和水流", reward: "进入 Nessie 巢穴" },
-      { id: "ml_nessie_lair", name: "尼斯湖怪巢穴 Nessie's Lair", npc: "nessie", gameplay: "三阶段 Boss：点亮 3 根石柱、收集 3 个珍珠能量球关闭漩涡、击破 3 个黑暗泡泡", reward: "Moon Pearl Badge" },
+      { id: "ml_moonlight_shore", name: "月光湖岸", npc: "otter", gameplay: "收集月光灯、小船桨、贝壳徽章，并完成月亮倒影题", reward: "进入湖心浮岛" },
+      { id: "ml_moonlit_isle", name: "湖心浮岛", npc: "frog", gameplay: "使用泡泡升降点，带着月光钥匙和珊瑚钥匙打开浮岛路线，并完成贝壳顺序题", reward: "进入水底花园" },
+      { id: "ml_underwater_garden", name: "水底花园", npc: "seaTurtle", gameplay: "使用泡泡潜水帽、水母灯芯、海蓝宝石和珍珠机关修复花园光源，并完成水底英语题", reward: "进入深海遗迹" },
+      { id: "ml_deep_sea_ruins", name: "深海遗迹", npc: "octopus", gameplay: "收集深海符文、螺旋贝壳、深海珍珠王冠，穿过漩涡和水流，并完成深海数学题", reward: "进入尼斯湖怪巢穴" },
+      { id: "ml_nessie_lair", name: "尼斯湖怪巢穴", npc: "nessie", gameplay: "完成勇气复习题，再点亮 3 根石柱、收集 3 个珍珠能量球、清除 3 个黑暗泡泡", reward: "月光珍珠徽章" },
     ],
   });
 
