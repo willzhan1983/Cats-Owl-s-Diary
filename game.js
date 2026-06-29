@@ -748,7 +748,7 @@ const levels = [
     tasks: [
       delivery(230, 302, "水獭邮差", "otter", "moonLamp", "请把月光灯放到湖岸石头旁。"),
       delivery(616, 226, "青蛙老师", "frog", ["boatPaddle", "shellBadge"], "请帮小船准备好船桨和贝壳徽章。"),
-      quizTask(472, 284, "青蛙老师", "frog", "青蛙老师想考考你：湖面为什么能看到月亮？", {
+      quizTask(506, 338, "青蛙老师", "frog", "青蛙老师想考考你：湖面为什么能看到月亮？", {
         title: "月光科学题",
         question: "晚上湖面上看到月亮，是因为水面发生了什么？",
         options: ["反射", "燃烧", "下雨", "结冰"],
@@ -782,7 +782,7 @@ const levels = [
     tasks: [
       delivery(298, 292, "青蛙老师", "frog", "bubbleStone", "唤醒泡泡升降点。"),
       delivery(608, 318, "小海龟", "seaTurtle", ["moonKey", "coralKey"], "打开浮岛小门。"),
-      quizTask(720, 246, "水獭邮差", "otter", "水獭邮差想确认贝壳机关的顺序。", {
+      quizTask(704, 208, "水獭邮差", "otter", "水獭邮差想确认贝壳机关的顺序。", {
         title: "贝壳顺序题",
         question: "贝壳机关的顺序是：蓝色、黄色、粉色。第三个应该按哪个？",
         options: ["蓝色", "黄色", "粉色", "绿色"],
@@ -791,7 +791,7 @@ const levels = [
       actionTask(446, 170, "泡泡升降点", "bubbleLift", "靠近泡泡，它会把你轻轻托起来。"),
     ],
     npcDecorations: [
-      npcDecoration(760, 306, "seahorseGuard", 0.9, "海马守卫"),
+      npcDecoration(856, 332, "seahorseGuard", 0.9, "海马守卫"),
     ],
     puddles: [
       { x: 254, y: 238, r: 28 },
@@ -820,7 +820,7 @@ const levels = [
     tasks: [
       delivery(260, 320, "小海龟", "seaTurtle", "divingHelmet", "检查安全的潜水路线。"),
       delivery(620, 356, "发光水母", "jellyfish", ["jellyfishCore", "aquaGem"], "让水底花园重新发光。"),
-      quizTask(742, 308, "发光水母", "jellyfish", "发光水母想考一个水底英语词。", {
+      quizTask(486, 236, "发光水母", "jellyfish", "发光水母想考一个水底英语词。", {
         title: "水底英语题",
         question: "turtle 的中文意思是？",
         options: ["海龟", "月亮", "珍珠", "石头"],
@@ -855,7 +855,7 @@ const levels = [
     tasks: [
       delivery(278, 300, "章鱼博士", "octopus", ["deepRune", "spiralShell"], "读取遗迹上的图案。"),
       delivery(650, 336, "发光水母", "jellyfish", ["coralKey", "aquaGem"], "点亮遗迹里的灯。"),
-      quizTask(430, 278, "章鱼博士", "octopus", "章鱼博士想请你分一分珍珠能量球。", {
+      quizTask(520, 340, "章鱼博士", "octopus", "章鱼博士想请你分一分珍珠能量球。", {
         title: "深海数学题",
         question: "章鱼博士找到 12 个珍珠能量球，平均放进 3 个贝壳里，每个贝壳放几个？",
         options: ["3", "4", "6", "9"],
@@ -864,7 +864,7 @@ const levels = [
       actionTask(502, 188, "月光石柱", "moonPillar", "稳稳靠近月光石柱，让它保持发光。"),
     ],
     npcDecorations: [
-      npcDecoration(774, 292, "lanternFish", 0.9, "灯笼鱼"),
+      npcDecoration(828, 290, "lanternFish", 0.9, "灯笼鱼"),
     ],
     puddles: [
       { x: 238, y: 230, r: 30 },
@@ -884,14 +884,14 @@ const levels = [
     start: { x: 480, y: 438 },
     message: "尼斯湖怪被黑暗泡泡困住了，先完成勇气问答，再帮它恢复正常！",
     collectibles: [
-      item(150, 382, "pearlOrb", "珍珠能量球"),
+      item(92, 430, "pearlOrb", "珍珠能量球"),
       item(332, 218, "pearlOrb", "珍珠能量球"),
       item(642, 214, "pearlOrb", "珍珠能量球"),
       item(808, 382, "moonPearlBadge", "月光珍珠徽章"),
       item(880, 430, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
-      quizTask(176, 246, "尼斯湖怪", "nessie", "尼斯湖怪想听听你会怎么帮助朋友。", {
+      quizTask(172, 318, "尼斯湖怪", "nessie", "尼斯湖怪想听听你会怎么帮助朋友。", {
         title: "勇气复习题",
         question: "如果朋友被黑暗泡泡影响了，我们应该怎么做？",
         options: ["帮助它恢复正常", "马上逃走不管它", "把湖水弄脏", "抢走它的王冠"],
