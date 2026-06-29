@@ -37,6 +37,10 @@
     coralKey: "assets/items/coral_key.png",
     spiralShell: "assets/items/spiral_shell.png",
     seaweedScissors: "assets/items/seaweed_scissors.png",
+    jellyfishCore: "assets/items/jellyfish_core.png",
+    aquaGem: "assets/items/aqua_gem.png",
+    deepRune: "assets/items/deep_rune.png",
+    moonPearl: "assets/items/moon_pearl.png",
   };
 
   const registry = {
@@ -107,6 +111,10 @@
       coralKey: window.ART_ASSETS.props.coralKey,
       spiralShell: window.ART_ASSETS.props.spiralShell,
       seaweedScissors: window.ART_ASSETS.props.seaweedScissors,
+      jellyfishCore: window.ART_ASSETS.props.jellyfishCore,
+      aquaGem: window.ART_ASSETS.props.aquaGem,
+      deepRune: window.ART_ASSETS.props.deepRune,
+      moonPearl: window.ART_ASSETS.props.moonPearl,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
@@ -120,6 +128,7 @@
     },
     effects: {
       darkBubble: "./assets/effects/dark_bubble.png",
+      moonlightCurrent: "./assets/effects/moonlight_current.png",
     },
   };
 
