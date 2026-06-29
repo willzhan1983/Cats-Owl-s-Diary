@@ -3,11 +3,13 @@ const ctx = canvas.getContext("2d");
 const homeScreen = document.getElementById("homeScreen");
 const enterBtn = document.getElementById("enterBtn");
 const roleButtons = document.querySelectorAll("[data-role]");
+const difficultyButtons = document.querySelectorAll("[data-difficulty]");
 const startBtn = document.getElementById("startBtn");
 const messageEl = document.getElementById("message");
 const levelEl = document.getElementById("level");
 const heartsEl = document.getElementById("hearts");
 const timeEl = document.getElementById("time");
+const difficultyEl = document.getElementById("difficulty");
 const tasksEl = document.getElementById("tasks");
 const bagEl = document.getElementById("bag");
 const soundBtn = document.getElementById("soundBtn");
@@ -350,6 +352,17 @@ let lastFrame = performance.now();
 let state;
 let gameEntered = false;
 let selectedRole = localStorage.getItem("catsOwlRole") || "cat";
+
+const DIFFICULTY_STORAGE_KEY = "catsOwlDifficulty";
+const DIFFICULTY_SETTINGS = {
+  easy: { label: "简单", icon: "🌱", timeScale: 1.35, obstaclePenalty: 0, quizPenalty: 0, stopOnTimeout: false },
+  normal: { label: "普通", icon: "🌼", timeScale: 1, obstaclePenalty: 2, quizPenalty: 3, stopOnTimeout: false },
+  hard: { label: "困难", icon: "🔥", timeScale: 0.82, obstaclePenalty: 4, quizPenalty: 6, stopOnTimeout: false },
+  crazy: { label: "疯狂", icon: "👑", timeScale: 0.65, obstaclePenalty: 6, quizPenalty: 10, stopOnTimeout: true },
+};
+let selectedDifficulty = DIFFICULTY_SETTINGS[localStorage.getItem(DIFFICULTY_STORAGE_KEY)]
+  ? localStorage.getItem(DIFFICULTY_STORAGE_KEY)
+  : "normal";
 
 const music = {
   ctx: null,
@@ -1015,6 +1028,7 @@ function moonBossTask(x, y) {
 
 function resetGame(levelIndex = 0, keepHearts = false) {
   const level = levels[levelIndex];
+  const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
   closeDialogue();
@@ -1023,7 +1037,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     running: false,
     levelClear: false,
     gameComplete: false,
-    time: level.time,
+    time: levelTime,
+    levelTime,
+    timeExpiredNotified: false,
     hearts: keepHearts && state ? state.hearts : 0,
     tasks: 0,
     inventory: [],
@@ -1073,6 +1089,29 @@ function randomQuiz(key) {
   return list[Math.floor(Math.random() * list.length)] || quizBank.math[0];
 }
 
+function difficultySettings() {
+  return DIFFICULTY_SETTINGS[selectedDifficulty] || DIFFICULTY_SETTINGS.normal;
+}
+
+function levelTimeForDifficulty(level) {
+  return Math.max(20, Math.round(level.time * difficultySettings().timeScale));
+}
+
+function difficultyLabel() {
+  const settings = difficultySettings();
+  return `${settings.icon} ${settings.label}`;
+}
+
+function applyTimePenalty(kind, x, y) {
+  if (!state) return 0;
+  const amount = difficultySettings()[`${kind}Penalty`] || 0;
+  if (!amount) return 0;
+  state.time = Math.max(0, state.time - amount);
+  addFloatingText(x, y - 58, `-${amount}\u79d2`, "#e84b3f");
+  updateHud();
+  return amount;
+}
+
 function startGame() {
   gameEntered = true;
   preloadNearbyBackgrounds(state.levelIndex);
@@ -1093,7 +1132,7 @@ function startGame() {
     } else {
       resetGame(nextLevel, true);
     }
-  } else if (state.time <= 0 || state.gameComplete) {
+  } else if ((state.time <= 0 && difficultySettings().stopOnTimeout) || state.gameComplete) {
     resetGame(0, false);
   }
 
@@ -1212,6 +1251,7 @@ function updateHud() {
   levelEl.textContent = dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`;
   heartsEl.textContent = state.hearts;
   timeEl.textContent = Math.max(0, Math.ceil(state.time));
+  if (difficultyEl) difficultyEl.textContent = difficultyLabel();
   tasksEl.textContent = `${state.tasks}/${target}`;
   bagEl.textContent = state.inventory.length ? needLabels(state.inventory.slice(0, 3)) : "\u7a7a";
 }
@@ -1230,11 +1270,16 @@ function update(dt) {
   state.time -= dt;
   if (state.time <= 0) {
     state.time = 0;
-    state.running = false;
-    startBtn.textContent = text.again;
-    messageEl.textContent = text.timeUp;
+    if (difficultySettings().stopOnTimeout) {
+      state.running = false;
+      startBtn.textContent = text.again;
+      messageEl.textContent = "\u75af\u72c2\u96be\u5ea6\u6311\u6218\u5931\u8d25\uff0c\u518d\u8bd5\u4e00\u6b21\uff01";
+    } else if (!state.timeExpiredNotified) {
+      state.timeExpiredNotified = true;
+      messageEl.textContent = "\u65f6\u95f4\u5230\u5566\uff0c\u8fd8\u53ef\u4ee5\u7ee7\u7eed\u5b8c\u6210\u4efb\u52a1\uff0c\u5956\u52b1\u4f1a\u5c11\u4e00\u70b9\u3002";
+    }
     updateHud();
-    return;
+    if (!state.running) return;
   }
 
   updatePlayer(dt);
@@ -1409,20 +1454,29 @@ function checkObstacles() {
     if (obstacle.type === "bush") {
       state.slowUntil = now + 520;
       state.puddleCooldownUntil = now + 720;
+      const penalty = applyTimePenalty("obstacle", p.x, p.y);
       addFloatingText(p.x, p.y - 42, "\u704c\u6728\u6321\u8def", "#4f8b38");
-      messageEl.textContent = "\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6162\u6162\u7a7f\u8fc7\u53bb\u3002";
+      messageEl.textContent = penalty
+        ? `\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
+        : "\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6162\u6162\u7a7f\u8fc7\u53bb\u3002";
     } else if (obstacle.type === "pit") {
       state.slowUntil = now + 850;
       state.puddleCooldownUntil = now + 980;
       state.shake = 0.08;
+      const penalty = applyTimePenalty("obstacle", p.x, p.y);
       addFloatingText(p.x, p.y - 42, "\u5c0f\u5fc3\u571f\u5751", "#8b5b2b");
-      messageEl.textContent = "\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u5148\u7a33\u4e00\u7a33\u3002";
+      messageEl.textContent = penalty
+        ? `\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
+        : "\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u5148\u7a33\u4e00\u7a33\u3002";
     } else if (obstacle.type === "pond") {
       state.slowUntil = now + 700;
       state.puddleCooldownUntil = now + 900;
+      const penalty = applyTimePenalty("obstacle", p.x, p.y);
       burst(p.x, p.y, "#69a9d7", 4);
       addFloatingText(p.x, p.y - 42, "\u7ed5\u5f00\u6c34\u5858", "#277faf");
-      messageEl.textContent = "\u524d\u9762\u662f\u6c34\u5858\uff0c\u8d70\u8fb9\u4e0a\u66f4\u5b89\u5168\u3002";
+      messageEl.textContent = penalty
+        ? `\u524d\u9762\u662f\u6c34\u5858\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
+        : "\u524d\u9762\u662f\u6c34\u5858\uff0c\u8d70\u8fb9\u4e0a\u66f4\u5b89\u5168\u3002";
     } else if (obstacle.type === "spring") {
       state.puddleCooldownUntil = now + 680;
       p.vx += p.dir * 120;
@@ -1560,7 +1614,7 @@ function checkCollectibles() {
       entry.taken = true;
       if (entry.type === "potion") {
         state.hearts += 2;
-        state.time = Math.min(levels[state.levelIndex].time + 8, state.time + 3);
+        state.time = Math.min(state.levelTime + 8, state.time + 3);
       } else {
         state.inventory.push(entry.type);
         state.hearts += 1;
@@ -1640,7 +1694,7 @@ function completeTask(task, x, y) {
   task.progress = 1;
   state.tasks += 1;
   state.hearts += 3;
-  state.time = Math.min(levels[state.levelIndex].time + 8, state.time + 5);
+  state.time = Math.min(state.levelTime + 8, state.time + 5);
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
@@ -1940,7 +1994,10 @@ function answerQuiz(task, index) {
     return;
   }
   state.hearts = Math.max(0, state.hearts - 1);
-  messageEl.textContent = "\u518d\u60f3\u4e00\u4e0b\uff0c\u8fd9\u9898\u5f88\u63a5\u8fd1\u7b54\u6848\u4e86\u3002";
+  const penalty = applyTimePenalty("quiz", task.x, task.y);
+  messageEl.textContent = penalty
+    ? `\u518d\u60f3\u4e00\u4e0b\uff0c\u7b54\u9519\u6263\u9664 ${penalty} \u79d2\u3002`
+    : "\u518d\u60f3\u4e00\u4e0b\uff0c\u8fd9\u9898\u5f88\u63a5\u8fd1\u7b54\u6848\u4e86\u3002";
   addFloatingText(task.x, task.y - 54, "\u518d\u8bd5\u4e00\u6b21", "#277faf");
   updateHud();
 }
@@ -1998,7 +2055,7 @@ function draw() {
   drawProjectiles();
   drawPlayer();
   drawParticles();
-  if (!state.running && !state.levelClear && state.time === levels[state.levelIndex].time) drawStartHint();
+  if (!state.running && !state.levelClear && state.time === state.levelTime) drawStartHint();
   if (state.levelClear) drawLevelRibbon();
   ctx.restore();
 }
@@ -4769,6 +4826,23 @@ function syncRoleButtons() {
   });
 }
 
+function syncDifficultyButtons() {
+  difficultyButtons.forEach((button) => {
+    const isSelected = button.dataset.difficulty === selectedDifficulty;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+  });
+}
+
+function setDifficulty(difficulty, resetIdleLevel = true) {
+  if (!DIFFICULTY_SETTINGS[difficulty]) return;
+  selectedDifficulty = difficulty;
+  localStorage.setItem(DIFFICULTY_STORAGE_KEY, selectedDifficulty);
+  syncDifficultyButtons();
+  if (state && !state.running && resetIdleLevel) resetGame(state.levelIndex, state.levelIndex > 0);
+  else if (state) updateHud();
+}
+
 roleButtons.forEach((button) => {
   button.addEventListener("click", () => {
     selectedRole = button.dataset.role || "cat";
@@ -4776,6 +4850,16 @@ roleButtons.forEach((button) => {
     syncRoleButtons();
   });
 });
+
+difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => setDifficulty(button.dataset.difficulty || "normal"));
+});
+
+window.catsOwlDifficulty = {
+  get: () => selectedDifficulty,
+  set: (difficulty) => setDifficulty(difficulty),
+  settings: DIFFICULTY_SETTINGS,
+};
 
 startBtn.addEventListener("click", startGame);
 
@@ -4791,6 +4875,7 @@ function initialLevelFromUrl() {
 const initialLevel = initialLevelFromUrl();
 preloadPlayerAssets();
 syncRoleButtons();
+syncDifficultyButtons();
 if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
   gameEntered = true;
 }

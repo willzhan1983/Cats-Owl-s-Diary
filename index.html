@@ -8,20 +8,18 @@
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg?v=new-cover-20260626" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css?v=dialogue-20260628" />
     <link rel="stylesheet" href="./world-map.css" />
-    <link rel="stylesheet" href="./grade-quiz.css" />
+    <link rel="stylesheet" href="./grade-quiz.css?v=difficulty-20260629" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
       <img src="./assets/home-screen-fast.jpg?v=new-cover-20260626" alt="Cats & Owl's Diary 森林学校首页" decoding="async" fetchpriority="high" />
-      <div class="grade-picker" aria-label="选择在读年级">
-        <div class="grade-picker-title">选择在读年级 · 自动匹配题库难度</div>
-        <div class="grade-buttons">
-          <button class="grade-btn" data-grade="1" type="button">一年级</button>
-          <button class="grade-btn" data-grade="2" type="button">二年级</button>
-          <button class="grade-btn" data-grade="3" type="button">三年级</button>
-          <button class="grade-btn" data-grade="4" type="button">四年级</button>
-          <button class="grade-btn" data-grade="5" type="button">五年级</button>
-          <button class="grade-btn" data-grade="6" type="button">六年级</button>
+      <div class="difficulty-picker" aria-label="选择难度">
+        <div class="difficulty-picker-title">选择难度 · 影响时间和扣时</div>
+        <div class="difficulty-buttons">
+          <button class="difficulty-btn" data-difficulty="easy" type="button">🌱 简单</button>
+          <button class="difficulty-btn" data-difficulty="normal" type="button">🌼 普通</button>
+          <button class="difficulty-btn" data-difficulty="hard" type="button">🔥 困难</button>
+          <button class="difficulty-btn" data-difficulty="crazy" type="button">👑 疯狂</button>
         </div>
       </div>
       <div class="role-picker" aria-label="选择角色">
@@ -45,6 +43,7 @@
             <span>日记 <strong id="level">第一天</strong></span>
             <span>爱心 <strong id="hearts">0</strong></span>
             <span>时间 <strong id="time">60</strong></span>
+            <span>难度 <strong id="difficulty">普通</strong></span>
             <span>任务 <strong id="tasks">0/3</strong></span>
             <span class="bag">背包 <strong id="bag">空</strong></span>
           </div>
@@ -112,7 +111,7 @@
       </div>
     </section>
 
-    <script src="./game.js?v=school-assets-no-house-20260628"></script>
+    <script src="./game.js?v=difficulty-20260629"></script>
     <script src="./grade-upper-quiz-bank.js"></script>
     <script src="./grade-quiz.js"></script>
     <script src="./moonlight-quiz-bank.js?v=shared-pool-20260629"></script>
