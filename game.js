@@ -2306,6 +2306,15 @@ function drawMoonCurrent(obstacle) {
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
   ctx.rotate(Math.atan2(obstacle.vy || 0, obstacle.vx || 1));
+  const pack = window.CATS_OWLS_ART_PACK_01;
+  const image = pack?.get?.("effects", "moonlightCurrent");
+  if (image && image.complete && image.naturalWidth > 0) {
+    const width = obstacle.r * 3.2;
+    const height = width * (image.naturalHeight / image.naturalWidth);
+    ctx.drawImage(image, -width / 2, -height / 2, width, height);
+    ctx.restore();
+    return;
+  }
   ctx.strokeStyle = "rgba(91, 196, 230, 0.68)";
   ctx.lineWidth = 4;
   ctx.lineCap = "round";

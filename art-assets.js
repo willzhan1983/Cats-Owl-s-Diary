@@ -128,6 +128,7 @@
     },
     effects: {
       darkBubble: "./assets/effects/dark_bubble.png",
+      moonlightCurrent: "./assets/effects/moonlight_current.png",
     },
   };
 
