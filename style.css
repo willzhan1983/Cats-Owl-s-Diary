@@ -87,6 +87,36 @@ button {
   box-shadow: 0 10px 24px rgba(39, 65, 52, 0.18);
 }
 
+.player-profile {
+  position: absolute;
+  left: min(66%, calc(100% - 170px));
+  bottom: calc(clamp(24px, 6vw, 68px) + 224px);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(360px, calc(100vw - 28px));
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 247, 223, 0.82);
+  box-shadow: 0 10px 24px rgba(39, 65, 52, 0.18);
+  color: #34563e;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.player-profile input {
+  min-width: 0;
+  flex: 1;
+  height: 34px;
+  border: 2px solid rgba(79, 139, 56, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #34563e;
+  font: inherit;
+  padding: 0 10px;
+}
+
 .role-btn {
   min-width: 118px;
   min-height: 42px;
@@ -826,6 +856,18 @@ button {
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 54px);
     gap: 7px;
     padding: 6px;
+  }
+
+  .player-profile {
+    left: min(70%, calc(100% - 112px));
+    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 140px);
+    width: min(360px, 56vw);
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .player-profile input {
+    height: 28px;
   }
 
   .role-btn {

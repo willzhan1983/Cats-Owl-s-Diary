@@ -22,6 +22,10 @@
           <button class="difficulty-btn" data-difficulty="crazy" type="button">👑 疯狂</button>
         </div>
       </div>
+      <label class="player-profile" for="nicknameInput">
+        <span>玩家昵称</span>
+        <input id="nicknameInput" type="text" maxlength="24" autocomplete="nickname" />
+      </label>
       <div class="role-picker" aria-label="选择角色">
         <button class="role-btn is-selected" data-role="cat" type="button">Mimi / 詹涞儿</button>
         <button class="role-btn" data-role="owl" type="button">Owlly / 姚头鹰</button>
@@ -44,6 +48,7 @@
             <span>爱心 <strong id="hearts">0</strong></span>
             <span>时间 <strong id="time">60</strong></span>
             <span>难度 <strong id="difficulty">普通</strong></span>
+            <span>积分 <strong id="points">0 / 总分 0</strong></span>
             <span>任务 <strong id="tasks">0/3</strong></span>
             <span class="bag">背包 <strong id="bag">空</strong></span>
           </div>
