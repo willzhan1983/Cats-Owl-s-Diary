@@ -4,12 +4,14 @@ const homeScreen = document.getElementById("homeScreen");
 const enterBtn = document.getElementById("enterBtn");
 const roleButtons = document.querySelectorAll("[data-role]");
 const difficultyButtons = document.querySelectorAll("[data-difficulty]");
+const nicknameInput = document.getElementById("nicknameInput");
 const startBtn = document.getElementById("startBtn");
 const messageEl = document.getElementById("message");
 const levelEl = document.getElementById("level");
 const heartsEl = document.getElementById("hearts");
 const timeEl = document.getElementById("time");
 const difficultyEl = document.getElementById("difficulty");
+const pointsEl = document.getElementById("points");
 const tasksEl = document.getElementById("tasks");
 const bagEl = document.getElementById("bag");
 const soundBtn = document.getElementById("soundBtn");
@@ -363,6 +365,15 @@ const DIFFICULTY_SETTINGS = {
 let selectedDifficulty = DIFFICULTY_SETTINGS[localStorage.getItem(DIFFICULTY_STORAGE_KEY)]
   ? localStorage.getItem(DIFFICULTY_STORAGE_KEY)
   : "normal";
+
+const PLAYER_PROFILE_KEY = "catsOwlPlayerProfile";
+const TOTAL_POINTS_KEY = "catsOwlTotalPoints";
+const BEST_SCORE_KEY = "catsOwlBestScore";
+const RUN_HISTORY_KEY = "catsOwlRunHistory";
+const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
+let playerProfile = loadPlayerProfile();
+let totalPoints = readStoredNumber(TOTAL_POINTS_KEY);
+let bestScore = readStoredNumber(BEST_SCORE_KEY);
 
 const music = {
   ctx: null,
@@ -1040,6 +1051,12 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     time: levelTime,
     levelTime,
     timeExpiredNotified: false,
+    levelSettled: false,
+    runPoints: 0,
+    correctAnswers: 0,
+    wrongAnswers: 0,
+    obstacleHits: 0,
+    startedAt: new Date().toISOString(),
     hearts: keepHearts && state ? state.hearts : 0,
     tasks: 0,
     inventory: [],
@@ -1089,6 +1106,70 @@ function randomQuiz(key) {
   return list[Math.floor(Math.random() * list.length)] || quizBank.math[0];
 }
 
+function randomNickname() {
+  return DEFAULT_NICKNAMES[Math.floor(Math.random() * DEFAULT_NICKNAMES.length)] || "小猫勇士";
+}
+
+function readStoredNumber(key) {
+  const value = Number(localStorage.getItem(key));
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+}
+
+function readStoredJson(key, fallback) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    return value ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function nicknameLength(value) {
+  return [...value].reduce((total, char) => total + (/[\u3400-\u9fff]/.test(char) ? 2 : 1), 0);
+}
+
+function limitNickname(value) {
+  let result = "";
+  for (const char of value) {
+    const next = result + char;
+    if (nicknameLength(next) > 24) break;
+    result = next;
+  }
+  return result;
+}
+
+function sanitizeNickname(value) {
+  const cleaned = String(value || "")
+    .replace(/script/gi, "")
+    .replace(/[<>]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return limitNickname(cleaned) || randomNickname();
+}
+
+function savePlayerProfile(nickname) {
+  const now = new Date().toISOString();
+  playerProfile = {
+    nickname: sanitizeNickname(nickname),
+    createdAt: playerProfile?.createdAt || now,
+    updatedAt: now,
+  };
+  localStorage.setItem(PLAYER_PROFILE_KEY, JSON.stringify(playerProfile));
+  if (nicknameInput) nicknameInput.value = playerProfile.nickname;
+}
+
+function loadPlayerProfile() {
+  const stored = readStoredJson(PLAYER_PROFILE_KEY, null);
+  const now = new Date().toISOString();
+  const profile = {
+    nickname: sanitizeNickname(stored?.nickname || randomNickname()),
+    createdAt: stored?.createdAt || now,
+    updatedAt: stored?.updatedAt || now,
+  };
+  localStorage.setItem(PLAYER_PROFILE_KEY, JSON.stringify(profile));
+  return profile;
+}
+
 function difficultySettings() {
   return DIFFICULTY_SETTINGS[selectedDifficulty] || DIFFICULTY_SETTINGS.normal;
 }
@@ -1110,6 +1191,54 @@ function applyTimePenalty(kind, x, y) {
   addFloatingText(x, y - 58, `-${amount}\u79d2`, "#e84b3f");
   updateHud();
   return amount;
+}
+
+function addRunPoints(amount, x, y, label = `+${amount}`) {
+  if (!state || !amount) return;
+  state.runPoints += amount;
+  if (Number.isFinite(x) && Number.isFinite(y)) addFloatingText(x, y - 68, label, "#f2ad31");
+  updateHud();
+}
+
+function levelCompletionPoints() {
+  let points = 30;
+  if (selectedDifficulty === "hard") points += 15;
+  if (selectedDifficulty === "crazy") points += 40;
+  if (state.timeExpiredNotified && selectedDifficulty !== "crazy") points = Math.floor(points / 2);
+  return points;
+}
+
+function saveRunHistory(record) {
+  const history = readStoredJson(RUN_HISTORY_KEY, []);
+  const nextHistory = Array.isArray(history) ? history : [];
+  nextHistory.unshift(record);
+  localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(nextHistory.slice(0, 50)));
+}
+
+function settleLevelRun(completed) {
+  if (!state || state.levelSettled) return;
+  state.levelSettled = true;
+  const completionBonus = completed ? levelCompletionPoints() : 0;
+  if (completionBonus) state.runPoints += completionBonus;
+
+  totalPoints += state.runPoints;
+  bestScore = Math.max(bestScore, state.runPoints);
+  localStorage.setItem(TOTAL_POINTS_KEY, String(totalPoints));
+  localStorage.setItem(BEST_SCORE_KEY, String(bestScore));
+  saveRunHistory({
+    nickname: playerProfile.nickname,
+    levelIndex: state.levelIndex,
+    difficulty: selectedDifficulty,
+    runPoints: state.runPoints,
+    completed,
+    timeLeft: Math.max(0, Math.ceil(state.time)),
+    correctAnswers: state.correctAnswers,
+    wrongAnswers: state.wrongAnswers,
+    obstacleHits: state.obstacleHits,
+    startedAt: state.startedAt,
+    finishedAt: new Date().toISOString(),
+  });
+  updateHud();
 }
 
 function startGame() {
@@ -1252,6 +1381,7 @@ function updateHud() {
   heartsEl.textContent = state.hearts;
   timeEl.textContent = Math.max(0, Math.ceil(state.time));
   if (difficultyEl) difficultyEl.textContent = difficultyLabel();
+  if (pointsEl) pointsEl.textContent = `${state.runPoints} / 总分 ${totalPoints}`;
   tasksEl.textContent = `${state.tasks}/${target}`;
   bagEl.textContent = state.inventory.length ? needLabels(state.inventory.slice(0, 3)) : "\u7a7a";
 }
@@ -1272,6 +1402,7 @@ function update(dt) {
     state.time = 0;
     if (difficultySettings().stopOnTimeout) {
       state.running = false;
+      settleLevelRun(false);
       startBtn.textContent = text.again;
       messageEl.textContent = "\u75af\u72c2\u96be\u5ea6\u6311\u6218\u5931\u8d25\uff0c\u518d\u8bd5\u4e00\u6b21\uff01";
     } else if (!state.timeExpiredNotified) {
@@ -1296,6 +1427,7 @@ function update(dt) {
   if (state.tasks >= target) {
     state.running = false;
     stopMusic();
+    settleLevelRun(true);
     state.levelClear = true;
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
@@ -1452,6 +1584,7 @@ function checkObstacles() {
     const hit = distance(p, obstacle) < obstacle.r + 21;
     if (!hit || now < state.puddleCooldownUntil) continue;
     if (obstacle.type === "bush") {
+      state.obstacleHits += 1;
       state.slowUntil = now + 520;
       state.puddleCooldownUntil = now + 720;
       const penalty = applyTimePenalty("obstacle", p.x, p.y);
@@ -1460,6 +1593,7 @@ function checkObstacles() {
         ? `\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
         : "\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6162\u6162\u7a7f\u8fc7\u53bb\u3002";
     } else if (obstacle.type === "pit") {
+      state.obstacleHits += 1;
       state.slowUntil = now + 850;
       state.puddleCooldownUntil = now + 980;
       state.shake = 0.08;
@@ -1469,6 +1603,7 @@ function checkObstacles() {
         ? `\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
         : "\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u5148\u7a33\u4e00\u7a33\u3002";
     } else if (obstacle.type === "pond") {
+      state.obstacleHits += 1;
       state.slowUntil = now + 700;
       state.puddleCooldownUntil = now + 900;
       const penalty = applyTimePenalty("obstacle", p.x, p.y);
@@ -1619,6 +1754,7 @@ function checkCollectibles() {
         state.inventory.push(entry.type);
         state.hearts += 1;
       }
+      addRunPoints(1, entry.x, entry.y, "+1 积分");
       burst(entry.x, entry.y, itemColor(entry.type), 12);
       addFloatingText(entry.x, entry.y - 36, `+ ${entry.label}`, "#3f8a2f");
       messageEl.textContent =
@@ -1695,6 +1831,7 @@ function completeTask(task, x, y) {
   state.tasks += 1;
   state.hearts += 3;
   state.time = Math.min(state.levelTime + 8, state.time + 5);
+  if (task.kind === "delivery" || task.kind === "action") addRunPoints(10, x, y, "+10 积分");
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
@@ -1989,10 +2126,13 @@ function openQuiz(task) {
 
 function answerQuiz(task, index) {
   if (index === task.quiz.answer) {
+    state.correctAnswers += 1;
+    addRunPoints(8, task.x, task.y, "+8 积分");
     closeQuiz();
     completeTask(task, task.x, task.y);
     return;
   }
+  state.wrongAnswers += 1;
   state.hearts = Math.max(0, state.hearts - 1);
   const penalty = applyTimePenalty("quiz", task.x, task.y);
   messageEl.textContent = penalty
@@ -4834,6 +4974,10 @@ function syncDifficultyButtons() {
   });
 }
 
+function syncPlayerProfileInput() {
+  if (nicknameInput) nicknameInput.value = playerProfile.nickname;
+}
+
 function setDifficulty(difficulty, resetIdleLevel = true) {
   if (!DIFFICULTY_SETTINGS[difficulty]) return;
   selectedDifficulty = difficulty;
@@ -4854,6 +4998,15 @@ roleButtons.forEach((button) => {
 difficultyButtons.forEach((button) => {
   button.addEventListener("click", () => setDifficulty(button.dataset.difficulty || "normal"));
 });
+
+nicknameInput?.addEventListener("input", () => {
+  const limited = limitNickname(nicknameInput.value.replace(/[<>]/g, ""));
+  if (nicknameInput.value !== limited) nicknameInput.value = limited;
+  if (limited.trim()) savePlayerProfile(limited);
+});
+
+nicknameInput?.addEventListener("change", () => savePlayerProfile(nicknameInput.value));
+nicknameInput?.addEventListener("blur", () => savePlayerProfile(nicknameInput.value));
 
 window.catsOwlDifficulty = {
   get: () => selectedDifficulty,
@@ -4876,6 +5029,7 @@ const initialLevel = initialLevelFromUrl();
 preloadPlayerAssets();
 syncRoleButtons();
 syncDifficultyButtons();
+syncPlayerProfileInput();
 if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
   gameEntered = true;
 }
