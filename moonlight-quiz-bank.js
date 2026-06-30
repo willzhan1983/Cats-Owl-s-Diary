@@ -64,7 +64,36 @@
     });
   }
 
+  function fixedMoonlightQuestions() {
+    return levels
+      .filter((level) => level.world === MOONLIGHT_WORLD_ID)
+      .flatMap((level) => level.tasks || [])
+      .filter((task) => task.kind === "quiz" && task.quiz && Array.isArray(task.quiz.options))
+      .map((task) => task.quiz);
+  }
+
+  function normalizeMoonlightLevelQuizTasks() {
+    levels.forEach((level) => {
+      if (level.world !== MOONLIGHT_WORLD_ID || !Array.isArray(level.tasks)) return;
+      level.tasks.forEach((task) => {
+        if (task.kind !== "quiz") return;
+        task.quizKey = MOONLIGHT_QUIZ_KEY;
+        task.quiz = null;
+        task.moonlightShared = true;
+      });
+    });
+  }
+
+  function refreshCurrentMoonlightLevel() {
+    if (typeof state === "undefined" || !state || state.running) return;
+    const level = levels[state.levelIndex];
+    if (level?.world !== MOONLIGHT_WORLD_ID || typeof resetGame !== "function") return;
+    resetGame(state.levelIndex, state.levelIndex > 0);
+  }
+
   appendUniqueQuestions(MOONLIGHT_QUIZ_KEY, moonlightQuestions);
+  appendUniqueQuestions(MOONLIGHT_QUIZ_KEY, fixedMoonlightQuestions());
+  normalizeMoonlightLevelQuizTasks();
   Object.entries(moonlightCategoryQuestions).forEach(([key, questions]) => appendUniqueQuestions(key, questions));
 
   const moonlightQuizPlacements = [
@@ -100,7 +129,8 @@
 
   window.CATS_OWLS_MOONLIGHT_QUIZ = {
     key: MOONLIGHT_QUIZ_KEY,
-    count: moonlightQuestions.length,
+    count: quizBank[MOONLIGHT_QUIZ_KEY].length,
     sharedCategories: Object.keys(moonlightCategoryQuestions),
   };
+  refreshCurrentMoonlightLevel();
 })();
