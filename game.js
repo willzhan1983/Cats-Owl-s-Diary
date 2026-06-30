@@ -362,6 +362,12 @@ const DIFFICULTY_SETTINGS = {
   hard: { label: "困难", icon: "🔥", timeScale: 0.82, obstaclePenalty: 4, quizPenalty: 6, stopOnTimeout: false },
   crazy: { label: "疯狂", icon: "👑", timeScale: 0.65, obstaclePenalty: 6, quizPenalty: 10, stopOnTimeout: true },
 };
+const TIME_BONUS_BY_DIFFICULTY = {
+  easy: 10,
+  normal: 20,
+  hard: 30,
+  crazy: 50,
+};
 let selectedDifficulty = DIFFICULTY_SETTINGS[localStorage.getItem(DIFFICULTY_STORAGE_KEY)]
   ? localStorage.getItem(DIFFICULTY_STORAGE_KEY)
   : "normal";
@@ -1208,6 +1214,14 @@ function levelCompletionPoints() {
   return points;
 }
 
+function levelTimeBonus() {
+  if (!state || state.time <= 0) return 0;
+  const maxTimeBonus = TIME_BONUS_BY_DIFFICULTY[selectedDifficulty] || TIME_BONUS_BY_DIFFICULTY.normal;
+  const levelTime = state.levelTime || levels[state.levelIndex].time || 1;
+  const timeLeft = Math.min(Math.max(0, state.time), levelTime);
+  return Math.round((timeLeft / levelTime) * maxTimeBonus);
+}
+
 function saveRunHistory(record) {
   const history = readStoredJson(RUN_HISTORY_KEY, []);
   const nextHistory = Array.isArray(history) ? history : [];
@@ -1216,10 +1230,14 @@ function saveRunHistory(record) {
 }
 
 function settleLevelRun(completed) {
-  if (!state || state.levelSettled) return;
+  if (!state || state.levelSettled) return null;
   state.levelSettled = true;
   const completionBonus = completed ? levelCompletionPoints() : 0;
+  const timeLeft = Math.max(0, state.time);
+  const levelTime = state.levelTime || levels[state.levelIndex].time || 0;
+  const timeBonus = completed ? levelTimeBonus() : 0;
   if (completionBonus) state.runPoints += completionBonus;
+  if (timeBonus) state.runPoints += timeBonus;
 
   totalPoints += state.runPoints;
   bestScore = Math.max(bestScore, state.runPoints);
@@ -1231,7 +1249,9 @@ function settleLevelRun(completed) {
     difficulty: selectedDifficulty,
     runPoints: state.runPoints,
     completed,
-    timeLeft: Math.max(0, Math.ceil(state.time)),
+    timeLeft: Math.ceil(timeLeft),
+    levelTime,
+    timeBonus,
     correctAnswers: state.correctAnswers,
     wrongAnswers: state.wrongAnswers,
     obstacleHits: state.obstacleHits,
@@ -1239,6 +1259,7 @@ function settleLevelRun(completed) {
     finishedAt: new Date().toISOString(),
   });
   updateHud();
+  return { completionBonus, timeBonus, runPoints: state.runPoints };
 }
 
 function startGame() {
@@ -1427,7 +1448,7 @@ function update(dt) {
   if (state.tasks >= target) {
     state.running = false;
     stopMusic();
-    settleLevelRun(true);
+    const settlement = settleLevelRun(true);
     state.levelClear = true;
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
@@ -1442,6 +1463,9 @@ function update(dt) {
         levels[state.levelIndex]?.world === "moonlight_lake"
           ? `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u6708\u5149\u6e56\u5730\u70b9\u3002`
           : `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
+    }
+    if (settlement) {
+      messageEl.textContent = `完成关卡 +${settlement.completionBonus}，剩余时间奖励 +${settlement.timeBonus}，本局积分 +${settlement.runPoints}！`;
     }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
   }
