@@ -1,36 +1,36 @@
 .difficulty-picker {
   position: absolute;
   left: min(66%, calc(100% - 170px));
-  bottom: calc(clamp(24px, 6vw, 68px) + 136px);
+  bottom: calc(clamp(24px, 6vw, 68px) + 102px);
   transform: translateX(-50%);
-  width: min(480px, calc(100vw - 28px));
-  padding: 10px 12px 12px;
-  border-radius: 14px;
-  background: rgba(255, 247, 223, 0.84);
+  width: min(332px, calc(100vw - 28px));
+  padding: 7px 8px 8px;
+  border-radius: 11px;
+  background: rgba(255, 247, 223, 0.62);
   box-shadow: 0 12px 28px rgba(39, 65, 52, 0.2);
   text-align: center;
 }
 
 .difficulty-picker-title {
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: #34563e;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
 }
 
 .difficulty-buttons {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 7px;
+  gap: 5px;
 }
 
 .difficulty-btn {
-  min-height: 36px;
-  border-radius: 9px;
+  min-height: 29px;
+  border-radius: 8px;
   border: 2px solid rgba(79, 139, 56, 0.18);
   background: rgba(255, 255, 255, 0.84);
   color: #34563e;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 900;
 }
 
