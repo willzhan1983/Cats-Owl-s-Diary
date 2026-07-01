@@ -6,7 +6,7 @@
     <title>Cats & Owl's Diary 3.0 - 森林学校帮帮忙</title>
     <link rel="icon" href="data:," />
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg?v=new-cover-20260626" fetchpriority="high" />
-    <link rel="stylesheet" href="./style.css?v=dialogue-20260628" />
+    <link rel="stylesheet" href="./style.css?v=score-panel-20260701" />
     <link rel="stylesheet" href="./world-map.css" />
     <link rel="stylesheet" href="./grade-quiz.css?v=difficulty-20260629" />
   </head>
@@ -30,6 +30,7 @@
         <button class="role-btn is-selected" data-role="cat" type="button">Mimi / 詹涞儿</button>
         <button class="role-btn" data-role="owl" type="button">Owlly / 姚头鹰</button>
       </div>
+      <button id="homeRecordsBtn" class="records-home-btn" type="button">📘 我的记录</button>
       <button id="enterBtn" class="enter-btn" type="button">进入游戏</button>
     </section>
 
@@ -54,6 +55,7 @@
           </div>
           <div class="topbar-actions">
             <button id="worldMapBtn" class="map-btn" type="button" aria-haspopup="dialog">世界地图</button>
+            <button id="recordsBtn" class="records-btn" type="button" aria-haspopup="dialog">📘 我的记录</button>
             <button id="soundBtn" class="sound-btn" type="button" aria-label="声音">♫</button>
             <button id="startBtn" type="button">开始</button>
           </div>
@@ -116,7 +118,41 @@
       </div>
     </section>
 
-    <script src="./game.js?v=difficulty-20260629"></script>
+    <section id="scoreSummaryPanel" class="score-summary-panel" role="dialog" aria-modal="true" aria-labelledby="scoreSummaryTitle" hidden>
+      <div class="score-summary-card">
+        <header class="score-summary-header">
+          <div>
+            <h2 id="scoreSummaryTitle">关卡结算</h2>
+            <p id="scoreSummarySubtitle"></p>
+          </div>
+          <button id="scoreSummaryCloseBtn" class="score-summary-close" type="button" aria-label="关闭结算">×</button>
+        </header>
+        <div id="scoreSummaryStats" class="score-summary-stats"></div>
+        <div class="score-summary-actions">
+          <button id="scoreContinueBtn" type="button">继续下一关</button>
+          <button id="scoreRetryBtn" type="button">再玩一次</button>
+          <button id="scoreRecordsBtn" type="button">查看记录</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="runHistoryPanel" class="run-history-panel" role="dialog" aria-modal="true" aria-labelledby="runHistoryTitle" hidden>
+      <div class="run-history-card">
+        <header class="run-history-header">
+          <div>
+            <h2 id="runHistoryTitle">我的记录</h2>
+            <p id="runHistorySummary"></p>
+          </div>
+          <button id="runHistoryCloseBtn" class="run-history-close" type="button" aria-label="关闭记录">×</button>
+        </header>
+        <div id="runHistoryList" class="run-history-list"></div>
+        <div class="run-history-actions">
+          <button id="clearHistoryBtn" type="button">清除本地记录</button>
+        </div>
+      </div>
+    </section>
+
+    <script src="./game.js?v=score-panel-20260701"></script>
     <script src="./background-fixes.js?v=school-bg-20260629"></script>
     <script src="./grade-upper-quiz-bank.js"></script>
     <script src="./grade-quiz.js"></script>

@@ -14,6 +14,8 @@ const difficultyEl = document.getElementById("difficulty");
 const pointsEl = document.getElementById("points");
 const tasksEl = document.getElementById("tasks");
 const bagEl = document.getElementById("bag");
+const recordsBtn = document.getElementById("recordsBtn");
+const homeRecordsBtn = document.getElementById("homeRecordsBtn");
 const soundBtn = document.getElementById("soundBtn");
 const attackBtn = document.getElementById("attackBtn");
 const quizPanel = document.getElementById("quizPanel");
@@ -30,6 +32,19 @@ const dialogueNextBtn = document.getElementById("dialogueNextBtn");
 const dialogueGiveBtn = document.getElementById("dialogueGiveBtn");
 const dialogueQuizBtn = document.getElementById("dialogueQuizBtn");
 const dialogueBtn = document.getElementById("dialogueBtn");
+const scoreSummaryPanel = document.getElementById("scoreSummaryPanel");
+const scoreSummaryTitle = document.getElementById("scoreSummaryTitle");
+const scoreSummarySubtitle = document.getElementById("scoreSummarySubtitle");
+const scoreSummaryStats = document.getElementById("scoreSummaryStats");
+const scoreSummaryCloseBtn = document.getElementById("scoreSummaryCloseBtn");
+const scoreContinueBtn = document.getElementById("scoreContinueBtn");
+const scoreRetryBtn = document.getElementById("scoreRetryBtn");
+const scoreRecordsBtn = document.getElementById("scoreRecordsBtn");
+const runHistoryPanel = document.getElementById("runHistoryPanel");
+const runHistorySummary = document.getElementById("runHistorySummary");
+const runHistoryList = document.getElementById("runHistoryList");
+const runHistoryCloseBtn = document.getElementById("runHistoryCloseBtn");
+const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1259,7 +1274,134 @@ function settleLevelRun(completed) {
     finishedAt: new Date().toISOString(),
   });
   updateHud();
-  return { completionBonus, timeBonus, runPoints: state.runPoints };
+  return {
+    completed,
+    completionBonus,
+    timeBonus,
+    runPoints: state.runPoints,
+    timeLeft: Math.ceil(timeLeft),
+    levelTime,
+    correctAnswers: state.correctAnswers,
+    wrongAnswers: state.wrongAnswers,
+    obstacleHits: state.obstacleHits,
+  };
+}
+
+function levelDisplayName(levelIndex = state.levelIndex) {
+  return dayNames[levelIndex] || levels[levelIndex]?.name || `第${levelIndex + 1}关`;
+}
+
+function readRunHistory() {
+  const history = readStoredJson(RUN_HISTORY_KEY, []);
+  return Array.isArray(history) ? history : [];
+}
+
+function formatFinishedAt(value) {
+  if (!value) return "刚刚";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "刚刚";
+  return date.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function addPanelStat(container, label, value) {
+  const item = document.createElement("div");
+  const labelEl = document.createElement("span");
+  const valueEl = document.createElement("strong");
+  labelEl.textContent = label;
+  valueEl.textContent = String(value);
+  item.append(labelEl, valueEl);
+  container.appendChild(item);
+}
+
+function showScoreSummaryPanel(settlement, options = {}) {
+  if (!settlement || !scoreSummaryPanel || !scoreSummaryStats) return;
+  const failed = Boolean(options.failed);
+  scoreSummaryTitle.textContent = failed ? "疯狂挑战失败" : "关卡完成";
+  scoreSummarySubtitle.textContent = `${playerProfile.nickname} · ${levelDisplayName()} · ${difficultyLabel()}`;
+  scoreSummaryStats.replaceChildren();
+  addPanelStat(scoreSummaryStats, "昵称", playerProfile.nickname);
+  addPanelStat(scoreSummaryStats, "当前关卡", levelDisplayName());
+  addPanelStat(scoreSummaryStats, "当前难度", difficultyLabel());
+  addPanelStat(scoreSummaryStats, "本局积分", settlement.runPoints);
+  if (!failed) {
+    addPanelStat(scoreSummaryStats, "完成关卡奖励", `+${settlement.completionBonus}`);
+    addPanelStat(scoreSummaryStats, "剩余时间奖励", `+${settlement.timeBonus}`);
+  }
+  addPanelStat(scoreSummaryStats, "答对题数量", settlement.correctAnswers);
+  addPanelStat(scoreSummaryStats, "答错题数量", settlement.wrongAnswers);
+  addPanelStat(scoreSummaryStats, "碰撞障碍次数", settlement.obstacleHits);
+  addPanelStat(scoreSummaryStats, "剩余时间", `${settlement.timeLeft}秒`);
+  addPanelStat(scoreSummaryStats, "总积分", totalPoints);
+  addPanelStat(scoreSummaryStats, "最高分", bestScore);
+  if (scoreContinueBtn) scoreContinueBtn.hidden = failed;
+  if (scoreRetryBtn) scoreRetryBtn.textContent = failed ? "重试本关" : "再玩一次";
+  scoreSummaryPanel.hidden = false;
+}
+
+function closeScoreSummaryPanel() {
+  if (scoreSummaryPanel) scoreSummaryPanel.hidden = true;
+}
+
+function replayCurrentLevel() {
+  const levelIndex = state.levelIndex;
+  closeScoreSummaryPanel();
+  resetGame(levelIndex, levelIndex > 0);
+  state.running = true;
+  startBtn.textContent = text.restart;
+  messageEl.textContent = text.move;
+  startMusicForLevel();
+}
+
+function continueNextLevel() {
+  closeScoreSummaryPanel();
+  startGame();
+}
+
+function renderRunHistory() {
+  if (!runHistorySummary || !runHistoryList) return;
+  const history = readRunHistory();
+  runHistorySummary.textContent = `${playerProfile.nickname} · 总积分 ${totalPoints} · 最高分 ${bestScore} · ${history.length} 条记录`;
+  runHistoryList.replaceChildren();
+  if (!history.length) {
+    const empty = document.createElement("p");
+    empty.className = "run-history-empty";
+    empty.textContent = "还没有本地记录。";
+    runHistoryList.appendChild(empty);
+    return;
+  }
+  history.slice(0, 10).forEach((record) => {
+    const item = document.createElement("article");
+    item.className = "run-history-item";
+    const title = document.createElement("strong");
+    title.textContent = `${levelDisplayName(record.levelIndex)} · ${record.completed ? "完成" : "未完成"}`;
+    const meta = document.createElement("p");
+    const difficulty = DIFFICULTY_SETTINGS[record.difficulty]?.label || record.difficulty || "普通";
+    meta.textContent = `${difficulty} · 本局 ${record.runPoints || 0} 分 · 时间奖励 ${record.timeBonus || 0} · 剩余 ${record.timeLeft || 0}秒`;
+    const details = document.createElement("p");
+    details.textContent = `答对 ${record.correctAnswers || 0} / 答错 ${record.wrongAnswers || 0} · 碰撞 ${record.obstacleHits || 0} · ${formatFinishedAt(record.finishedAt)}`;
+    item.append(title, meta, details);
+    runHistoryList.appendChild(item);
+  });
+}
+
+function openRunHistory() {
+  renderRunHistory();
+  if (runHistoryPanel) runHistoryPanel.hidden = false;
+}
+
+function closeRunHistory() {
+  if (runHistoryPanel) runHistoryPanel.hidden = true;
+}
+
+function clearLocalScoreRecords() {
+  if (!window.confirm("确定清除本地积分和历史记录吗？昵称会保留。")) return;
+  localStorage.removeItem(TOTAL_POINTS_KEY);
+  localStorage.removeItem(BEST_SCORE_KEY);
+  localStorage.removeItem(RUN_HISTORY_KEY);
+  totalPoints = 0;
+  bestScore = 0;
+  updateHud();
+  renderRunHistory();
 }
 
 function startGame() {
@@ -1423,9 +1565,10 @@ function update(dt) {
     state.time = 0;
     if (difficultySettings().stopOnTimeout) {
       state.running = false;
-      settleLevelRun(false);
+      const settlement = settleLevelRun(false);
       startBtn.textContent = text.again;
       messageEl.textContent = "\u75af\u72c2\u96be\u5ea6\u6311\u6218\u5931\u8d25\uff0c\u518d\u8bd5\u4e00\u6b21\uff01";
+      showScoreSummaryPanel(settlement, { failed: true });
     } else if (!state.timeExpiredNotified) {
       state.timeExpiredNotified = true;
       messageEl.textContent = "\u65f6\u95f4\u5230\u5566\uff0c\u8fd8\u53ef\u4ee5\u7ee7\u7eed\u5b8c\u6210\u4efb\u52a1\uff0c\u5956\u52b1\u4f1a\u5c11\u4e00\u70b9\u3002";
@@ -1466,6 +1609,7 @@ function update(dt) {
     }
     if (settlement) {
       messageEl.textContent = `完成关卡 +${settlement.completionBonus}，剩余时间奖励 +${settlement.timeBonus}，本局积分 +${settlement.runPoints}！`;
+      showScoreSummaryPanel(settlement);
     }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
   }
@@ -5039,6 +5183,14 @@ window.catsOwlDifficulty = {
 };
 
 startBtn.addEventListener("click", startGame);
+recordsBtn?.addEventListener("click", openRunHistory);
+homeRecordsBtn?.addEventListener("click", openRunHistory);
+scoreRecordsBtn?.addEventListener("click", openRunHistory);
+scoreSummaryCloseBtn?.addEventListener("click", closeScoreSummaryPanel);
+scoreContinueBtn?.addEventListener("click", continueNextLevel);
+scoreRetryBtn?.addEventListener("click", replayCurrentLevel);
+runHistoryCloseBtn?.addEventListener("click", closeRunHistory);
+clearHistoryBtn?.addEventListener("click", clearLocalScoreRecords);
 
 function initialLevelFromUrl() {
   const params = new URLSearchParams(window.location.search);
