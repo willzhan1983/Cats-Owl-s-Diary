@@ -77,6 +77,10 @@ const backgroundSources = {
   underwaterGarden: "./assets/bg/underwater_garden.png",
   deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
   nessieLair: "./assets/bg/nessie_lair.png",
+  appleValleyEntrance: "./assets/bg-level2-forest.png",
+  harvestOrchard: "./assets/bg-level2-forest.png",
+  basketSortingStation: "./assets/bg-level1-schoolyard.png",
+  forestSchoolDelivery: "./assets/bg-level1-schoolyard.png",
 };
 
 const backgroundSourceCandidates = {
@@ -98,6 +102,10 @@ const backgroundSourceCandidates = {
   underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
   deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/bg/nessie_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
+  appleValleyEntrance: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
+  harvestOrchard: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
+  basketSortingStation: ["./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
+  forestSchoolDelivery: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
 };
 
 const backgrounds = {};
@@ -232,6 +240,11 @@ const NPC_REGISTRY = {
   otter: { id: "otter", displayName: "水獭邮差", renderer: drawOtter, world: "moonlight_lake" },
   frog: { id: "frog", displayName: "青蛙老师", renderer: drawFrog, world: "moonlight_lake" },
   seagull: { id: "seagull", displayName: "海鸥侦察员", renderer: drawSeagull, world: "moonlight_lake" },
+  coco: { id: "coco", displayName: "Coco 小松鼠", renderer: drawSquirrel, world: "apple_valley" },
+  nono: { id: "nono", displayName: "Nono 小刺猬", renderer: drawHedgehog, world: "apple_valley" },
+  birdPostman: { id: "birdPostman", displayName: "小鸟邮差", renderer: drawSeagull, world: "apple_valley" },
+  moleFarmer: { id: "moleFarmer", displayName: "果园鼹鼠", renderer: drawHedgehog, world: "apple_valley" },
+  owlPrincipal: { id: "owlPrincipal", displayName: "猫头鹰校长", renderer: () => drawOwl(0, 4, 0.92), world: "apple_valley" },
   beaver: { id: "beaver", displayName: "小海狸工程师", renderer: drawBeaver, world: "moonlight_lake" },
   clownfish: { id: "clownfish", displayName: "小丑鱼兄妹", renderer: drawClownfish, world: "moonlight_lake" },
   seaTurtle: { id: "seaTurtle", displayName: "小海龟", renderer: drawSeaTurtle, world: "moonlight_lake" },
@@ -346,6 +359,13 @@ const WORLD_MAP = {
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE, TASK_TYPES.BOSS_FIGHT],
     boss: "nessie",
   },
+  apple_valley: {
+    id: "apple_valley",
+    name: "苹果谷",
+    background: "appleValleyEntrance",
+    levels: [12, 13, 14, 15],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
 };
 
 const dayNames = [
@@ -361,6 +381,10 @@ const dayNames = [
   "水底花园",
   "深海遗迹",
   "尼斯湖怪巢穴",
+  "苹果谷入口",
+  "丰收果园",
+  "果篮整理站",
+  "送给猫头鹰校长",
 ];
 
 const keys = new Set();
@@ -970,6 +994,139 @@ const levels = [
       { x: 628, y: 268, r: 24, broken: false },
     ],
   },
+  {
+    name: "苹果谷入口",
+    bg: "appleValleyEntrance",
+    world: "apple_valley",
+    time: 86,
+    start: { x: 116, y: 428 },
+    message: "苹果谷丰收啦！先帮 Coco 小松鼠捡起掉在路边的红苹果吧。",
+    collectibles: [
+      item(724, 236, "appleBasket", "果篮"),
+      item(846, 420, "potion", "\u7231\u5fc3\u836f\u6c34"),
+    ],
+    tasks: [
+      delivery(230, 292, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
+      quizTask(512, 214, "苹果英语木牌", "english", "木牌想考考 apple 的意思。", {
+        title: "苹果谷英语题",
+        question: "apple 的中文意思是？",
+        options: ["苹果", "小猫", "月亮", "铅笔"],
+        answer: 0,
+      }),
+      actionTask(790, 300, "整理入口木牌", "sign", "站在入口木牌旁 1 秒，打开果园小门。"),
+    ],
+    puddles: [
+      { x: 332, y: 402, r: 28 },
+      { x: 604, y: 334, r: 31 },
+    ],
+    obstacles: [
+      { type: "appleTree", x: 420, y: 230, r: 42, drops: ["redApple", "redApple", "redApple"], shaken: false },
+      { type: "pit", x: 714, y: 408, r: 24 },
+    ],
+  },
+  {
+    name: "丰收果园",
+    bg: "harvestOrchard",
+    world: "apple_valley",
+    time: 98,
+    start: { x: 120, y: 420 },
+    message: "果园里红苹果、青苹果都成熟了，帮果园鼹鼠一起摇树收果吧。",
+    collectibles: [
+      item(238, 358, "redApple", "红苹果"),
+      item(412, 210, "greenApple", "青苹果"),
+    ],
+    tasks: [
+      delivery(824, 236, "果园鼹鼠", "moleFarmer", ["greenApple", "greenApple"], "果园鼹鼠想记录青苹果的颜色变化。"),
+      delivery(246, 262, "小鸟邮差", "birdPostman", ["redApple", "redApple"], "小鸟邮差要把 2 个红苹果送到整理站。"),
+      quizTask(514, 342, "果园数学牌", "math", "算一算篮子里的苹果。", {
+        title: "苹果谷数学题",
+        question: "篮子里有 3 个苹果，又放进 4 个，一共有几个？",
+        options: ["5", "6", "7", "8"],
+        answer: 2,
+      }),
+    ],
+    puddles: [
+      { x: 214, y: 426, r: 27 },
+      { x: 708, y: 406, r: 30 },
+    ],
+    obstacles: [
+      { type: "appleTree", x: 286, y: 248, r: 42, drops: ["redApple", "redApple", "greenApple"], shaken: false },
+      { type: "appleTree", x: 560, y: 184, r: 44, drops: ["redApple", "greenApple", "greenApple"], shaken: false },
+      { type: "appleTree", x: 752, y: 286, r: 42, drops: ["redApple", "greenApple", "goldenApple"], shaken: false },
+      { type: "pond", x: 570, y: 232, r: 32 },
+      { type: "pit", x: 850, y: 420, r: 24 },
+    ],
+  },
+  {
+    name: "果篮整理站",
+    bg: "basketSortingStation",
+    world: "apple_valley",
+    time: 104,
+    start: { x: 118, y: 430 },
+    message: "苹果要分进不同果篮，再做成送给学校的丰收礼物篮。",
+    collectibles: [
+      item(158, 182, "redApple", "红苹果"),
+      item(274, 360, "redApple", "红苹果"),
+      item(382, 184, "redApple", "红苹果"),
+      item(528, 354, "greenApple", "青苹果"),
+      item(648, 184, "greenApple", "青苹果"),
+      item(804, 352, "greenApple", "青苹果"),
+      item(460, 132, "goldenApple", "金苹果"),
+      item(728, 236, "appleBasket", "果篮"),
+    ],
+    tasks: [
+      sortBasket(262, 250, "红苹果篮", "redBasket", ["redApple", "redApple", "redApple"], "把红苹果放进红篮子里。"),
+      sortBasket(626, 250, "青苹果篮", "greenBasket", ["greenApple", "greenApple", "greenApple"], "把青苹果放进绿篮子里。"),
+      sortBasket(804, 240, "礼物果篮", "giftBasket", ["goldenApple", "appleBasket"], "把金苹果和果篮做成丰收礼物篮。", "giftAppleBasket"),
+      quizTask(470, 404, "丰收语文牌", "language", "想一想“丰收”的意思。", {
+        title: "苹果谷语文题",
+        question: "“丰收”的意思更接近哪一个？",
+        options: ["收获很多", "天气很冷", "走得很快", "睡觉很香"],
+        answer: 0,
+      }),
+    ],
+    puddles: [
+      { x: 210, y: 420, r: 28 },
+      { x: 706, y: 410, r: 28 },
+    ],
+    obstacles: [
+      { type: "bush", x: 388, y: 390, r: 30 },
+      { type: "pit", x: 590, y: 382, r: 26 },
+    ],
+  },
+  {
+    name: "送给猫头鹰校长",
+    bg: "forestSchoolDelivery",
+    world: "apple_valley",
+    time: 92,
+    start: { x: 122, y: 426 },
+    message: "猫头鹰校长收到了丰收苹果，大家一起分享秋天的礼物！",
+    collectibles: [
+      item(224, 360, "giftAppleBasket", "礼物果篮"),
+      item(612, 164, "harvestBadge", "丰收徽章"),
+      item(820, 410, "potion", "\u7231\u5fc3\u836f\u6c34"),
+    ],
+    tasks: [
+      delivery(736, 210, "猫头鹰校长", "owlPrincipal", "giftAppleBasket", "把礼物果篮护送到猫头鹰校长这里。"),
+      actionTask(468, 336, "苹果小推车", "appleCartStation", "拿到礼物果篮后，站在小推车旁让它跟着你出发。"),
+      quizTask(318, 226, "分享理解题", "riddle", "想一想为什么要分享丰收苹果。", {
+        title: "苹果谷理解题",
+        question: "Coco 把苹果送到学校，是为了什么？",
+        options: ["和大家分享", "把苹果藏起来", "让大家迷路", "把篮子扔掉"],
+        answer: 0,
+      }),
+      delivery(844, 336, "Nono 小刺猬", "nono", "harvestBadge", "Nono 想把丰收徽章写进观察记录。"),
+    ],
+    puddles: [
+      { x: 256, y: 424, r: 26 },
+      { x: 632, y: 390, r: 30 },
+    ],
+    obstacles: [
+      { type: "bush", x: 386, y: 420, r: 32 },
+      { type: "pit", x: 676, y: 284, r: 25 },
+    ],
+    escortCart: { type: "appleCart", x: 468, y: 336, active: false },
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -994,6 +1151,10 @@ levels.forEach((level, index) => {
   level.worldName = WORLD_MAP[worldId]?.name || worldId;
 });
 
+WORLD_MAP.apple_valley.levels = levels
+  .map((level, index) => (level.world === "apple_valley" ? index : -1))
+  .filter((index) => index >= 0);
+
 function levelBackgroundKey(level) {
   if (!level) return null;
   return level.bg || WORLD_MAP[level.world]?.background;
@@ -1002,7 +1163,7 @@ function levelBackgroundKey(level) {
 function taskSystemType(kind) {
   if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "quiz") return TASK_TYPES.SIMPLE_PUZZLE;
-  if (kind === "delivery") return TASK_TYPES.HELP_NPC;
+  if (kind === "delivery" || kind === "sort_basket") return TASK_TYPES.HELP_NPC;
   return TASK_TYPES.FETCH_ITEM;
 }
 
@@ -1028,6 +1189,10 @@ function npcDecoration(x, y, kind, scale = 1, label = "") {
 
 function delivery(x, y, name, animal, need, speech) {
   return { x, y, name, animal, need: Array.isArray(need) ? need : [need], speech, kind: "delivery", done: false, progress: 0 };
+}
+
+function sortBasket(x, y, name, animal, need, speech, reward = null) {
+  return { x, y, name, animal, need: Array.isArray(need) ? need : [need], speech, reward, kind: "sort_basket", done: false, progress: 0 };
 }
 
 function actionTask(x, y, name, animal, speech) {
@@ -1094,12 +1259,14 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeQuiz: null,
     activeDialogue: null,
     nearbyTask: null,
+    nearbyAppleTree: null,
     shake: 0,
     player: { x: level.start.x, y: level.start.y, vx: 0, vy: 0, dir: 1, step: 0 },
     collectibles: level.collectibles.map((entry) => ({ ...entry })),
     tasksList: level.tasks.map((entry, index) => prepareTask(entry, level, index)),
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
+    escortCart: level.escortCart ? { ...level.escortCart } : null,
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
@@ -1578,6 +1745,7 @@ function update(dt) {
   }
 
   updatePlayer(dt);
+  updateAppleCart(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
   updateBossHazards(dt);
@@ -1748,8 +1916,16 @@ function checkPuddles() {
 function checkObstacles() {
   const p = state.player;
   const now = performance.now();
+  state.nearbyAppleTree = null;
   for (const obstacle of state.obstacles) {
     const hit = distance(p, obstacle) < obstacle.r + 21;
+    if (obstacle.type === "appleTree") {
+      if (hit) {
+        state.nearbyAppleTree = obstacle;
+        messageEl.textContent = obstacle.shaken ? "这棵苹果树已经摇过啦。" : "按对话键摇一摇苹果树";
+      }
+      continue;
+    }
     if (!hit || now < state.puddleCooldownUntil) continue;
     if (obstacle.type === "bush") {
       state.obstacleHits += 1;
@@ -1791,6 +1967,45 @@ function checkObstacles() {
     }
     break;
   }
+}
+
+function shakeAppleTree(tree) {
+  if (!tree || tree.type !== "appleTree" || tree.shaken) return false;
+  tree.shaken = true;
+  const drops = tree.drops || [];
+  drops.forEach((type, index) => {
+    const angle = -0.9 + index * 0.9;
+    const radius = 34 + (index % 2) * 18;
+    state.collectibles.push(
+      item(
+        clamp(tree.x + Math.cos(angle) * radius, 36, canvas.width - 36),
+        clamp(tree.y + 78 + Math.sin(angle) * 18, 70, canvas.height - 40),
+        type,
+        itemLabel(type)
+      )
+    );
+  });
+  addRunPoints(3, tree.x, tree.y, "+3 丰收");
+  burst(tree.x, tree.y + 12, "#ffd94a", 18);
+  addFloatingText(tree.x, tree.y - 70, "苹果掉下来啦！", "#e84b3f");
+  if (drops.length >= 3) addFloatingText(tree.x, tree.y - 96, "丰收连击！", "#f2ad31");
+  messageEl.textContent = "苹果掉下来啦！";
+  return true;
+}
+
+function updateAppleCart(dt) {
+  const cart = state?.escortCart;
+  if (!cart || !cart.active) return;
+  const p = state.player;
+  const targetX = p.x - 46 * p.dir;
+  const targetY = p.y + 20;
+  const follow = clamp(dt * 4, 0, 1);
+  cart.x += (targetX - cart.x) * follow;
+  cart.y += (targetY - cart.y) * follow;
+}
+
+function canUseEscortCart() {
+  return Boolean(state?.escortCart?.active);
 }
 
 function updateBossHazards(dt) {
@@ -1952,11 +2167,17 @@ function checkTasks(dt) {
       continue;
     }
 
-    if (task.kind === "delivery") {
+    if (task.kind === "delivery" || task.kind === "sort_basket") {
       const missing = missingNeeds(task.need);
-      messageEl.textContent = missing.length
-        ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002`
-        : `${task.name}\u6b63\u7b49\u7740\u4f60\u3002\u6309 E \u5bf9\u8bdd\u540e\u4ea4\u7ed9TA\u3002`;
+      if (task.kind === "sort_basket") {
+        messageEl.textContent = missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u628a\u82f9\u679c\u653e\u8fdb${task.name}\u3002`;
+      } else if (task.animal === "owlPrincipal" && !canUseEscortCart()) {
+        messageEl.textContent = "先把礼物果篮放上小推车，再护送到校长这里。";
+      } else {
+        messageEl.textContent = missing.length
+          ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002`
+          : `${task.name}\u6b63\u7b49\u7740\u4f60\u3002\u6309 E \u5bf9\u8bdd\u540e\u4ea4\u7ed9TA\u3002`;
+      }
       continue;
     }
 
@@ -1982,6 +2203,11 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.animal === "appleCartStation" && !state.inventory.includes("giftAppleBasket")) {
+      messageEl.textContent = "\u5148\u62ff\u5230\u793c\u7269\u679c\u7bee\uff0c\u518d\u6765\u63a8\u5c0f\u8f66\u3002";
+      continue;
+    }
+
     task.progress += dt;
     messageEl.textContent = task.speech;
     if (task.progress >= 1.65) {
@@ -1999,10 +2225,30 @@ function completeTask(task, x, y) {
   state.tasks += 1;
   state.hearts += 3;
   state.time = Math.min(state.levelTime + 8, state.time + 5);
+  if (task.kind === "sort_basket") addRunPoints(10, x, y, "+10 sort");
+  if (task.reward) {
+    state.inventory.push(task.reward);
+    addFloatingText(x, y - 82, `+ ${itemLabel(task.reward)}`, "#f2ad31");
+  }
+  if (task.animal === "appleCartStation" && state.escortCart) {
+    state.escortCart.active = true;
+    addFloatingText(x, y - 74, "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01", "#f2ad31");
+    messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
+  }
   if (task.kind === "delivery" || task.kind === "action") addRunPoints(10, x, y, "+10 积分");
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
+  if (task.kind === "sort_basket") messageEl.textContent = sortBasketCompleteMessage(task);
+  if (task.animal === "owlPrincipal") messageEl.textContent = "\u732b\u5934\u9e70\u6821\u957f\u6536\u5230\u4e86\u4e30\u6536\u793c\u7269\uff01";
+  if (task.animal === "appleCartStation") messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
+}
+
+function sortBasketCompleteMessage(task) {
+  if (task.animal === "redBasket") return "\u7ea2\u82f9\u679c\u5206\u7c7b\u5b8c\u6210\uff01";
+  if (task.animal === "greenBasket") return "\u7eff\u82f9\u679c\u5206\u7c7b\u5b8c\u6210\uff01";
+  if (task.animal === "giftBasket") return "\u793c\u7269\u679c\u7bee\u51c6\u5907\u597d\u4e86\uff01";
+  return `${task.name}\u5206\u7c7b\u5b8c\u6210\uff01`;
 }
 
 function missingNeeds(needs) {
@@ -2042,6 +2288,14 @@ function needLabels(needs) {
 function itemLabel(type) {
   return {
     apple: "\u82f9\u679c",
+    redApple: "红苹果",
+    greenApple: "青苹果",
+    goldenApple: "金苹果",
+    appleBasket: "果篮",
+    giftAppleBasket: "礼物果篮",
+    appleCart: "苹果小推车",
+    harvestBadge: "丰收徽章",
+    autumnLeaf: "秋叶",
     book: "\u4e66\u672c",
     pencil: "\u94c5\u7b14",
     leaf: "\u53f6\u5b50\u626b\u5e1a",
@@ -2079,6 +2333,7 @@ function quizDisplay(taskOrKind) {
 function taskShortHint(task) {
   if (task.done) return "\u5b8c\u6210";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
+  if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? "\u5bf9\u8bdd" : "\u4ea4\u7ed9TA";
   if (task.kind === "boss") return "Boss";
   return "\u5e2e\u5fd9";
@@ -2087,8 +2342,13 @@ function taskShortHint(task) {
 function taskNearHint(task) {
   if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
+  if (task.kind === "sort_basket") {
+    const missing = missingNeeds(task.need);
+    return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u653e\u8fdb${task.name}`;
+  }
   if (task.kind === "delivery") {
     const missing = missingNeeds(task.need);
+    if (task.animal === "owlPrincipal" && !canUseEscortCart()) return "\u5148\u8ba9\u5c0f\u63a8\u8f66\u8ddf\u7740\u4f60\u51fa\u53d1\u3002";
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002` : "\u6309 E \u4ea4\u7ed9TA";
   }
   if (task.kind === "boss") return firstBossWeapon() ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u653b\u51fb\u3002" : "\u6309 E \u542c\u63d0\u793a\u3002";
@@ -2101,7 +2361,9 @@ function shouldShowTaskHint(task) {
 
 function taskDialogueMode(task) {
   if (task.done) return "after";
+  if (task.animal === "owlPrincipal" && !canUseEscortCart()) return "missing";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
+  if (task.kind === "sort_basket") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
   if (task.kind === "quiz") return task.dialogueSeen ? "ready" : "intro";
   if (task.kind === "boss") return firstBossWeapon() ? "ready" : "missing";
   if (task.kind === "moon_boss") return "intro";
@@ -2113,7 +2375,9 @@ function taskDialogueLines(task, mode) {
   if (library[mode]?.length) return library[mode];
   if (mode === "intro" && task.kind === "quiz") return [quizDisplay(task)?.dialogue || task.speech];
   if (mode === "intro") return [`${task.name}\uff1a${task.speech}`];
+  if (mode === "missing" && task.animal === "owlPrincipal" && !canUseEscortCart()) return ["\u5148\u8ba9\u5c0f\u63a8\u8f66\u8ddf\u7740\u4f60\u51fa\u53d1\u3002"];
   if (mode === "missing" && task.need) return [`\u6211\u8fd8\u9700\u8981\uff1a${needLabels(missingNeeds(task.need))}\u3002`];
+  if (mode === "ready" && task.kind === "sort_basket") return [`\u627e\u5230${needLabels(task.need)}\u4e86\uff0c\u653e\u8fdb\u6765\u5427\uff01`];
   if (mode === "ready" && task.kind === "delivery") return [`\u4f60\u5df2\u7ecf\u627e\u5230${needLabels(task.need)}\u5566\uff01`];
   if (mode === "ready" && task.kind === "quiz") return ["\u51c6\u5907\u597d\u4e86\u5417\uff1f\u6211\u4eec\u6765\u6311\u6218\u4e00\u9898\u5427\u3002"];
   if (mode === "complete") return ["\u8c22\u8c22\u4f60\uff01\u4efb\u52a1\u5b8c\u6210\u5566\u3002"];
@@ -2123,6 +2387,7 @@ function taskDialogueLines(task, mode) {
 
 function dialogueRoleLabel(task) {
   if (task.kind === "delivery") return "\u9700\u8981\u5e2e\u5fd9";
+  if (task.kind === "sort_basket") return "\u82f9\u679c\u5206\u7c7b";
   if (task.kind === "quiz") return "\u9898\u76ee\u6311\u6218";
   if (task.kind === "boss") return "Boss \u63d0\u793a";
   if (task.kind === "moon_boss") return "月光湖 Boss";
@@ -2139,6 +2404,11 @@ function dialogueAvatarFallback(task) {
     fox: "\u72d0",
     firefly: "\u5149",
     hedgehog: "\u523a",
+    coco: "C",
+    nono: "N",
+    birdPostman: "鸟",
+    moleFarmer: "鼹",
+    owlPrincipal: "校",
     otter: "O",
     frog: "F",
     seaTurtle: "T",
@@ -2196,7 +2466,7 @@ function renderDialogue() {
   setDialogueAvatar(task);
   const hasNext = dialogue.index < dialogue.lines.length - 1;
   dialogueNextBtn.hidden = !hasNext;
-  dialogueGiveBtn.hidden = !(task.kind === "delivery" && dialogue.mode === "ready" && !task.done);
+  dialogueGiveBtn.hidden = !((task.kind === "delivery" || task.kind === "sort_basket") && dialogue.mode === "ready" && !task.done);
   dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext);
 }
 
@@ -2223,7 +2493,12 @@ function closeDialogue() {
 function finishDialogueDelivery() {
   const dialogue = state?.activeDialogue;
   const task = dialogue?.task;
-  if (!task || task.kind !== "delivery" || task.done || missingNeeds(task.need).length) return;
+  if (!task || (task.kind !== "delivery" && task.kind !== "sort_basket") || task.done || missingNeeds(task.need).length) return;
+  if (task.animal === "owlPrincipal" && !canUseEscortCart()) {
+    messageEl.textContent = "\u5148\u8ba9\u5c0f\u63a8\u8f66\u8ddf\u7740\u4f60\u51fa\u53d1\u3002";
+    closeDialogue();
+    return;
+  }
   consumeNeeds(task.need);
   completeTask(task, task.x, task.y);
   state.activeDialogue = {
@@ -2247,6 +2522,10 @@ function startDialogueQuiz() {
 
 function talkToNearbyTask() {
   if (!state?.running || state.activeQuiz) return;
+  if (state.nearbyAppleTree && !state.activeDialogue) {
+    shakeAppleTree(state.nearbyAppleTree);
+    return;
+  }
   if (levels[state.levelIndex]?.dialogueDisabled === true) {
     const task = state.nearbyTask;
     if (!task || task.done) return;
@@ -2255,6 +2534,17 @@ function talkToNearbyTask() {
       return;
     }
     if (task.kind === "delivery") {
+      const missing = missingNeeds(task.need);
+      if (missing.length) {
+        messageEl.textContent = `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002`;
+        return;
+      }
+      consumeNeeds(task.need);
+      completeTask(task, task.x, task.y);
+      updateHud();
+      return;
+    }
+    if (task.kind === "sort_basket") {
       const missing = missingNeeds(task.need);
       if (missing.length) {
         messageEl.textContent = `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002`;
@@ -2357,6 +2647,7 @@ function draw() {
   drawLandmarks();
   drawLeaves();
   drawSceneObjects();
+  drawEscortCart();
   drawCollectibles();
   drawTasks();
   drawHazards();
@@ -2644,7 +2935,18 @@ function drawObstacles() {
     else if (obstacle.type === "whirlpool") drawWhirlpool(obstacle);
     else if (obstacle.type === "moonPillar") drawMoonPillar(obstacle);
     else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
+    else if (obstacle.type === "appleTree") drawAppleTree(obstacle);
   }
+}
+
+function drawEscortCart() {
+  const cart = state?.escortCart;
+  if (!cart || !cart.active) return;
+  ctx.save();
+  ctx.translate(cart.x, cart.y);
+  ctx.scale(0.92, 0.92);
+  drawAppleCart();
+  ctx.restore();
 }
 
 function drawDarkBubbles() {
@@ -2809,13 +3111,18 @@ const ART_PACK_OBSTACLE_KEYS = {
 const ART_PACK_NPC_KEYS = {
   rabbit: "lily",
   squirrel: "coco",
+  coco: "coco",
   hedgehog: "nono",
+  nono: "nono",
   deer: "deer",
   ant: "ant",
   butterfly: "butterfly",
   fox: "fox",
   firefly: "firefly",
   owl: "owlPrincipal",
+  owlPrincipal: "owlPrincipal",
+  birdPostman: "seagullScout",
+  moleFarmer: "nono",
   otter: "otterPostman",
   frog: "frogTeacher",
   seagull: "seagullScout",
@@ -2913,13 +3220,18 @@ const ART_PACK_OBSTACLE_BOUNDS = {
 const ART_PACK_NPC_BOUNDS = {
   rabbit: { x: -36, y: -55, w: 72, h: 88 },
   squirrel: { x: -38, y: -55, w: 76, h: 88 },
+  coco: { x: -38, y: -55, w: 76, h: 88 },
   hedgehog: { x: -38, y: -52, w: 76, h: 84 },
+  nono: { x: -38, y: -52, w: 76, h: 84 },
   deer: { x: -38, y: -66, w: 76, h: 104 },
   ant: { x: -35, y: -58, w: 70, h: 92 },
   butterfly: { x: -48, y: -62, w: 96, h: 98 },
   fox: { x: -38, y: -62, w: 76, h: 100 },
   firefly: { x: -40, y: -62, w: 80, h: 98 },
   owl: { x: -44, y: -78, w: 88, h: 88 },
+  owlPrincipal: { x: -44, y: -78, w: 88, h: 88 },
+  birdPostman: { x: -44, y: -76, w: 88, h: 88 },
+  moleFarmer: { x: -38, y: -52, w: 76, h: 84 },
   otter: { x: -44, y: -76, w: 88, h: 88 },
   frog: { x: -44, y: -76, w: 88, h: 88 },
   seagull: { x: -44, y: -76, w: 88, h: 88 },
@@ -3229,6 +3541,14 @@ function drawCollectibles() {
 function drawItem(type) {
   if (drawItemArtPackImage(type)) return;
   if (type === "apple") drawApple();
+  else if (type === "redApple") drawAppleVariant("#ff9589", "#e84b3f", "#b92f2d");
+  else if (type === "greenApple") drawAppleVariant("#d8f08a", "#8fbd3a", "#4d7d28");
+  else if (type === "goldenApple") drawAppleVariant("#fff2a8", "#ffd94a", "#d38c18");
+  else if (type === "appleBasket") drawAppleBasket(false);
+  else if (type === "giftAppleBasket") drawAppleBasket(true);
+  else if (type === "appleCart") drawAppleCart();
+  else if (type === "harvestBadge") drawHarvestBadge();
+  else if (type === "autumnLeaf") drawAutumnLeaf();
   else if (type === "book") drawBook("#2f9dcc");
   else if (type === "pencil") drawPencil();
   else if (type === "leaf") drawLeafBroom();
@@ -3365,6 +3685,8 @@ function drawAnimal(kind) {
   else if (kind === "boss") drawForestBoss();
   else if (kind === "owl") drawOwl(0, 4, 0.92);
   else if (kind === "sign") drawSign();
+  else if (kind === "redBasket" || kind === "greenBasket" || kind === "giftBasket") drawSortBasket(kind);
+  else if (kind === "appleCartStation") drawAppleCart();
   else if (kind === "light") drawTreeLight();
   else if (kind === "spring") drawSpringMushroom();
   else if (kind === "finish") drawFinishFlag();
@@ -3787,6 +4109,120 @@ function drawApple() {
   ctx.beginPath();
   ctx.ellipse(10, -16, 11, 6, -0.45, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawAppleVariant(highlight, mid, dark) {
+  drawItemShadow(0, 22, 20, 5);
+  const apple = ctx.createRadialGradient(-7, -5, 4, 0, 4, 24);
+  apple.addColorStop(0, highlight);
+  apple.addColorStop(0.62, mid);
+  apple.addColorStop(1, dark);
+  ctx.fillStyle = apple;
+  circle(-8, 4, 15);
+  circle(8, 4, 15);
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  circle(-8, -4, 4);
+  ctx.fillStyle = "#75431f";
+  roundRect(-2, -18, 5, 16, 3);
+  ctx.fill();
+  ctx.fillStyle = "#78b84b";
+  ctx.beginPath();
+  ctx.ellipse(10, -16, 11, 6, -0.45, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawAppleBasket(gift = false) {
+  drawItemShadow(0, 24, 28, 6);
+  ctx.strokeStyle = "#8b572a";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.arc(0, -3, 25, Math.PI * 1.08, Math.PI * 1.92);
+  ctx.stroke();
+  const basket = ctx.createLinearGradient(0, -8, 0, 24);
+  basket.addColorStop(0, "#d79a4b");
+  basket.addColorStop(1, "#8f5428");
+  ctx.fillStyle = basket;
+  roundRect(-30, -6, 60, 34, 9);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(91,55,30,0.4)";
+  ctx.lineWidth = 2;
+  for (const x of [-18, 0, 18]) {
+    ctx.beginPath();
+    ctx.moveTo(x, -3);
+    ctx.lineTo(x + 4, 24);
+    ctx.stroke();
+  }
+  drawTinyApple(-14, -10, "#e84b3f");
+  drawTinyApple(3, -14, gift ? "#ffd94a" : "#8fbd3a");
+  drawTinyApple(18, -8, "#e84b3f");
+  if (gift) {
+    ctx.fillStyle = "#f6d77b";
+    roundRect(-6, 4, 12, 24, 3);
+    ctx.fill();
+    roundRect(-30, 10, 60, 8, 3);
+    ctx.fill();
+  }
+}
+
+function drawTinyApple(x, y, color) {
+  ctx.fillStyle = color;
+  circle(x - 4, y, 7);
+  circle(x + 4, y, 7);
+  ctx.fillStyle = "#75431f";
+  roundRect(x - 1, y - 12, 3, 9, 2);
+  ctx.fill();
+}
+
+function drawAppleCart() {
+  drawItemShadow(0, 25, 32, 7);
+  ctx.strokeStyle = "#6b3b20";
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(24, -12);
+  ctx.lineTo(42, -24);
+  ctx.stroke();
+  ctx.fillStyle = "#b86b32";
+  roundRect(-36, -16, 62, 30, 8);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(91,55,30,0.5)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  drawTinyApple(-18, -20, "#e84b3f");
+  drawTinyApple(0, -24, "#8fbd3a");
+  drawTinyApple(16, -20, "#ffd94a");
+  ctx.fillStyle = "#3b2a1c";
+  circle(-20, 20, 8);
+  circle(18, 20, 8);
+  ctx.fillStyle = "#f6d77b";
+  circle(-20, 20, 3);
+  circle(18, 20, 3);
+}
+
+function drawHarvestBadge() {
+  drawItemShadow(0, 22, 20, 5);
+  ctx.fillStyle = "#ffd94a";
+  star(0, -2, 26);
+  ctx.fill();
+  ctx.fillStyle = "#e84b3f";
+  circle(0, -2, 11);
+  ctx.fillStyle = "#fff7df";
+  ctx.font = "900 14px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("丰", 0, 3);
+}
+
+function drawAutumnLeaf() {
+  drawItemShadow(0, 18, 18, 4);
+  ctx.fillStyle = "#d9782f";
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 12, 27, -0.62, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "#8b4b20";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(-13, 16);
+  ctx.lineTo(13, -17);
+  ctx.stroke();
 }
 
 function drawBook(color) {
@@ -4810,6 +5246,51 @@ function drawSign() {
   ctx.fillText("\u5b66\u6821", 0, -13);
 }
 
+function drawAppleTree(tree) {
+  const t = performance.now() / 420 + tree.x;
+  ctx.save();
+  ctx.translate(tree.x, tree.y);
+  drawShadow(0, 58, tree.r * 1.25, 13);
+  ctx.fillStyle = "#7a4a28";
+  roundRect(-12, 4, 24, 62, 10);
+  ctx.fill();
+  ctx.fillStyle = tree.shaken ? "#76a84a" : "#5fa13d";
+  circle(-28, -12 + Math.sin(t) * 1.5, 34);
+  circle(16, -18 + Math.cos(t) * 1.5, 38);
+  circle(38, 12, 31);
+  circle(-8, 16, 39);
+  if (!tree.shaken) {
+    drawTinyApple(-28, -20, "#e84b3f");
+    drawTinyApple(12, -32, "#8fbd3a");
+    drawTinyApple(34, 2, "#e84b3f");
+  }
+  ctx.fillStyle = "rgba(255,247,223,0.9)";
+  roundRect(-34, -70, 68, 22, 7);
+  ctx.fill();
+  ctx.fillStyle = "#5b3212";
+  ctx.font = "900 10px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(tree.shaken ? "\u5df2\u6447" : "\u6447\u4e00\u6447", 0, -55, 58);
+  ctx.restore();
+}
+
+function drawSortBasket(kind) {
+  const color =
+    kind === "redBasket" ? "#e84b3f" : kind === "greenBasket" ? "#6fb447" : kind === "giftBasket" ? "#ffd94a" : "#b86b32";
+  ctx.save();
+  drawAppleBasket(kind === "giftBasket");
+  ctx.globalAlpha = 0.82;
+  ctx.fillStyle = color;
+  roundRect(-31, -4, 62, 12, 5);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#fff7df";
+  ctx.font = "900 12px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(kind === "redBasket" ? "\u7ea2" : kind === "greenBasket" ? "\u7eff" : "\u793c", 0, 5);
+  ctx.restore();
+}
+
 function drawTreeLight() {
   ctx.fillStyle = "#8b5b2b";
   roundRect(-9, -4, 18, 44, 8);
@@ -4966,6 +5447,14 @@ function addFloatingText(x, y, label, color) {
 function itemColor(type) {
   return {
     apple: "#e84b3f",
+    redApple: "#e84b3f",
+    greenApple: "#8fbd3a",
+    goldenApple: "#ffd94a",
+    appleBasket: "#b86b32",
+    giftAppleBasket: "#f6d77b",
+    appleCart: "#b86b32",
+    harvestBadge: "#ffd94a",
+    autumnLeaf: "#d9782f",
     book: "#2f9dcc",
     pencil: "#ffd75e",
     leaf: "#f2c65f",

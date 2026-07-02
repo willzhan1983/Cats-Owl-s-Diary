@@ -243,6 +243,28 @@
     ],
   });
 
+  Object.assign(WORLD_MAP.apple_valley, {
+    name: "苹果谷",
+    emoji: "🍎",
+    type: "valley",
+    description: "苹果谷丰收了，Mimi / 詹涞儿 和 Owlly / 姚头鹰 帮 Coco 小松鼠收集苹果、整理果篮，并把丰收苹果礼物篮送给猫头鹰校长。",
+    background: "assets/bg-level2-forest.png",
+    npcs: ["coco", "nono", "owlly"],
+    neighbors: ["forest_school", "acorn_town"],
+    unlocked: true,
+    unlockCondition: "从世界地图进入苹果谷篇",
+    position: { column: 3, row: 3 },
+    theme: "收集苹果、整理果篮、分享丰收礼物",
+    previous: "森林学校",
+    next: "橡果镇线索",
+    tasks: [
+      { id: "av_entrance", name: "苹果谷入口", npc: "coco", gameplay: "收集红苹果、找到果篮，并整理入口木牌", reward: "进入丰收果园" },
+      { id: "av_orchard", name: "丰收果园", npc: "coco", gameplay: "收集红苹果、青苹果、金苹果，完成摇树和数学题", reward: "进入果篮整理站" },
+      { id: "av_basket_station", name: "果篮整理站", npc: "coco", gameplay: "把红苹果、青苹果、金苹果分进果篮，完成丰收语文题", reward: "做成礼物果篮" },
+      { id: "av_delivery", name: "送给猫头鹰校长", npc: "owlly", gameplay: "带上礼物果篮和苹果小推车，把丰收礼物送到学校", reward: "丰收徽章" },
+    ],
+  });
+
   const REGION_ORDER = [
     "starlight_mountain",
     "mist_swamp",
