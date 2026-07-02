@@ -1018,26 +1018,22 @@ const levels = [
     start: { x: 116, y: 428 },
     message: "苹果谷丰收啦！先帮 Coco 小松鼠捡起掉在路边的红苹果吧。",
     collectibles: [
-      item(724, 236, "appleBasket", "果篮"),
-      item(846, 420, "potion", "\u7231\u5fc3\u836f\u6c34"),
+      item(164, 412, "appleBasket", "果篮"),
+      item(830, 430, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
-      delivery(230, 292, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
-      quizTask(512, 214, "苹果英语木牌", "english", "木牌想考考 apple 的意思。", {
+      delivery(232, 360, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
+      quizTask(512, 316, "苹果英语木牌", "english", "木牌想考考 apple 的意思。", {
         title: "苹果谷英语题",
         question: "apple 的中文意思是？",
         options: ["苹果", "小猫", "月亮", "铅笔"],
         answer: 0,
       }),
-      actionTask(790, 300, "整理入口木牌", "sign", "站在入口木牌旁 1 秒，打开果园小门。"),
+      actionTask(728, 398, "整理入口木牌", "autumnLeaf", "站在入口木牌旁 1 秒，打开果园小门。"),
     ],
-    puddles: [
-      { x: 332, y: 402, r: 28 },
-      { x: 604, y: 334, r: 31 },
-    ],
+    puddles: [],
     obstacles: [
-      { type: "appleTree", x: 420, y: 230, r: 42, drops: ["redApple", "redApple", "redApple"], shaken: false },
-      { type: "pit", x: 714, y: 408, r: 24 },
+      { type: "appleTree", x: 336, y: 274, r: 38, drops: ["redApple", "redApple", "redApple"], shaken: false },
     ],
   },
   {
@@ -3215,6 +3211,7 @@ const ART_PACK_SCENE_PROP_KEYS = {
   light: ["leafLamp", "flowerBulbLamp"],
   flower: "flowerBed",
   sign: "schoolSign",
+  autumnLeaf: "autumnLeaf",
   spring: "bouncingMushroom",
   finish: "finishFlag",
 };
