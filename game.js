@@ -1019,7 +1019,6 @@ const levels = [
     message: "苹果谷丰收啦！先帮 Coco 小松鼠捡起掉在路边的红苹果吧。",
     collectibles: [
       item(164, 412, "appleBasket", "果篮"),
-      item(830, 430, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
       delivery(232, 360, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
@@ -4419,6 +4418,12 @@ function drawCollectibleSparkles(t, type) {
 
 function drawMiniLabel(entry) {
   if (entry.type === "potion") return;
+  if (
+    levels[state.levelIndex]?.world === "apple_valley" &&
+    ["redApple", "greenApple", "goldenApple", "appleBasket", "giftAppleBasket", "harvestBadge", "autumnLeaf"].includes(entry.type)
+  ) {
+    return;
+  }
   ctx.save();
   ctx.fillStyle = "rgba(255, 247, 223, 0.88)";
   roundRect(-26, 31, 52, 16, 7);
