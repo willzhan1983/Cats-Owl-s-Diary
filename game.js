@@ -93,7 +93,7 @@ const backgroundSources = {
   deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
   nessieLair: "./assets/bg/nessie_lair.png",
   appleValleyEntrance: "./assets/bg/apple_valley_entrance.png",
-  harvestOrchard: "./assets/bg-level2-forest.png",
+  harvestOrchard: "./assets/bg/harvest_orchard.png",
   basketSortingStation: "./assets/bg-level1-schoolyard.png",
   forestSchoolDelivery: "./assets/bg-level1-schoolyard.png",
 };
@@ -118,7 +118,7 @@ const backgroundSourceCandidates = {
   deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/bg/nessie_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
   appleValleyEntrance: ["./assets/bg/apple_valley_entrance.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
-  harvestOrchard: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
+  harvestOrchard: ["./assets/bg/harvest_orchard.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   basketSortingStation: ["./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
   forestSchoolDelivery: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
 };
@@ -3131,6 +3131,14 @@ function drawPearlSwitch(obstacle) {
 
 const ART_PACK_PROP_KEYS = {
   apple: "apple",
+  redApple: "redApple",
+  greenApple: "greenApple",
+  goldenApple: "goldenApple",
+  appleBasket: "appleBasket",
+  giftAppleBasket: "giftAppleBasket",
+  appleCart: "appleCart",
+  harvestBadge: "harvestBadge",
+  autumnLeaf: "autumnLeaf",
   book: "book",
   pencil: "pencil",
   leaf: "leafBroom",
@@ -3166,6 +3174,7 @@ const ART_PACK_OBSTACLE_KEYS = {
   pond: "pond",
   bush: "bush",
   pit: "pit",
+  appleTree: "appleTree",
   stump: "stump",
   rock: "rock",
   moonPillar: "moonPillar",
@@ -3186,8 +3195,8 @@ const ART_PACK_NPC_KEYS = {
   firefly: "firefly",
   owl: "owlPrincipal",
   owlPrincipal: "owlPrincipal",
-  birdPostman: "seagullScout",
-  moleFarmer: "nono",
+  birdPostman: "birdPostman",
+  moleFarmer: "moleFarmer",
   otter: "otterPostman",
   frog: "frogTeacher",
   seagull: "seagullScout",
@@ -3236,6 +3245,14 @@ const NPC_VISUAL_OFFSETS = {
 
 const ART_PACK_ITEM_BOUNDS = {
   apple: { x: -24, y: -28, w: 48, h: 48 },
+  redApple: { x: -24, y: -28, w: 48, h: 48 },
+  greenApple: { x: -24, y: -28, w: 48, h: 48 },
+  goldenApple: { x: -24, y: -28, w: 48, h: 48 },
+  appleBasket: { x: -34, y: -34, w: 68, h: 68 },
+  giftAppleBasket: { x: -36, y: -36, w: 72, h: 72 },
+  appleCart: { x: -46, y: -38, w: 92, h: 76 },
+  harvestBadge: { x: -28, y: -30, w: 56, h: 56 },
+  autumnLeaf: { x: -24, y: -24, w: 48, h: 48 },
   book: { x: -27, y: -29, w: 54, h: 54 },
   pencil: { x: -24, y: -11, w: 48, h: 22 },
   leaf: { x: -23, y: -23, w: 46, h: 46 },
@@ -3275,6 +3292,7 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   pond: (r) => ({ x: -r * 1.72, y: -r * 0.98, w: r * 3.44, h: r * 1.96 }),
   bush: (r) => ({ x: -r * 1.08, y: -r * 0.96, w: r * 2.16, h: r * 1.92 }),
   pit: (r) => ({ x: -r * 1.2, y: -r * 0.82, w: r * 2.4, h: r * 1.64 }),
+  appleTree: (r) => ({ x: -r * 1.95, y: -r * 2.25, w: r * 3.9, h: r * 3.9 }),
   stump: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
   rock: (r) => ({ x: -r, y: -r, w: r * 2, h: r * 2 }),
   moonPillar: (r) => ({ x: -r * 1.35, y: -r * 1.85, w: r * 2.7, h: r * 2.7 }),
@@ -4239,6 +4257,7 @@ function drawTinyApple(x, y, color) {
 }
 
 function drawAppleCart() {
+  if (drawArtPackImage("props", "appleCart", -46, -38, 92, 76)) return;
   drawItemShadow(0, 25, 32, 7);
   ctx.strokeStyle = "#6b3b20";
   ctx.lineWidth = 5;
