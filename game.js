@@ -32,9 +32,16 @@ const dialogueNextBtn = document.getElementById("dialogueNextBtn");
 const dialogueGiveBtn = document.getElementById("dialogueGiveBtn");
 const dialogueQuizBtn = document.getElementById("dialogueQuizBtn");
 const dialogueBtn = document.getElementById("dialogueBtn");
+const storybookPanel = document.getElementById("storybookPanel");
+const storybookImage = document.getElementById("storybookImage");
+const storybookTitle = document.getElementById("storybookTitle");
+const storybookCaption = document.getElementById("storybookCaption");
+const storybookCloseBtn = document.getElementById("storybookCloseBtn");
+const storybookStartBtn = document.getElementById("storybookStartBtn");
 const scoreSummaryPanel = document.getElementById("scoreSummaryPanel");
 const scoreSummaryTitle = document.getElementById("scoreSummaryTitle");
 const scoreSummarySubtitle = document.getElementById("scoreSummarySubtitle");
+const scoreSummaryStorybookImage = document.getElementById("scoreSummaryStorybookImage");
 const scoreSummaryStats = document.getElementById("scoreSummaryStats");
 const scoreSummaryCloseBtn = document.getElementById("scoreSummaryCloseBtn");
 const scoreContinueBtn = document.getElementById("scoreContinueBtn");
@@ -57,6 +64,14 @@ const text = {
   timeUp: "\u65f6\u95f4\u5230\u5566\uff0c\u518d\u8bd5\u4e00\u6b21\u3002",
   allDone: "\u5927 Boss \u88ab\u6253\u8d25\u5566\uff0c\u68ee\u6797\u5b66\u6821\u6062\u590d\u660e\u4eae\uff01",
 };
+
+const storybookPages = Array.from({ length: 10 }, (_, index) => {
+  const page = String(index + 1).padStart(2, "0");
+  return `./assets/storybook/storybook-page-${page}.png`;
+});
+const STORYBOOK_FALLBACK_PAGE = "./assets/storybook/fallback.png";
+const storybookIntroPages = storybookPages.slice(1, -1);
+const storybookVictoryPages = [storybookPages[0], storybookPages[storybookPages.length - 1]];
 
 const backgroundSources = {
   schoolyard: "./assets/bg-level1-schoolyard.png",
@@ -392,6 +407,7 @@ const touchDirs = new Set();
 let lastFrame = performance.now();
 let state;
 let gameEntered = false;
+let storybookIntroSeen = false;
 let selectedRole = localStorage.getItem("catsOwlRole") || "cat";
 
 const DIFFICULTY_STORAGE_KEY = "catsOwlDifficulty";
@@ -1260,6 +1276,8 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeDialogue: null,
     nearbyTask: null,
     nearbyAppleTree: null,
+    storybookIntroPage: randomStorybookPage(storybookIntroPages),
+    storybookVictoryPage: randomStorybookPage(storybookVictoryPages),
     shake: 0,
     player: { x: level.start.x, y: level.start.y, vx: 0, vy: 0, dir: 1, step: 0 },
     collectibles: level.collectibles.map((entry) => ({ ...entry })),
@@ -1369,6 +1387,38 @@ function levelTimeForDifficulty(level) {
 function difficultyLabel() {
   const settings = difficultySettings();
   return `${settings.icon} ${settings.label}`;
+}
+
+function randomStorybookPage(pages) {
+  return pages[Math.floor(Math.random() * pages.length)] || STORYBOOK_FALLBACK_PAGE;
+}
+
+function setStorybookImage(image, src) {
+  if (!image) return;
+  image.onerror = () => {
+    image.onerror = null;
+    image.src = STORYBOOK_FALLBACK_PAGE;
+  };
+  image.src = src || STORYBOOK_FALLBACK_PAGE;
+}
+
+function showStorybookIntroPage() {
+  if (!storybookPanel || !storybookImage || !state) return;
+  const pageName = dayNames[state.levelIndex] || `第${state.levelIndex + 1}天`;
+  setStorybookImage(storybookImage, state.storybookIntroPage);
+  storybookTitle.textContent = `${pageName}开场`;
+  storybookCaption.textContent = "读完这一页，再开始任务。";
+  storybookStartBtn.textContent = "开始任务";
+  storybookPanel.hidden = false;
+}
+
+function closeStorybookPage(shouldStart = false) {
+  if (!storybookPanel) return;
+  storybookPanel.hidden = true;
+  if (shouldStart) {
+    storybookIntroSeen = true;
+    startGame();
+  }
 }
 
 function applyTimePenalty(kind, x, y) {
@@ -1485,6 +1535,10 @@ function showScoreSummaryPanel(settlement, options = {}) {
   const failed = Boolean(options.failed);
   scoreSummaryTitle.textContent = failed ? "疯狂挑战失败" : "关卡完成";
   scoreSummarySubtitle.textContent = `${playerProfile.nickname} · ${levelDisplayName()} · ${difficultyLabel()}`;
+  if (scoreSummaryStorybookImage) {
+    scoreSummaryStorybookImage.hidden = failed;
+    setStorybookImage(scoreSummaryStorybookImage, failed ? STORYBOOK_FALLBACK_PAGE : state.storybookVictoryPage);
+  }
   scoreSummaryStats.replaceChildren();
   addPanelStat(scoreSummaryStats, "昵称", playerProfile.nickname);
   addPanelStat(scoreSummaryStats, "当前关卡", levelDisplayName());
@@ -1573,6 +1627,7 @@ function clearLocalScoreRecords() {
 
 function startGame() {
   gameEntered = true;
+  storybookIntroSeen = true;
   preloadNearbyBackgrounds(state.levelIndex);
   initAudio();
   if (state.running) {
@@ -1608,6 +1663,7 @@ function enterGame() {
   homeScreen.classList.add("is-hidden");
   const roleName = PLAYER_DISPLAY_NAMES[selectedRole] || PLAYER_DISPLAY_NAMES.cat;
   messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c ${roleName} \u4e00\u8d77\u51fa\u53d1\u3002`;
+  if (!storybookIntroSeen) showStorybookIntroPage();
 }
 
 function initAudio() {
@@ -5597,6 +5653,8 @@ dialogueCloseBtn?.addEventListener("click", closeDialogue);
 dialogueNextBtn?.addEventListener("click", nextDialogueLine);
 dialogueGiveBtn?.addEventListener("click", finishDialogueDelivery);
 dialogueQuizBtn?.addEventListener("click", startDialogueQuiz);
+storybookCloseBtn?.addEventListener("click", () => closeStorybookPage(false));
+storybookStartBtn?.addEventListener("click", () => closeStorybookPage(true));
 
 document.querySelectorAll("[data-dir]").forEach((button) => {
   const dir = button.dataset.dir;

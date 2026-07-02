@@ -505,6 +505,84 @@ canvas {
   color: #7a3b1d;
 }
 
+.storybook-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(36, 65, 52, 0.34);
+}
+
+.storybook-panel[hidden] {
+  display: none;
+}
+
+.storybook-card {
+  position: relative;
+  width: min(430px, 92%);
+  max-height: calc(100% - 8px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 3px solid rgba(79, 139, 56, 0.24);
+  background: rgba(255, 247, 223, 0.98);
+  box-shadow: 0 18px 42px rgba(36, 65, 52, 0.3);
+}
+
+.storybook-copy {
+  display: grid;
+  gap: 3px;
+  padding-right: 40px;
+}
+
+.storybook-copy strong {
+  color: #3f8a2f;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.storybook-copy span {
+  color: #5f765f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.storybook-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fffef8;
+}
+
+.storybook-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(244, 106, 92, 0.14);
+  color: #9b3f35;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.storybook-start {
+  min-height: 46px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff18a, #ffd75e);
+  color: #7a3b1d;
+  border: 2px solid rgba(139, 91, 43, 0.18);
+  font-size: 17px;
+  font-weight: 900;
+}
+
 .score-summary-panel,
 .run-history-panel {
   position: fixed;
@@ -572,6 +650,21 @@ canvas {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.score-summary-storybook {
+  width: min(260px, 100%);
+  max-height: 210px;
+  display: block;
+  object-fit: contain;
+  margin: 0 auto 12px;
+  border-radius: 8px;
+  background: #fffef8;
+  border: 2px solid rgba(79, 139, 56, 0.14);
+}
+
+.score-summary-storybook[hidden] {
+  display: none;
 }
 
 .score-summary-stats > div {

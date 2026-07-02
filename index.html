@@ -89,6 +89,17 @@
               </div>
             </div>
           </div>
+          <div id="storybookPanel" class="storybook-panel" hidden>
+            <div class="storybook-card">
+              <button id="storybookCloseBtn" class="storybook-close" type="button" aria-label="关闭绘本页">×</button>
+              <div class="storybook-copy">
+                <strong id="storybookTitle">今日绘本</strong>
+                <span id="storybookCaption">读完这一页，再开始任务。</span>
+              </div>
+              <img id="storybookImage" src="./assets/storybook/fallback.png" alt="Cats & Owl's Diary 绘本页" decoding="async" />
+              <button id="storybookStartBtn" class="storybook-start" type="button">开始任务</button>
+            </div>
+          </div>
         </div>
 
         <div class="controls" aria-label="移动按钮">
@@ -127,6 +138,7 @@
           </div>
           <button id="scoreSummaryCloseBtn" class="score-summary-close" type="button" aria-label="关闭结算">×</button>
         </header>
+        <img id="scoreSummaryStorybookImage" class="score-summary-storybook" src="./assets/storybook/fallback.png" alt="Cats & Owl's Diary 通关绘本页" decoding="async" />
         <div id="scoreSummaryStats" class="score-summary-stats"></div>
         <div class="score-summary-actions">
           <button id="scoreContinueBtn" type="button">继续下一关</button>
