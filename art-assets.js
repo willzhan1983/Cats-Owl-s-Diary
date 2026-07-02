@@ -44,7 +44,7 @@
     redApple: "assets/items/red_apple.png",
     greenApple: "assets/items/green_apple.png",
     goldenApple: "assets/items/golden_apple.png",
-    appleBasket: "assets/items/apple_basket.png",
+    appleBasket: "assets/items/apple_basket_alt.png",
     giftAppleBasket: "assets/items/gift_apple_basket.png",
     harvestBadge: "assets/items/harvest_badge.png",
     appleCart: "assets/items/apple_cart.png",
