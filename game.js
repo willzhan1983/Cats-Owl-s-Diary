@@ -92,7 +92,7 @@ const backgroundSources = {
   underwaterGarden: "./assets/bg/underwater_garden.png",
   deepSeaRuins: "./assets/bg/deep_sea_ruins.png",
   nessieLair: "./assets/bg/nessie_lair.png",
-  appleValleyEntrance: "./assets/bg-level2-forest.png",
+  appleValleyEntrance: "./assets/bg/apple_valley_entrance.png",
   harvestOrchard: "./assets/bg-level2-forest.png",
   basketSortingStation: "./assets/bg-level1-schoolyard.png",
   forestSchoolDelivery: "./assets/bg-level1-schoolyard.png",
@@ -117,7 +117,7 @@ const backgroundSourceCandidates = {
   underwaterGarden: ["./assets/bg/underwater_garden.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
   deepSeaRuins: ["./assets/bg/deep_sea_ruins.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   nessieLair: ["./assets/bg/nessie_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
-  appleValleyEntrance: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
+  appleValleyEntrance: ["./assets/bg/apple_valley_entrance.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   harvestOrchard: ["./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   basketSortingStation: ["./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
   forestSchoolDelivery: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
@@ -2715,6 +2715,15 @@ function draw() {
   ctx.restore();
 }
 
+function drawCoverImage(image, x, y, width, height) {
+  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
+  const sourceWidth = width / scale;
+  const sourceHeight = height / scale;
+  const sourceX = (image.naturalWidth - sourceWidth) / 2;
+  const sourceY = (image.naturalHeight - sourceHeight) / 2;
+  ctx.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+}
+
 function drawBackground() {
   const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
   sky.addColorStop(0, "#dff5f6");
@@ -2726,7 +2735,7 @@ function drawBackground() {
   const image = gameEntered ? ensureBackground(levelBackgroundKey(levels[state.levelIndex])) : null;
   if (image && image.complete && image.naturalWidth) {
     ctx.save();
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    drawCoverImage(image, 0, 0, canvas.width, canvas.height);
     ctx.restore();
   } else if (levels[state.levelIndex]?.world === "moonlight_lake") {
     drawMoonlightLakeFallbackBackground();
