@@ -69,6 +69,7 @@ const storybookPages = Array.from({ length: 10 }, (_, index) => {
   const page = String(index + 1).padStart(2, "0");
   return `./assets/storybook/storybook-page-${page}.png`;
 });
+const STORYBOOK_FALLBACK_PAGE = "./assets/storybook/fallback.png";
 const storybookIntroPages = storybookPages.slice(1, -1);
 const storybookVictoryPages = [storybookPages[0], storybookPages[storybookPages.length - 1]];
 
@@ -406,6 +407,7 @@ const touchDirs = new Set();
 let lastFrame = performance.now();
 let state;
 let gameEntered = false;
+let storybookIntroSeen = false;
 let selectedRole = localStorage.getItem("catsOwlRole") || "cat";
 
 const DIFFICULTY_STORAGE_KEY = "catsOwlDifficulty";
@@ -1274,7 +1276,6 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeDialogue: null,
     nearbyTask: null,
     nearbyAppleTree: null,
-    introSeen: false,
     storybookIntroPage: randomStorybookPage(storybookIntroPages),
     storybookVictoryPage: randomStorybookPage(storybookVictoryPages),
     shake: 0,
@@ -1389,13 +1390,22 @@ function difficultyLabel() {
 }
 
 function randomStorybookPage(pages) {
-  return pages[Math.floor(Math.random() * pages.length)] || storybookPages[0];
+  return pages[Math.floor(Math.random() * pages.length)] || STORYBOOK_FALLBACK_PAGE;
+}
+
+function setStorybookImage(image, src) {
+  if (!image) return;
+  image.onerror = () => {
+    image.onerror = null;
+    image.src = STORYBOOK_FALLBACK_PAGE;
+  };
+  image.src = src || STORYBOOK_FALLBACK_PAGE;
 }
 
 function showStorybookIntroPage() {
   if (!storybookPanel || !storybookImage || !state) return;
   const pageName = dayNames[state.levelIndex] || `第${state.levelIndex + 1}天`;
-  storybookImage.src = state.storybookIntroPage;
+  setStorybookImage(storybookImage, state.storybookIntroPage);
   storybookTitle.textContent = `${pageName}开场`;
   storybookCaption.textContent = "读完这一页，再开始任务。";
   storybookStartBtn.textContent = "开始任务";
@@ -1405,8 +1415,10 @@ function showStorybookIntroPage() {
 function closeStorybookPage(shouldStart = false) {
   if (!storybookPanel) return;
   storybookPanel.hidden = true;
-  if (state) state.introSeen = true;
-  if (shouldStart) startGame();
+  if (shouldStart) {
+    storybookIntroSeen = true;
+    startGame();
+  }
 }
 
 function applyTimePenalty(kind, x, y) {
@@ -1525,7 +1537,7 @@ function showScoreSummaryPanel(settlement, options = {}) {
   scoreSummarySubtitle.textContent = `${playerProfile.nickname} · ${levelDisplayName()} · ${difficultyLabel()}`;
   if (scoreSummaryStorybookImage) {
     scoreSummaryStorybookImage.hidden = failed;
-    scoreSummaryStorybookImage.src = failed ? "" : state.storybookVictoryPage;
+    setStorybookImage(scoreSummaryStorybookImage, failed ? STORYBOOK_FALLBACK_PAGE : state.storybookVictoryPage);
   }
   scoreSummaryStats.replaceChildren();
   addPanelStat(scoreSummaryStats, "昵称", playerProfile.nickname);
@@ -1615,11 +1627,11 @@ function clearLocalScoreRecords() {
 
 function startGame() {
   gameEntered = true;
+  storybookIntroSeen = true;
   preloadNearbyBackgrounds(state.levelIndex);
   initAudio();
   if (state.running) {
     resetGame(state.levelIndex, state.levelIndex > 0);
-    state.introSeen = true;
     state.running = true;
     startBtn.textContent = text.restart;
     messageEl.textContent = text.move;
@@ -1638,11 +1650,6 @@ function startGame() {
     resetGame(0, false);
   }
 
-  if (!state.introSeen) {
-    showStorybookIntroPage();
-    return;
-  }
-
   state.running = true;
   state.levelClear = false;
   startBtn.textContent = text.restart;
@@ -1656,7 +1663,7 @@ function enterGame() {
   homeScreen.classList.add("is-hidden");
   const roleName = PLAYER_DISPLAY_NAMES[selectedRole] || PLAYER_DISPLAY_NAMES.cat;
   messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c ${roleName} \u4e00\u8d77\u51fa\u53d1\u3002`;
-  showStorybookIntroPage();
+  if (!storybookIntroSeen) showStorybookIntroPage();
 }
 
 function initAudio() {

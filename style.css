@@ -663,8 +663,7 @@ canvas {
   border: 2px solid rgba(79, 139, 56, 0.14);
 }
 
-.score-summary-storybook[hidden],
-.score-summary-storybook[src=""] {
+.score-summary-storybook[hidden] {
   display: none;
 }
 
