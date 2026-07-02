@@ -94,8 +94,8 @@ const backgroundSources = {
   nessieLair: "./assets/bg/nessie_lair.png",
   appleValleyEntrance: "./assets/bg/apple_valley_entrance.png",
   harvestOrchard: "./assets/bg/harvest_orchard.png",
-  basketSortingStation: "./assets/bg-level1-schoolyard.png",
-  forestSchoolDelivery: "./assets/bg-level1-schoolyard.png",
+  basketSortingStation: "./assets/bg/basket_sorting_station.png",
+  forestSchoolDelivery: "./assets/bg/forest_school_apple_delivery.png",
 };
 
 const backgroundSourceCandidates = {
@@ -119,8 +119,8 @@ const backgroundSourceCandidates = {
   nessieLair: ["./assets/bg/nessie_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
   appleValleyEntrance: ["./assets/bg/apple_valley_entrance.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   harvestOrchard: ["./assets/bg/harvest_orchard.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
-  basketSortingStation: ["./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
-  forestSchoolDelivery: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
+  basketSortingStation: ["./assets/bg/basket_sorting_station.png", "./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
+  forestSchoolDelivery: ["./assets/bg/forest_school_apple_delivery.png", "./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
 };
 
 const backgrounds = {};
