@@ -363,7 +363,7 @@ const WORLD_MAP = {
     id: "apple_valley",
     name: "苹果谷",
     background: "appleValleyEntrance",
-    levels: [],
+    levels: [12, 13, 14, 15],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
 };

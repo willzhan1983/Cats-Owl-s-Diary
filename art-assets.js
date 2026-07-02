@@ -41,6 +41,10 @@
     aquaGem: "assets/items/aqua_gem.png",
     deepRune: "assets/items/deep_rune.png",
     moonPearl: "assets/items/moon_pearl.png",
+    redApple: "assets/asset-pack-01/props/apple.png",
+    greenApple: "assets/asset-pack-01/props/apple.png",
+    goldenApple: "assets/asset-pack-01/props/apple.png",
+    appleBasket: "assets/asset-pack-01/props/apple.png",
   };
 
   const registry = {
