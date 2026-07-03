@@ -1115,7 +1115,6 @@ const levels = [
     collectibles: [
       item(224, 360, "giftAppleBasket", "礼物果篮"),
       item(612, 164, "harvestBadge", "丰收徽章"),
-      item(820, 410, "potion", "\u7231\u5fc3\u836f\u6c34"),
     ],
     tasks: [
       delivery(736, 210, "猫头鹰校长", "owlPrincipal", "giftAppleBasket", "把礼物果篮护送到猫头鹰校长这里。"),
@@ -1134,7 +1133,6 @@ const levels = [
     ],
     obstacles: [
       { type: "bush", x: 386, y: 420, r: 32 },
-      { type: "pit", x: 676, y: 284, r: 25 },
     ],
     escortCart: { type: "appleCart", x: 468, y: 336, active: false },
   },
