@@ -57,11 +57,19 @@ button {
   object-fit: cover;
 }
 
-.enter-btn {
+.home-menu {
   position: absolute;
-  left: min(66%, calc(100% - 170px));
+  left: min(74%, calc(100% - 230px));
   bottom: clamp(24px, 6vw, 68px);
   transform: translateX(-50%);
+  display: flex;
+  width: min(480px, calc(100vw - 28px));
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.enter-btn {
   min-width: 156px;
   min-height: 50px;
   padding: 0 24px;
@@ -75,10 +83,6 @@ button {
 }
 
 .role-picker {
-  position: absolute;
-  left: min(66%, calc(100% - 170px));
-  bottom: calc(clamp(24px, 6vw, 68px) + 76px);
-  transform: translateX(-50%);
   display: flex;
   gap: 8px;
   padding: 7px;
@@ -88,14 +92,10 @@ button {
 }
 
 .player-profile {
-  position: absolute;
-  left: min(66%, calc(100% - 170px));
-  bottom: calc(clamp(24px, 6vw, 68px) + 154px);
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 8px;
-  width: min(286px, calc(100vw - 28px));
+  width: min(520px, 100%);
   padding: 6px 8px;
   border-radius: 10px;
   background: rgba(255, 247, 223, 0.62);
@@ -136,10 +136,6 @@ button {
 }
 
 .records-home-btn {
-  position: absolute;
-  left: min(66%, calc(100% - 170px));
-  bottom: calc(clamp(24px, 6vw, 68px) + 194px);
-  transform: translateX(-50%);
   min-width: 128px;
   min-height: 32px;
   padding: 0 12px;
@@ -152,7 +148,7 @@ button {
 }
 
 .enter-btn:active {
-  transform: translateX(-50%) translateY(1px);
+  transform: translateY(1px);
 }
 
 .game-shell {
@@ -1140,9 +1136,14 @@ button {
     object-fit: cover;
   }
 
-  .enter-btn {
-    left: min(70%, calc(100% - 94px));
+  .home-menu {
+    left: min(76%, calc(100% - 92px));
     bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(336px, 46vw);
+    gap: 12px;
+  }
+
+  .enter-btn {
     min-width: 136px;
     min-height: 42px;
     padding: 0 18px;
@@ -1150,16 +1151,12 @@ button {
   }
 
   .role-picker {
-    left: min(70%, calc(100% - 112px));
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 54px);
     gap: 7px;
     padding: 6px;
   }
 
   .player-profile {
-    left: min(70%, calc(100% - 112px));
-    bottom: calc(max(12px, env(safe-area-inset-bottom)) + 140px);
-    width: min(360px, 56vw);
+    width: 100%;
     padding: 6px 8px;
     font-size: 12px;
   }

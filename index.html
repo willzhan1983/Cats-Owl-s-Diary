@@ -13,25 +13,27 @@
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
       <img src="./assets/home-screen-fast.jpg?v=new-cover-20260626" alt="Cats & Owl's Diary 森林学校首页" decoding="async" fetchpriority="high" />
-      <div class="difficulty-picker" aria-label="选择难度">
-        <div class="difficulty-picker-title">选择难度 · 影响时间和扣时</div>
-        <div class="difficulty-buttons">
-          <button class="difficulty-btn" data-difficulty="easy" type="button">🌱 简单</button>
-          <button class="difficulty-btn" data-difficulty="normal" type="button">🌼 普通</button>
-          <button class="difficulty-btn" data-difficulty="hard" type="button">🔥 困难</button>
-          <button class="difficulty-btn" data-difficulty="crazy" type="button">👑 疯狂</button>
+      <div class="home-menu">
+        <button id="homeRecordsBtn" class="records-home-btn" type="button">📘 我的记录</button>
+        <label class="player-profile" for="nicknameInput">
+          <span>玩家昵称</span>
+          <input id="nicknameInput" type="text" maxlength="24" autocomplete="nickname" />
+        </label>
+        <div class="difficulty-picker" aria-label="选择难度">
+          <div class="difficulty-picker-title">选择难度 · 影响时间和扣时</div>
+          <div class="difficulty-buttons">
+            <button class="difficulty-btn" data-difficulty="easy" type="button">🌱 简单</button>
+            <button class="difficulty-btn" data-difficulty="normal" type="button">🌼 普通</button>
+            <button class="difficulty-btn" data-difficulty="hard" type="button">🔥 困难</button>
+            <button class="difficulty-btn" data-difficulty="crazy" type="button">👑 疯狂</button>
+          </div>
         </div>
+        <div class="role-picker" aria-label="选择角色">
+          <button class="role-btn is-selected" data-role="cat" type="button">Mimi / 詹涞儿</button>
+          <button class="role-btn" data-role="owl" type="button">Owlly / 姚头鹰</button>
+        </div>
+        <button id="enterBtn" class="enter-btn" type="button">进入游戏</button>
       </div>
-      <label class="player-profile" for="nicknameInput">
-        <span>玩家昵称</span>
-        <input id="nicknameInput" type="text" maxlength="24" autocomplete="nickname" />
-      </label>
-      <div class="role-picker" aria-label="选择角色">
-        <button class="role-btn is-selected" data-role="cat" type="button">Mimi / 詹涞儿</button>
-        <button class="role-btn" data-role="owl" type="button">Owlly / 姚头鹰</button>
-      </div>
-      <button id="homeRecordsBtn" class="records-home-btn" type="button">📘 我的记录</button>
-      <button id="enterBtn" class="enter-btn" type="button">进入游戏</button>
     </section>
 
     <main class="game-shell">

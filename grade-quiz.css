@@ -44,6 +44,14 @@
   transform: translateY(1px);
 }
 
+.home-menu .difficulty-picker {
+  position: static;
+  left: auto;
+  bottom: auto;
+  width: min(520px, 100%);
+  transform: none;
+}
+
 @media (max-width: 920px) and (orientation: landscape) {
   .difficulty-picker {
     left: min(70%, calc(100% - 112px));
@@ -66,6 +74,10 @@
     border-radius: 7px;
     font-size: 12px;
   }
+
+  .home-menu .difficulty-picker {
+    width: 100%;
+  }
 }
 
 @media (max-width: 560px) and (orientation: portrait) {
@@ -77,5 +89,9 @@
 
   .difficulty-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-menu .difficulty-picker {
+    width: min(360px, 100%);
   }
 }
