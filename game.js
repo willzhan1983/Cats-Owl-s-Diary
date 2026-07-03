@@ -3129,6 +3129,9 @@ const ART_PACK_PROP_KEYS = {
   goldenApple: "goldenApple",
   appleBasket: "appleBasket",
   giftAppleBasket: "giftAppleBasket",
+  redAppleBasket: "redAppleBasket",
+  greenAppleBasket: "greenAppleBasket",
+  giftAppleBasket2: "giftAppleBasket2",
   appleCart: "appleCart",
   harvestBadge: "harvestBadge",
   autumnLeaf: "autumnLeaf",
@@ -3244,6 +3247,9 @@ const ART_PACK_ITEM_BOUNDS = {
   goldenApple: { x: -24, y: -28, w: 48, h: 48 },
   appleBasket: { x: -34, y: -34, w: 68, h: 68 },
   giftAppleBasket: { x: -36, y: -36, w: 72, h: 72 },
+  redAppleBasket: { x: -42, y: -42, w: 84, h: 84 },
+  greenAppleBasket: { x: -42, y: -42, w: 84, h: 84 },
+  giftAppleBasket2: { x: -44, y: -44, w: 88, h: 88 },
   appleCart: { x: -46, y: -38, w: 92, h: 76 },
   harvestBadge: { x: -28, y: -30, w: 56, h: 56 },
   autumnLeaf: { x: -24, y: -24, w: 48, h: 48 },
@@ -5359,6 +5365,13 @@ function drawAppleTree(tree) {
 }
 
 function drawSortBasket(kind) {
+  const imageKey = {
+    redBasket: "redAppleBasket",
+    greenBasket: "greenAppleBasket",
+    giftBasket: "giftAppleBasket2",
+  }[kind];
+  if (imageKey && drawPropImage(ctx, imageKey, -44, -44, 88, 88)) return;
+
   const color =
     kind === "redBasket" ? "#e84b3f" : kind === "greenBasket" ? "#6fb447" : kind === "giftBasket" ? "#ffd94a" : "#b86b32";
   ctx.save();
