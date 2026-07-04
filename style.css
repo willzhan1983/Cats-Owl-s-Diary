@@ -59,14 +59,14 @@ button {
 
 .home-menu {
   position: absolute;
-  left: min(74%, calc(100% - 230px));
+  left: min(70%, calc(100% - 270px));
   bottom: clamp(24px, 6vw, 68px);
   transform: translateX(-50%);
   display: flex;
-  width: min(480px, calc(100vw - 28px));
+  width: min(520px, calc(100vw - 44px));
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .enter-btn {
@@ -84,7 +84,9 @@ button {
 
 .role-picker {
   display: flex;
+  width: min(520px, 100%);
   gap: 8px;
+  justify-content: center;
   padding: 7px;
   border-radius: 10px;
   background: rgba(255, 247, 223, 0.68);
@@ -118,6 +120,7 @@ button {
 }
 
 .role-btn {
+  flex: 1;
   min-width: 108px;
   min-height: 36px;
   padding: 0 12px;
@@ -1137,10 +1140,10 @@ button {
   }
 
   .home-menu {
-    left: min(76%, calc(100% - 92px));
+    left: min(76%, calc(100% - 210px));
     bottom: max(12px, env(safe-area-inset-bottom));
-    width: min(336px, 46vw);
-    gap: 12px;
+    width: min(380px, calc(100vw - 44px));
+    gap: 14px;
   }
 
   .enter-btn {
