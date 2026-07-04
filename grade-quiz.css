@@ -4,7 +4,7 @@
   bottom: calc(clamp(24px, 6vw, 68px) + 102px);
   transform: translateX(-50%);
   width: min(332px, calc(100vw - 28px));
-  padding: 7px 8px 8px;
+  padding: 10px 10px 11px;
   border-radius: 11px;
   background: rgba(255, 247, 223, 0.62);
   box-shadow: 0 12px 28px rgba(39, 65, 52, 0.2);
@@ -12,7 +12,7 @@
 }
 
 .difficulty-picker-title {
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   color: #34563e;
   font-size: 12px;
   font-weight: 900;
@@ -21,11 +21,11 @@
 .difficulty-buttons {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 5px;
+  gap: 8px;
 }
 
 .difficulty-btn {
-  min-height: 29px;
+  min-height: 34px;
   border-radius: 8px;
   border: 2px solid rgba(79, 139, 56, 0.18);
   background: rgba(255, 255, 255, 0.84);
@@ -44,27 +44,39 @@
   transform: translateY(1px);
 }
 
+.home-menu .difficulty-picker {
+  position: static;
+  left: auto;
+  bottom: auto;
+  width: min(520px, 100%);
+  transform: none;
+}
+
 @media (max-width: 920px) and (orientation: landscape) {
   .difficulty-picker {
     left: min(70%, calc(100% - 112px));
     bottom: calc(max(12px, env(safe-area-inset-bottom)) + 98px);
     width: min(430px, 58vw);
-    padding: 7px 8px 8px;
+    padding: 9px 10px 10px;
   }
 
   .difficulty-picker-title {
-    margin-bottom: 5px;
+    margin-bottom: 9px;
     font-size: 12px;
   }
 
   .difficulty-buttons {
-    gap: 5px;
+    gap: 7px;
   }
 
   .difficulty-btn {
-    min-height: 29px;
+    min-height: 33px;
     border-radius: 7px;
     font-size: 12px;
+  }
+
+  .home-menu .difficulty-picker {
+    width: 100%;
   }
 }
 
@@ -77,5 +89,9 @@
 
   .difficulty-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-menu .difficulty-picker {
+    width: min(360px, 100%);
   }
 }
