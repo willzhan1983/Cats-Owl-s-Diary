@@ -69,6 +69,13 @@ button {
   gap: 16px;
 }
 
+.home-top-row {
+  display: flex;
+  width: min(520px, 100%);
+  align-items: center;
+  gap: 8px;
+}
+
 .enter-btn {
   min-width: 156px;
   min-height: 50px;
@@ -97,7 +104,8 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: min(520px, 100%);
+  min-width: 0;
+  flex: 1;
   padding: 6px 8px;
   border-radius: 10px;
   background: rgba(255, 247, 223, 0.62);
@@ -139,6 +147,7 @@ button {
 }
 
 .records-home-btn {
+  flex: 0 0 auto;
   min-width: 128px;
   min-height: 32px;
   padding: 0 12px;
@@ -1134,16 +1143,21 @@ button {
   }
 }
 
-@media (max-width: 920px) and (orientation: landscape) {
+@media (max-width: 1100px) and (orientation: landscape) {
   .home-screen img {
     object-fit: cover;
   }
 
   .home-menu {
-    left: min(76%, calc(100% - 210px));
+    left: min(80%, calc(100% - 174px));
     bottom: max(12px, env(safe-area-inset-bottom));
-    width: min(380px, calc(100vw - 44px));
-    gap: 14px;
+    width: min(340px, calc(100vw - 44px));
+    gap: 11px;
+  }
+
+  .home-top-row {
+    width: 100%;
+    gap: 7px;
   }
 
   .enter-btn {
@@ -1159,7 +1173,6 @@ button {
   }
 
   .player-profile {
-    width: 100%;
     padding: 6px 8px;
     font-size: 12px;
   }
@@ -1168,11 +1181,34 @@ button {
     height: 28px;
   }
 
+  .records-home-btn {
+    min-width: 108px;
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
   .role-btn {
-    min-width: 94px;
+    min-width: 0;
     min-height: 34px;
     padding: 0 10px;
     font-size: 13px;
   }
 
+}
+
+@media (max-width: 820px) and (orientation: landscape) {
+  .home-menu {
+    left: min(82%, calc(100% - 154px));
+    width: min(300px, calc(100vw - 36px));
+  }
+
+  .records-home-btn {
+    min-width: 96px;
+    padding: 0 8px;
+  }
+
+  .player-profile {
+    gap: 6px;
+  }
 }
