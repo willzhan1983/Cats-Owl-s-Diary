@@ -41,6 +41,7 @@
     aquaGem: "assets/items/aqua_gem.png",
     deepRune: "assets/items/deep_rune.png",
     moonPearl: "assets/items/moon_pearl.png",
+    pearlCrown: "assets/items/pearl_crown.png",
     redApple: "assets/items/red_apple.png",
     greenApple: "assets/items/green_apple.png",
     goldenApple: "assets/items/golden_apple.png",
@@ -52,6 +53,13 @@
     harvestBadge: "assets/items/harvest_badge.png",
     appleCart: "assets/items/apple_cart.png",
     autumnLeaf: "assets/items/autumn_leaf.png",
+    roadBranchPile: "assets/props/road_branch_pile.png",
+    leafPile: "assets/props/leaf_pile.png",
+    roadStonePile: "assets/props/road_stone_pile.png",
+    directionSign: "assets/props/direction_sign.png",
+    signPiece: "assets/props/sign_piece.png",
+    safeFlag: "assets/props/safe_flag.png",
+    trafficLight: "assets/props/traffic_light.png",
   };
 
   const registry = {
@@ -128,6 +136,7 @@
       aquaGem: window.ART_ASSETS.props.aquaGem,
       deepRune: window.ART_ASSETS.props.deepRune,
       moonPearl: window.ART_ASSETS.props.moonPearl,
+      pearlCrown: window.ART_ASSETS.props.pearlCrown,
       redApple: window.ART_ASSETS.props.redApple,
       greenApple: window.ART_ASSETS.props.greenApple,
       goldenApple: window.ART_ASSETS.props.goldenApple,
@@ -139,6 +148,13 @@
       harvestBadge: window.ART_ASSETS.props.harvestBadge,
       appleCart: window.ART_ASSETS.props.appleCart,
       autumnLeaf: window.ART_ASSETS.props.autumnLeaf,
+      roadBranchPile: window.ART_ASSETS.props.roadBranchPile,
+      leafPile: window.ART_ASSETS.props.leafPile,
+      roadStonePile: window.ART_ASSETS.props.roadStonePile,
+      directionSign: window.ART_ASSETS.props.directionSign,
+      signPiece: window.ART_ASSETS.props.signPiece,
+      safeFlag: window.ART_ASSETS.props.safeFlag,
+      trafficLight: window.ART_ASSETS.props.trafficLight,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
