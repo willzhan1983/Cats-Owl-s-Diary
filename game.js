@@ -96,6 +96,7 @@ const backgroundSources = {
   harvestOrchard: "./assets/bg/harvest_orchard.png",
   basketSortingStation: "./assets/bg/basket_sorting_station.png",
   forestSchoolDelivery: "./assets/bg/forest_school_apple_delivery.png",
+  forestRoadEntrance: "./assets/bg/forest_road_entrance.png",
 };
 
 const backgroundSourceCandidates = {
@@ -121,6 +122,7 @@ const backgroundSourceCandidates = {
   harvestOrchard: ["./assets/bg/harvest_orchard.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   basketSortingStation: ["./assets/bg/basket_sorting_station.png", "./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
   forestSchoolDelivery: ["./assets/bg/forest_school_apple_delivery.png", "./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
+  forestRoadEntrance: ["./assets/bg/forest_road_entrance.png", "./assets/v2/v2-bg-city-road.png"],
 };
 
 const backgrounds = {};
@@ -381,6 +383,13 @@ const WORLD_MAP = {
     levels: [12, 13, 14, 15],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  forest_road: {
+    id: "forest_road",
+    name: "森林公路",
+    background: "forestRoadEntrance",
+    levels: [],
+    taskTypes: [TASK_TYPES.FETCH_ITEM],
+  },
 };
 
 const dayNames = [
@@ -400,6 +409,7 @@ const dayNames = [
   "丰收果园",
   "果篮整理站",
   "送给猫头鹰校长",
+  "森林公路入口",
 ];
 
 const keys = new Set();
@@ -1136,6 +1146,22 @@ const levels = [
     ],
     escortCart: { type: "appleCart", x: 468, y: 336, active: false },
   },
+  {
+    name: "森林公路入口",
+    bg: "forestRoadEntrance",
+    world: "forest_road",
+    time: 86,
+    start: { x: 112, y: 430 },
+    message: "森林公路入口被树枝、落叶和小石块挡住了，先试试清理道路。",
+    collectibles: [],
+    tasks: [
+      roadClearTask(248, 346, "树枝堆", "branchPile", "正在清理树枝……", 0.9),
+      roadClearTask(468, 398, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
+      roadClearTask(708, 318, "小石块", "roadStone", "正在搬开小石块……", 1),
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1162,6 +1188,10 @@ levels.forEach((level, index) => {
 
 WORLD_MAP.apple_valley.levels = levels
   .map((level, index) => (level.world === "apple_valley" ? index : -1))
+  .filter((index) => index >= 0);
+
+WORLD_MAP.forest_road.levels = levels
+  .map((level, index) => (level.world === "forest_road" ? index : -1))
   .filter((index) => index >= 0);
 
 function levelBackgroundKey(level) {
@@ -1206,6 +1236,10 @@ function sortBasket(x, y, name, animal, need, speech, reward = null) {
 
 function actionTask(x, y, name, animal, speech) {
   return { x, y, name, animal, speech, kind: "action", done: false, progress: 0 };
+}
+
+function roadClearTask(x, y, name, animal, speech, duration) {
+  return { x, y, name, animal, speech, duration, kind: "road_clear", done: false, progress: 0 };
 }
 
 function quizTask(x, y, name, animal, speech, quiz) {
@@ -2235,6 +2269,16 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "road_clear") {
+      task.progress += dt / (task.duration || 1);
+      messageEl.textContent = task.speech || "正在清理道路……";
+      if (task.progress >= 1) {
+        completeTask(task, task.x, task.y);
+        messageEl.textContent = "道路变干净啦！";
+      }
+      continue;
+    }
+
     if (task.kind === "boss") {
       messageEl.textContent = firstBossWeapon()
         ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u6309\u7a7a\u683c\u6216\u70b9\u201c\u653b\u51fb\u201d\uff01"
@@ -2263,7 +2307,9 @@ function checkTasks(dt) {
       completeTask(task, task.x, task.y);
     }
   }
-  if (state.nearbyTask?.done) {
+  if (state.nearbyTask?.done && state.nearbyTask.kind === "road_clear") {
+    messageEl.textContent = "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
+  } else if (state.nearbyTask?.done) {
     messageEl.textContent = `${state.nearbyTask.name}\u5df2\u7ecf\u5f88\u5f00\u5fc3\u5566\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   }
 }
@@ -2284,10 +2330,11 @@ function completeTask(task, x, y) {
     addFloatingText(x, y - 74, "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01", "#f2ad31");
     messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
   }
-  if (task.kind === "delivery" || task.kind === "action") addRunPoints(10, x, y, "+10 积分");
+  if (task.kind === "delivery" || task.kind === "action" || task.kind === "road_clear") addRunPoints(10, x, y, "+10 积分");
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
+  if (task.kind === "road_clear") messageEl.textContent = "道路变干净啦！";
   if (task.kind === "sort_basket") messageEl.textContent = sortBasketCompleteMessage(task);
   if (task.animal === "owlPrincipal") messageEl.textContent = "\u732b\u5934\u9e70\u6821\u957f\u6536\u5230\u4e86\u4e30\u6536\u793c\u7269\uff01";
   if (task.animal === "appleCartStation") messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
@@ -2383,12 +2430,14 @@ function taskShortHint(task) {
   if (task.done) return "\u5b8c\u6210";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
+  if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? "\u5bf9\u8bdd" : "\u4ea4\u7ed9TA";
   if (task.kind === "boss") return "Boss";
   return "\u5e2e\u5fd9";
 }
 
 function taskNearHint(task) {
+  if (task.done && task.kind === "road_clear") return "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
   if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
   if (task.kind === "sort_basket") {
@@ -2401,11 +2450,12 @@ function taskNearHint(task) {
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002` : "\u6309 E \u4ea4\u7ed9TA";
   }
   if (task.kind === "boss") return firstBossWeapon() ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u653b\u51fb\u3002" : "\u6309 E \u542c\u63d0\u793a\u3002";
+  if (task.kind === "road_clear") return task.speech || "\u6b63\u5728\u6e05\u7406\u9053\u8def\u2026\u2026";
   return "\u6309 E \u5bf9\u8bdd";
 }
 
 function shouldShowTaskHint(task) {
-  return state.nearbyTask === task || state.activeDialogue?.task === task || (task.kind === "action" && task.progress > 0.08);
+  return state.nearbyTask === task || state.activeDialogue?.task === task || ((task.kind === "action" || task.kind === "road_clear") && task.progress > 0.08);
 }
 
 function taskDialogueMode(task) {
@@ -3164,6 +3214,9 @@ const ART_PACK_PROP_KEYS = {
   aquaGem: "aquaGem",
   deepRune: "deepRune",
   moonPearlBadge: "moonPearl",
+  branchPile: "roadBranchPile",
+  leafPile: "leafPile",
+  roadStone: "roadStonePile",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -3214,6 +3267,9 @@ const ART_PACK_SCENE_PROP_KEYS = {
   autumnLeaf: "autumnLeaf",
   spring: "bouncingMushroom",
   finish: "finishFlag",
+  branchPile: "roadBranchPile",
+  leafPile: "leafPile",
+  roadStone: "roadStonePile",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -3286,6 +3342,9 @@ const ART_PACK_ITEM_BOUNDS = {
   aquaGem: { x: -27, y: -29, w: 54, h: 54 },
   deepRune: { x: -27, y: -29, w: 54, h: 54 },
   moonPearlBadge: { x: -28, y: -30, w: 56, h: 56 },
+  roadBranchPile: { x: -48, y: -38, w: 96, h: 76 },
+  leafPile: { x: -44, y: -36, w: 88, h: 72 },
+  roadStonePile: { x: -42, y: -34, w: 84, h: 68 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -3648,6 +3707,7 @@ function drawItem(type) {
 
 function drawTasks() {
   for (const task of state.tasksList) {
+    if (task.kind === "road_clear" && task.done) continue;
     ctx.save();
     const t = performance.now() / 360 + task.x * 0.03;
     const idleBob = task.done || task.kind === "boss" ? 0 : Math.sin(t) * 2.2;
@@ -3657,7 +3717,9 @@ function drawTasks() {
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
     drawAnimal(task.animal);
-    if (task.kind === "action" && !task.done) drawTaskProgress(task.progress);
+    if ((task.kind === "action" || task.kind === "road_clear") && !task.done) {
+      drawTaskProgress(task.kind === "road_clear" ? task.progress * 1.65 : task.progress);
+    }
     if (task.kind === "boss" && !task.done) drawBossProgress(task.progress);
     ctx.restore();
   }
@@ -3773,6 +3835,9 @@ function drawAnimal(kind) {
   else if (kind === "light") drawTreeLight();
   else if (kind === "spring") drawSpringMushroom();
   else if (kind === "finish") drawFinishFlag();
+  else if (kind === "branchPile") drawMiniPropFallback({ type: "branchPile", width: 88, height: 54, label: "树枝" });
+  else if (kind === "leafPile") drawMiniPropFallback({ type: "leafPile", width: 82, height: 52, label: "落叶" });
+  else if (kind === "roadStone") drawMiniPropFallback({ type: "roadStone", width: 78, height: 48, label: "石块" });
   else if (kind === "math") drawQuizStand("#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
   else if (kind === "logic") drawQuizStand("#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
   else if (kind === "science") drawQuizStand("#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
