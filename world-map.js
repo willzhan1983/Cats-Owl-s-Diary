@@ -130,7 +130,7 @@
       emoji: "🚗",
       type: "road",
       description: "森林公路被石头和树枝挡住，Ruru 正在巡逻。Mimi / 詹涞儿 需要帮忙清理道路、修好路牌，才能前往橡果镇。",
-      background: "assets/v2/v2-bg-city-road.png",
+      background: "assets/bg/forest_road_entrance.png",
       npcs: ["ruru", "owlly"],
       neighbors: ["forest_school", "acorn_town"],
       unlocked: true,
@@ -140,10 +140,10 @@
       previous: "森林学校",
       next: "橡果镇",
       tasks: [
-        { id: "fr_clear_rocks", name: "清理石头", npc: "ruru", gameplay: "移除路上石块障碍", reward: "解锁公路通行" },
-        { id: "fr_fix_sign", name: "修路牌", npc: "ruru", gameplay: "找回路牌碎片", reward: "地图碎片" },
-        { id: "fr_escort_friend", name: "护送朋友过路", npc: "ruru", gameplay: "护送小动物到安全区域", reward: "爱心 x1" },
-        { id: "fr_find_road_map", name: "找路线图", npc: "owlly", gameplay: "在路边寻找地图", reward: "解锁橡果镇" },
+        { id: "fr_entrance_clear", name: "森林公路入口", npc: "ruru", gameplay: "清理树枝堆、落叶堆和小石块", reward: "解锁弯弯森林小路" },
+        { id: "fr_windy_sign", name: "弯弯森林小路", npc: "owlly", gameplay: "收集路牌碎片，修路牌并选择正确出口", reward: "找到橡果镇方向" },
+        { id: "fr_escort_crossing", name: "护送小动物过路", npc: "ruru", gameplay: "护送小动物，观察红绿灯节奏通过路口", reward: "爱心 x1" },
+        { id: "fr_acorn_crossroad", name: "橡果镇路口", npc: "ruru", gameplay: "综合清理、修路牌、护送和安全通行", reward: "解锁橡果镇入口" },
       ],
     },
     acorn_town: {
