@@ -4,18 +4,14 @@ const homeScreen = document.getElementById("homeScreen");
 const enterBtn = document.getElementById("enterBtn");
 const roleButtons = document.querySelectorAll("[data-role]");
 const difficultyButtons = document.querySelectorAll("[data-difficulty]");
-const nicknameInput = document.getElementById("nicknameInput");
 const startBtn = document.getElementById("startBtn");
 const messageEl = document.getElementById("message");
 const levelEl = document.getElementById("level");
 const heartsEl = document.getElementById("hearts");
 const timeEl = document.getElementById("time");
 const difficultyEl = document.getElementById("difficulty");
-const pointsEl = document.getElementById("points");
 const tasksEl = document.getElementById("tasks");
 const bagEl = document.getElementById("bag");
-const recordsBtn = document.getElementById("recordsBtn");
-const homeRecordsBtn = document.getElementById("homeRecordsBtn");
 const soundBtn = document.getElementById("soundBtn");
 const attackBtn = document.getElementById("attackBtn");
 const quizPanel = document.getElementById("quizPanel");
@@ -38,20 +34,6 @@ const storybookTitle = document.getElementById("storybookTitle");
 const storybookCaption = document.getElementById("storybookCaption");
 const storybookCloseBtn = document.getElementById("storybookCloseBtn");
 const storybookStartBtn = document.getElementById("storybookStartBtn");
-const scoreSummaryPanel = document.getElementById("scoreSummaryPanel");
-const scoreSummaryTitle = document.getElementById("scoreSummaryTitle");
-const scoreSummarySubtitle = document.getElementById("scoreSummarySubtitle");
-const scoreSummaryStorybookImage = document.getElementById("scoreSummaryStorybookImage");
-const scoreSummaryStats = document.getElementById("scoreSummaryStats");
-const scoreSummaryCloseBtn = document.getElementById("scoreSummaryCloseBtn");
-const scoreContinueBtn = document.getElementById("scoreContinueBtn");
-const scoreRetryBtn = document.getElementById("scoreRetryBtn");
-const scoreRecordsBtn = document.getElementById("scoreRecordsBtn");
-const runHistoryPanel = document.getElementById("runHistoryPanel");
-const runHistorySummary = document.getElementById("runHistorySummary");
-const runHistoryList = document.getElementById("runHistoryList");
-const runHistoryCloseBtn = document.getElementById("runHistoryCloseBtn");
-const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
 const text = {
   start: "\u5f00\u59cb",
@@ -64,14 +46,6 @@ const text = {
   timeUp: "\u65f6\u95f4\u5230\u5566\uff0c\u518d\u8bd5\u4e00\u6b21\u3002",
   allDone: "\u5927 Boss \u88ab\u6253\u8d25\u5566\uff0c\u68ee\u6797\u5b66\u6821\u6062\u590d\u660e\u4eae\uff01",
 };
-
-const storybookPages = Array.from({ length: 10 }, (_, index) => {
-  const page = String(index + 1).padStart(2, "0");
-  return `./assets/storybook/storybook-page-${page}.png`;
-});
-const STORYBOOK_FALLBACK_PAGE = "./assets/storybook/fallback.png";
-const storybookIntroPages = storybookPages.slice(1, -1);
-const storybookVictoryPages = [storybookPages[0], storybookPages[storybookPages.length - 1]];
 
 const backgroundSources = {
   schoolyard: "./assets/bg-level1-schoolyard.png",
@@ -96,7 +70,18 @@ const backgroundSources = {
   harvestOrchard: "./assets/bg/harvest_orchard.png",
   basketSortingStation: "./assets/bg/basket_sorting_station.png",
   forestSchoolDelivery: "./assets/bg/forest_school_apple_delivery.png",
+  forestRoadEntrance: "./assets/bg/forest_road_entrance.png",
+  windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
+  escortForestPath: "./assets/bg/escort_forest_path.png",
+  acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
 };
+
+const storybookPages = Array.from({ length: 10 }, (_, index) => {
+  const page = String(index + 1).padStart(2, "0");
+  return `./assets/storybook/storybook-page-${page}.png`;
+});
+const storybookIntroPages = storybookPages.slice(1, -1);
+const storybookVictoryPages = [storybookPages[0], storybookPages[storybookPages.length - 1]];
 
 const backgroundSourceCandidates = {
   schoolyard: ["./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
@@ -121,6 +106,10 @@ const backgroundSourceCandidates = {
   harvestOrchard: ["./assets/bg/harvest_orchard.png", "./assets/bg-level2-forest.png", "./assets/v2/v2-forest-school-background.png"],
   basketSortingStation: ["./assets/bg/basket_sorting_station.png", "./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
   forestSchoolDelivery: ["./assets/bg/forest_school_apple_delivery.png", "./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
+  forestRoadEntrance: ["./assets/bg/forest_road_entrance.png", "./assets/v2/v2-bg-city-road.png"],
+  windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
+  escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
+  acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
 };
 
 const backgrounds = {};
@@ -381,6 +370,13 @@ const WORLD_MAP = {
     levels: [12, 13, 14, 15],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  forest_road: {
+    id: "forest_road",
+    name: "森林公路",
+    background: "forestRoadEntrance",
+    levels: [16, 17, 18, 19],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
 };
 
 const dayNames = [
@@ -400,6 +396,10 @@ const dayNames = [
   "丰收果园",
   "果篮整理站",
   "送给猫头鹰校长",
+  "森林公路入口",
+  "弯弯森林小路",
+  "护送小动物过路",
+  "橡果镇路口",
 ];
 
 const keys = new Set();
@@ -407,7 +407,6 @@ const touchDirs = new Set();
 let lastFrame = performance.now();
 let state;
 let gameEntered = false;
-let storybookIntroSeen = false;
 let selectedRole = localStorage.getItem("catsOwlRole") || "cat";
 
 const DIFFICULTY_STORAGE_KEY = "catsOwlDifficulty";
@@ -417,24 +416,9 @@ const DIFFICULTY_SETTINGS = {
   hard: { label: "困难", icon: "🔥", timeScale: 0.82, obstaclePenalty: 4, quizPenalty: 6, stopOnTimeout: false },
   crazy: { label: "疯狂", icon: "👑", timeScale: 0.65, obstaclePenalty: 6, quizPenalty: 10, stopOnTimeout: true },
 };
-const TIME_BONUS_BY_DIFFICULTY = {
-  easy: 10,
-  normal: 20,
-  hard: 30,
-  crazy: 50,
-};
 let selectedDifficulty = DIFFICULTY_SETTINGS[localStorage.getItem(DIFFICULTY_STORAGE_KEY)]
   ? localStorage.getItem(DIFFICULTY_STORAGE_KEY)
   : "normal";
-
-const PLAYER_PROFILE_KEY = "catsOwlPlayerProfile";
-const TOTAL_POINTS_KEY = "catsOwlTotalPoints";
-const BEST_SCORE_KEY = "catsOwlBestScore";
-const RUN_HISTORY_KEY = "catsOwlRunHistory";
-const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
-let playerProfile = loadPlayerProfile();
-let totalPoints = readStoredNumber(TOTAL_POINTS_KEY);
-let bestScore = readStoredNumber(BEST_SCORE_KEY);
 
 const music = {
   ctx: null,
@@ -1136,6 +1120,94 @@ const levels = [
     ],
     escortCart: { type: "appleCart", x: 468, y: 336, active: false },
   },
+  {
+    name: "森林公路入口",
+    bg: "forestRoadEntrance",
+    world: "forest_road",
+    time: 86,
+    start: { x: 112, y: 430 },
+    message: "森林公路入口被树枝、落叶和小石块挡住了，先试试清理道路。",
+    collectibles: [],
+    tasks: [
+      roadClearTask(248, 346, "树枝堆", "branchPile", "正在清理树枝……", 0.9),
+      roadClearTask(468, 398, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
+      roadClearTask(708, 318, "小石块", "roadStone", "正在搬开小石块……", 1),
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "弯弯森林小路",
+    bg: "windingForestCrossroad",
+    world: "forest_road",
+    time: 92,
+    start: { x: 118, y: 430 },
+    message: "找到路牌碎片，修好破损路牌，再选择去橡果镇的路。",
+    collectibles: [
+      item(292, 350, "signPiece", "路牌碎片"),
+    ],
+    tasks: [
+      directionSignTask(486, 260, "破损路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
+      exitTask(838, 236, "correctExit", "去橡果镇的路"),
+    ],
+    exitAreas: [
+      { x: 144, y: 246, r: 48, type: "wrongExit", label: "苹果谷方向" },
+      { x: 494, y: 438, r: 48, type: "wrongExit", label: "森林学校方向" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "护送小动物过路",
+    bg: "escortForestPath",
+    world: "forest_road",
+    time: 96,
+    start: { x: 120, y: 430 },
+    message: "小伙伴迷路了，靠近它，再跟着红绿灯节奏走到安全区。",
+    collectibles: [],
+    tasks: [
+      escortNpcTask(238, 342, "迷路小伙伴", "nono", "safeZone"),
+    ],
+    safeZones: [
+      { id: "safeZone", x: 806, y: 342, r: 54, label: "安全区" },
+    ],
+    trafficLights: [
+      { x: 520, y: 190, state: "green", timer: 0 },
+    ],
+    crossingZones: [
+      { x: 520, y: 338, w: 150, h: 118, lightIndex: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "橡果镇路口",
+    bg: "acornTownCrossroad",
+    world: "forest_road",
+    time: 110,
+    start: { x: 112, y: 430 },
+    message: "最后路口要综合测试：清理大路障、放好路牌、护送小伙伴到橡果镇入口。",
+    collectibles: [
+      item(320, 358, "signPiece", "最终路牌碎片"),
+    ],
+    tasks: [
+      roadClearTask(238, 346, "大路障", "branchPile", "正在清理树枝……", 1.2),
+      directionSignTask(472, 250, "最终路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
+      escortNpcTask(220, 424, "等候的小伙伴", "coco", "acornTownGate"),
+      exitTask(836, 246, "correctExit", "橡果镇入口"),
+    ],
+    safeZones: [
+      { id: "acornTownGate", x: 836, y: 246, r: 58, label: "橡果镇入口" },
+    ],
+    trafficLights: [
+      { x: 608, y: 180, state: "green", timer: 0 },
+    ],
+    crossingZones: [
+      { x: 608, y: 338, w: 150, h: 116, lightIndex: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1151,6 +1223,10 @@ const LEVEL_WORLD_SEQUENCE = [
   "moonlight_lake",
   "moonlight_lake",
   "moonlight_lake",
+  "apple_valley",
+  "apple_valley",
+  "apple_valley",
+  "apple_valley",
 ];
 
 levels.forEach((level, index) => {
@@ -1162,6 +1238,10 @@ levels.forEach((level, index) => {
 
 WORLD_MAP.apple_valley.levels = levels
   .map((level, index) => (level.world === "apple_valley" ? index : -1))
+  .filter((index) => index >= 0);
+
+WORLD_MAP.forest_road.levels = levels
+  .map((level, index) => (level.world === "forest_road" ? index : -1))
   .filter((index) => index >= 0);
 
 function levelBackgroundKey(level) {
@@ -1208,6 +1288,33 @@ function actionTask(x, y, name, animal, speech) {
   return { x, y, name, animal, speech, kind: "action", done: false, progress: 0 };
 }
 
+function roadClearTask(x, y, name, animal, speech, duration) {
+  return { x, y, name, animal, speech, duration, kind: "road_clear", done: false, progress: 0 };
+}
+
+function directionSignTask(x, y, name, directions) {
+  return {
+    x,
+    y,
+    name,
+    animal: "directionSign",
+    need: ["signPiece"],
+    speech: "收集路牌碎片后，按 E 修好路牌。",
+    directions,
+    kind: "direction_sign",
+    done: false,
+    progress: 0,
+  };
+}
+
+function exitTask(x, y, animal, name) {
+  return { x, y, name, animal, speech: "走到正确出口。", kind: "exit_area", done: false, progress: 0 };
+}
+
+function escortNpcTask(x, y, name, animal, safeZoneId) {
+  return { x, y, name, animal, safeZoneId, speech: "靠近小伙伴，让它跟着你去安全区。", kind: "escort_npc", done: false, progress: 0, following: false };
+}
+
 function quizTask(x, y, name, animal, speech, quiz) {
   return { x, y, name, animal, speech, quizKey: typeof quiz === "string" ? quiz : null, quiz, kind: "quiz", done: false, progress: 0 };
 }
@@ -1246,12 +1353,6 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     time: levelTime,
     levelTime,
     timeExpiredNotified: false,
-    levelSettled: false,
-    runPoints: 0,
-    correctAnswers: 0,
-    wrongAnswers: 0,
-    obstacleHits: 0,
-    startedAt: new Date().toISOString(),
     hearts: keepHearts && state ? state.hearts : 0,
     tasks: 0,
     inventory: [],
@@ -1269,6 +1370,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeDialogue: null,
     nearbyTask: null,
     nearbyAppleTree: null,
+    introSeen: false,
     storybookIntroPage: randomStorybookPage(storybookIntroPages),
     storybookVictoryPage: randomStorybookPage(storybookVictoryPages),
     shake: 0,
@@ -1278,6 +1380,10 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     escortCart: level.escortCart ? { ...level.escortCart } : null,
+    safeZones: (level.safeZones || []).map((entry) => ({ ...entry })),
+    trafficLights: (level.trafficLights || []).map((entry) => ({ ...entry })),
+    crossingZones: (level.crossingZones || []).map((entry) => ({ ...entry })),
+    exitAreas: (level.exitAreas || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
@@ -1305,70 +1411,6 @@ function randomQuiz(key) {
   return list[Math.floor(Math.random() * list.length)] || quizBank.math[0];
 }
 
-function randomNickname() {
-  return DEFAULT_NICKNAMES[Math.floor(Math.random() * DEFAULT_NICKNAMES.length)] || "小猫勇士";
-}
-
-function readStoredNumber(key) {
-  const value = Number(localStorage.getItem(key));
-  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
-}
-
-function readStoredJson(key, fallback) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || "null");
-    return value ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function nicknameLength(value) {
-  return [...value].reduce((total, char) => total + (/[\u3400-\u9fff]/.test(char) ? 2 : 1), 0);
-}
-
-function limitNickname(value) {
-  let result = "";
-  for (const char of value) {
-    const next = result + char;
-    if (nicknameLength(next) > 24) break;
-    result = next;
-  }
-  return result;
-}
-
-function sanitizeNickname(value) {
-  const cleaned = String(value || "")
-    .replace(/script/gi, "")
-    .replace(/[<>]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return limitNickname(cleaned) || randomNickname();
-}
-
-function savePlayerProfile(nickname) {
-  const now = new Date().toISOString();
-  playerProfile = {
-    nickname: sanitizeNickname(nickname),
-    createdAt: playerProfile?.createdAt || now,
-    updatedAt: now,
-  };
-  localStorage.setItem(PLAYER_PROFILE_KEY, JSON.stringify(playerProfile));
-  if (nicknameInput) nicknameInput.value = playerProfile.nickname;
-}
-
-function loadPlayerProfile() {
-  const stored = readStoredJson(PLAYER_PROFILE_KEY, null);
-  const now = new Date().toISOString();
-  const profile = {
-    nickname: sanitizeNickname(stored?.nickname || randomNickname()),
-    createdAt: stored?.createdAt || now,
-    updatedAt: stored?.updatedAt || now,
-  };
-  localStorage.setItem(PLAYER_PROFILE_KEY, JSON.stringify(profile));
-  return profile;
-}
-
 function difficultySettings() {
   return DIFFICULTY_SETTINGS[selectedDifficulty] || DIFFICULTY_SETTINGS.normal;
 }
@@ -1383,35 +1425,30 @@ function difficultyLabel() {
 }
 
 function randomStorybookPage(pages) {
-  return pages[Math.floor(Math.random() * pages.length)] || STORYBOOK_FALLBACK_PAGE;
+  return pages[Math.floor(Math.random() * pages.length)] || storybookPages[0];
 }
 
-function setStorybookImage(image, src) {
-  if (!image) return;
-  image.onerror = () => {
-    image.onerror = null;
-    image.src = STORYBOOK_FALLBACK_PAGE;
-  };
-  image.src = src || STORYBOOK_FALLBACK_PAGE;
+function storybookPageForMode(mode) {
+  if (!state) return storybookPages[0];
+  return mode === "complete" ? state.storybookVictoryPage : state.storybookIntroPage;
 }
 
-function showStorybookIntroPage() {
+function showStorybookPage(mode = "intro") {
   if (!storybookPanel || !storybookImage || !state) return;
   const pageName = dayNames[state.levelIndex] || `第${state.levelIndex + 1}天`;
-  setStorybookImage(storybookImage, state.storybookIntroPage);
-  storybookTitle.textContent = `${pageName}开场`;
-  storybookCaption.textContent = "读完这一页，再开始任务。";
-  storybookStartBtn.textContent = "开始任务";
+  storybookImage.src = storybookPageForMode(mode);
+  storybookTitle.textContent = mode === "complete" ? `${pageName}完成` : `${pageName}开场`;
+  storybookCaption.textContent =
+    mode === "complete" ? "今天的日记写好啦，准备去下一页。" : "读完这一页，再开始任务。";
+  storybookStartBtn.textContent = mode === "complete" ? "继续冒险" : "开始任务";
   storybookPanel.hidden = false;
 }
 
 function closeStorybookPage(shouldStart = false) {
   if (!storybookPanel) return;
   storybookPanel.hidden = true;
-  if (shouldStart) {
-    storybookIntroSeen = true;
-    startGame();
-  }
+  if (state) state.introSeen = true;
+  if (shouldStart) startGame();
 }
 
 function applyTimePenalty(kind, x, y) {
@@ -1424,207 +1461,13 @@ function applyTimePenalty(kind, x, y) {
   return amount;
 }
 
-function addRunPoints(amount, x, y, label = `+${amount}`) {
-  if (!state || !amount) return;
-  state.runPoints += amount;
-  if (Number.isFinite(x) && Number.isFinite(y)) addFloatingText(x, y - 68, label, "#f2ad31");
-  updateHud();
-}
-
-function levelCompletionPoints() {
-  let points = 30;
-  if (selectedDifficulty === "hard") points += 15;
-  if (selectedDifficulty === "crazy") points += 40;
-  if (state.timeExpiredNotified && selectedDifficulty !== "crazy") points = Math.floor(points / 2);
-  return points;
-}
-
-function levelTimeBonus() {
-  if (!state || state.time <= 0) return 0;
-  const maxTimeBonus = TIME_BONUS_BY_DIFFICULTY[selectedDifficulty] || TIME_BONUS_BY_DIFFICULTY.normal;
-  const levelTime = state.levelTime || levels[state.levelIndex].time || 1;
-  const timeLeft = Math.min(Math.max(0, state.time), levelTime);
-  return Math.round((timeLeft / levelTime) * maxTimeBonus);
-}
-
-function saveRunHistory(record) {
-  const history = readStoredJson(RUN_HISTORY_KEY, []);
-  const nextHistory = Array.isArray(history) ? history : [];
-  nextHistory.unshift(record);
-  localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(nextHistory.slice(0, 50)));
-}
-
-function settleLevelRun(completed) {
-  if (!state || state.levelSettled) return null;
-  state.levelSettled = true;
-  const completionBonus = completed ? levelCompletionPoints() : 0;
-  const timeLeft = Math.max(0, state.time);
-  const levelTime = state.levelTime || levels[state.levelIndex].time || 0;
-  const timeBonus = completed ? levelTimeBonus() : 0;
-  if (completionBonus) state.runPoints += completionBonus;
-  if (timeBonus) state.runPoints += timeBonus;
-
-  totalPoints += state.runPoints;
-  bestScore = Math.max(bestScore, state.runPoints);
-  localStorage.setItem(TOTAL_POINTS_KEY, String(totalPoints));
-  localStorage.setItem(BEST_SCORE_KEY, String(bestScore));
-  saveRunHistory({
-    nickname: playerProfile.nickname,
-    levelIndex: state.levelIndex,
-    difficulty: selectedDifficulty,
-    runPoints: state.runPoints,
-    completed,
-    timeLeft: Math.ceil(timeLeft),
-    levelTime,
-    timeBonus,
-    correctAnswers: state.correctAnswers,
-    wrongAnswers: state.wrongAnswers,
-    obstacleHits: state.obstacleHits,
-    startedAt: state.startedAt,
-    finishedAt: new Date().toISOString(),
-  });
-  updateHud();
-  return {
-    completed,
-    completionBonus,
-    timeBonus,
-    runPoints: state.runPoints,
-    timeLeft: Math.ceil(timeLeft),
-    levelTime,
-    correctAnswers: state.correctAnswers,
-    wrongAnswers: state.wrongAnswers,
-    obstacleHits: state.obstacleHits,
-  };
-}
-
-function levelDisplayName(levelIndex = state.levelIndex) {
-  return dayNames[levelIndex] || levels[levelIndex]?.name || `第${levelIndex + 1}关`;
-}
-
-function readRunHistory() {
-  const history = readStoredJson(RUN_HISTORY_KEY, []);
-  return Array.isArray(history) ? history : [];
-}
-
-function formatFinishedAt(value) {
-  if (!value) return "刚刚";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "刚刚";
-  return date.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
-}
-
-function addPanelStat(container, label, value) {
-  const item = document.createElement("div");
-  const labelEl = document.createElement("span");
-  const valueEl = document.createElement("strong");
-  labelEl.textContent = label;
-  valueEl.textContent = String(value);
-  item.append(labelEl, valueEl);
-  container.appendChild(item);
-}
-
-function showScoreSummaryPanel(settlement, options = {}) {
-  if (!settlement || !scoreSummaryPanel || !scoreSummaryStats) return;
-  const failed = Boolean(options.failed);
-  scoreSummaryTitle.textContent = failed ? "疯狂挑战失败" : "关卡完成";
-  scoreSummarySubtitle.textContent = `${playerProfile.nickname} · ${levelDisplayName()} · ${difficultyLabel()}`;
-  if (scoreSummaryStorybookImage) {
-    scoreSummaryStorybookImage.hidden = failed;
-    setStorybookImage(scoreSummaryStorybookImage, failed ? STORYBOOK_FALLBACK_PAGE : state.storybookVictoryPage);
-  }
-  scoreSummaryStats.replaceChildren();
-  addPanelStat(scoreSummaryStats, "昵称", playerProfile.nickname);
-  addPanelStat(scoreSummaryStats, "当前关卡", levelDisplayName());
-  addPanelStat(scoreSummaryStats, "当前难度", difficultyLabel());
-  addPanelStat(scoreSummaryStats, "本局积分", settlement.runPoints);
-  if (!failed) {
-    addPanelStat(scoreSummaryStats, "完成关卡奖励", `+${settlement.completionBonus}`);
-    addPanelStat(scoreSummaryStats, "剩余时间奖励", `+${settlement.timeBonus}`);
-  }
-  addPanelStat(scoreSummaryStats, "答对题数量", settlement.correctAnswers);
-  addPanelStat(scoreSummaryStats, "答错题数量", settlement.wrongAnswers);
-  addPanelStat(scoreSummaryStats, "碰撞障碍次数", settlement.obstacleHits);
-  addPanelStat(scoreSummaryStats, "剩余时间", `${settlement.timeLeft}秒`);
-  addPanelStat(scoreSummaryStats, "总积分", totalPoints);
-  addPanelStat(scoreSummaryStats, "最高分", bestScore);
-  if (scoreContinueBtn) scoreContinueBtn.hidden = failed;
-  if (scoreRetryBtn) scoreRetryBtn.textContent = failed ? "重试本关" : "再玩一次";
-  scoreSummaryPanel.hidden = false;
-}
-
-function closeScoreSummaryPanel() {
-  if (scoreSummaryPanel) scoreSummaryPanel.hidden = true;
-}
-
-function replayCurrentLevel() {
-  const levelIndex = state.levelIndex;
-  closeScoreSummaryPanel();
-  resetGame(levelIndex, levelIndex > 0);
-  state.running = true;
-  startBtn.textContent = text.restart;
-  messageEl.textContent = text.move;
-  startMusicForLevel();
-}
-
-function continueNextLevel() {
-  closeScoreSummaryPanel();
-  startGame();
-}
-
-function renderRunHistory() {
-  if (!runHistorySummary || !runHistoryList) return;
-  const history = readRunHistory();
-  runHistorySummary.textContent = `${playerProfile.nickname} · 总积分 ${totalPoints} · 最高分 ${bestScore} · ${history.length} 条记录`;
-  runHistoryList.replaceChildren();
-  if (!history.length) {
-    const empty = document.createElement("p");
-    empty.className = "run-history-empty";
-    empty.textContent = "还没有本地记录。";
-    runHistoryList.appendChild(empty);
-    return;
-  }
-  history.slice(0, 10).forEach((record) => {
-    const item = document.createElement("article");
-    item.className = "run-history-item";
-    const title = document.createElement("strong");
-    title.textContent = `${levelDisplayName(record.levelIndex)} · ${record.completed ? "完成" : "未完成"}`;
-    const meta = document.createElement("p");
-    const difficulty = DIFFICULTY_SETTINGS[record.difficulty]?.label || record.difficulty || "普通";
-    meta.textContent = `${difficulty} · 本局 ${record.runPoints || 0} 分 · 时间奖励 ${record.timeBonus || 0} · 剩余 ${record.timeLeft || 0}秒`;
-    const details = document.createElement("p");
-    details.textContent = `答对 ${record.correctAnswers || 0} / 答错 ${record.wrongAnswers || 0} · 碰撞 ${record.obstacleHits || 0} · ${formatFinishedAt(record.finishedAt)}`;
-    item.append(title, meta, details);
-    runHistoryList.appendChild(item);
-  });
-}
-
-function openRunHistory() {
-  renderRunHistory();
-  if (runHistoryPanel) runHistoryPanel.hidden = false;
-}
-
-function closeRunHistory() {
-  if (runHistoryPanel) runHistoryPanel.hidden = true;
-}
-
-function clearLocalScoreRecords() {
-  if (!window.confirm("确定清除本地积分和历史记录吗？昵称会保留。")) return;
-  localStorage.removeItem(TOTAL_POINTS_KEY);
-  localStorage.removeItem(BEST_SCORE_KEY);
-  localStorage.removeItem(RUN_HISTORY_KEY);
-  totalPoints = 0;
-  bestScore = 0;
-  updateHud();
-  renderRunHistory();
-}
-
 function startGame() {
   gameEntered = true;
-  storybookIntroSeen = true;
   preloadNearbyBackgrounds(state.levelIndex);
   initAudio();
   if (state.running) {
     resetGame(state.levelIndex, state.levelIndex > 0);
+    state.introSeen = true;
     state.running = true;
     startBtn.textContent = text.restart;
     messageEl.textContent = text.move;
@@ -1643,6 +1486,11 @@ function startGame() {
     resetGame(0, false);
   }
 
+  if (!state.introSeen) {
+    showStorybookPage("intro");
+    return;
+  }
+
   state.running = true;
   state.levelClear = false;
   startBtn.textContent = text.restart;
@@ -1656,7 +1504,7 @@ function enterGame() {
   homeScreen.classList.add("is-hidden");
   const roleName = PLAYER_DISPLAY_NAMES[selectedRole] || PLAYER_DISPLAY_NAMES.cat;
   messageEl.textContent = `\u70b9\u51fb\u5f00\u59cb\uff0c\u548c ${roleName} \u4e00\u8d77\u51fa\u53d1\u3002`;
-  if (!storybookIntroSeen) showStorybookIntroPage();
+  showStorybookPage("intro");
 }
 
 function initAudio() {
@@ -1703,8 +1551,9 @@ function toggleSound() {
 }
 
 function musicPatternForLevel(levelIndex) {
-  if (levelIndex >= levels.length - 1) return "boss";
-  if (levelIndex >= levels.length - 2) return "danger";
+  const level = levels[levelIndex];
+  if (level?.tasks?.some((task) => task.kind === "boss" || task.kind === "moon_boss")) return "boss";
+  if (level?.world === "dark_swamp") return "danger";
   if (levelIndex >= 2) return "adventure";
   return "happy";
 }
@@ -1755,14 +1604,17 @@ function playNoise(time, duration) {
 }
 
 function updateHud() {
-  const target = state.tasksList ? state.tasksList.length : levels[state.levelIndex].tasks.length;
+  const target = state.tasksList ? requiredTaskCount(state.tasksList) : requiredTaskCount(levels[state.levelIndex].tasks);
   levelEl.textContent = dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`;
   heartsEl.textContent = state.hearts;
   timeEl.textContent = Math.max(0, Math.ceil(state.time));
   if (difficultyEl) difficultyEl.textContent = difficultyLabel();
-  if (pointsEl) pointsEl.textContent = `${state.runPoints} / 总分 ${totalPoints}`;
   tasksEl.textContent = `${state.tasks}/${target}`;
   bagEl.textContent = state.inventory.length ? needLabels(state.inventory.slice(0, 3)) : "\u7a7a";
+}
+
+function requiredTaskCount(tasks) {
+  return tasks.filter((task) => !task.optional).length;
 }
 
 function pressed(dir) {
@@ -1781,10 +1633,8 @@ function update(dt) {
     state.time = 0;
     if (difficultySettings().stopOnTimeout) {
       state.running = false;
-      const settlement = settleLevelRun(false);
       startBtn.textContent = text.again;
       messageEl.textContent = "\u75af\u72c2\u96be\u5ea6\u6311\u6218\u5931\u8d25\uff0c\u518d\u8bd5\u4e00\u6b21\uff01";
-      showScoreSummaryPanel(settlement, { failed: true });
     } else if (!state.timeExpiredNotified) {
       state.timeExpiredNotified = true;
       messageEl.textContent = "\u65f6\u95f4\u5230\u5566\uff0c\u8fd8\u53ef\u4ee5\u7ee7\u7eed\u5b8c\u6210\u4efb\u52a1\uff0c\u5956\u52b1\u4f1a\u5c11\u4e00\u70b9\u3002";
@@ -1795,6 +1645,7 @@ function update(dt) {
 
   updatePlayer(dt);
   updateAppleCart(dt);
+  updateForestRoadMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
   updateBossHazards(dt);
@@ -1804,11 +1655,10 @@ function update(dt) {
   checkCollectibles();
   checkTasks(dt);
 
-  const target = state.tasksList.length;
+  const target = requiredTaskCount(state.tasksList);
   if (state.tasks >= target) {
     state.running = false;
     stopMusic();
-    const settlement = settleLevelRun(true);
     state.levelClear = true;
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
@@ -1824,11 +1674,8 @@ function update(dt) {
           ? `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u6708\u5149\u6e56\u5730\u70b9\u3002`
           : `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u68ee\u6797\u89d2\u843d\u3002`;
     }
-    if (settlement) {
-      messageEl.textContent = `完成关卡 +${settlement.completionBonus}，剩余时间奖励 +${settlement.timeBonus}，本局积分 +${settlement.runPoints}！`;
-      showScoreSummaryPanel(settlement);
-    }
     burst(canvas.width / 2, 180, "#ffd94a", 26);
+    showStorybookPage("complete");
   }
 
   updateHud();
@@ -1977,7 +1824,6 @@ function checkObstacles() {
     }
     if (!hit || now < state.puddleCooldownUntil) continue;
     if (obstacle.type === "bush") {
-      state.obstacleHits += 1;
       state.slowUntil = now + 520;
       state.puddleCooldownUntil = now + 720;
       const penalty = applyTimePenalty("obstacle", p.x, p.y);
@@ -1986,7 +1832,6 @@ function checkObstacles() {
         ? `\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
         : "\u704c\u6728\u6709\u70b9\u5bc6\uff0c\u6162\u6162\u7a7f\u8fc7\u53bb\u3002";
     } else if (obstacle.type === "pit") {
-      state.obstacleHits += 1;
       state.slowUntil = now + 850;
       state.puddleCooldownUntil = now + 980;
       state.shake = 0.08;
@@ -1996,7 +1841,6 @@ function checkObstacles() {
         ? `\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u6263\u9664 ${penalty} \u79d2\u3002`
         : "\u5dee\u70b9\u6389\u8fdb\u571f\u5751\uff0c\u5148\u7a33\u4e00\u7a33\u3002";
     } else if (obstacle.type === "pond") {
-      state.obstacleHits += 1;
       state.slowUntil = now + 700;
       state.puddleCooldownUntil = now + 900;
       const penalty = applyTimePenalty("obstacle", p.x, p.y);
@@ -2034,12 +1878,26 @@ function shakeAppleTree(tree) {
       )
     );
   });
-  addRunPoints(3, tree.x, tree.y, "+3 丰收");
   burst(tree.x, tree.y + 12, "#ffd94a", 18);
   addFloatingText(tree.x, tree.y - 70, "苹果掉下来啦！", "#e84b3f");
   if (drops.length >= 3) addFloatingText(tree.x, tree.y - 96, "丰收连击！", "#f2ad31");
   messageEl.textContent = "苹果掉下来啦！";
   return true;
+}
+
+function repairDirectionSign(task) {
+  if (!task || task.done || task.kind !== "direction_sign") return;
+  const missing = missingNeeds(task.need);
+  if (missing.length) {
+    messageEl.textContent = "先找到路牌碎片。";
+    return;
+  }
+  consumeNeeds(task.need);
+  completeTask(task, task.x, task.y);
+  const directions = task.directions?.join("  ") || "→ 橡果镇";
+  addFloatingText(task.x, task.y - 86, directions, "#34563e");
+  messageEl.textContent = directions;
+  updateHud();
 }
 
 function updateAppleCart(dt) {
@@ -2051,6 +1909,87 @@ function updateAppleCart(dt) {
   const follow = clamp(dt * 4, 0, 1);
   cart.x += (targetX - cart.x) * follow;
   cart.y += (targetY - cart.y) * follow;
+}
+
+function updateForestRoadMechanisms(dt) {
+  if (levels[state.levelIndex]?.world !== "forest_road") return;
+  updateTrafficLights(dt);
+  updateEscortNpcs(dt);
+  checkCrossingZones();
+  checkExitAreas();
+}
+
+function updateTrafficLights(dt) {
+  for (const light of state.trafficLights || []) {
+    light.timer = (light.timer || 0) + dt;
+    if (light.timer >= 2) {
+      light.timer = 0;
+      light.state = light.state === "red" ? "green" : "red";
+      addFloatingText(light.x, light.y - 48, light.state === "green" ? "绿灯" : "红灯", light.state === "green" ? "#3f8a2f" : "#e84b3f");
+    }
+  }
+}
+
+function updateEscortNpcs(dt) {
+  const p = state.player;
+  for (const task of state.tasksList) {
+    if (task.kind !== "escort_npc" || task.done) continue;
+    if (!task.following && distance(p, task) < 62) {
+      task.following = true;
+      burst(task.x, task.y, "#ffd94a", 14);
+      addFloatingText(task.x, task.y - 46, "小伙伴跟上来啦！", "#3f8a2f");
+      messageEl.textContent = "小伙伴跟上来啦！";
+    }
+    if (task.following) {
+      const targetX = p.x - 54 * p.dir;
+      const targetY = p.y + 10;
+      const gap = distance(task, p);
+      const follow = gap > 180 ? 1 : clamp(dt * 3.4, 0, 1);
+      task.x += (targetX - task.x) * follow;
+      task.y += (targetY - task.y) * follow;
+      const safeZone = state.safeZones.find((zone) => zone.id === task.safeZoneId);
+      if (safeZone && distance(task, safeZone) < safeZone.r + 24) {
+        completeTask(task, safeZone.x, safeZone.y);
+        messageEl.textContent = "到安全区啦！";
+      }
+    }
+  }
+}
+
+function checkCrossingZones() {
+  const now = performance.now();
+  if (now < state.puddleCooldownUntil) return;
+  const p = state.player;
+  for (const zone of state.crossingZones || []) {
+    if (!pointInRect(p, zone)) continue;
+    const light = state.trafficLights?.[zone.lightIndex || 0];
+    state.puddleCooldownUntil = now + 820;
+    if (light?.state === "red") {
+      addFloatingText(p.x, p.y - 42, "红灯", "#e84b3f");
+      messageEl.textContent = "先等等，绿灯再走哦！";
+    } else {
+      addFloatingText(p.x, p.y - 42, "绿灯", "#3f8a2f");
+      messageEl.textContent = "可以安全通过啦！";
+    }
+    return;
+  }
+}
+
+function checkExitAreas() {
+  const now = performance.now();
+  if (now < state.puddleCooldownUntil) return;
+  const p = state.player;
+  for (const area of state.exitAreas || []) {
+    if (distance(p, area) >= area.r + 16) continue;
+    state.puddleCooldownUntil = now + 920;
+    addFloatingText(area.x, area.y - 44, "再看看路牌", "#8b5b2b");
+    messageEl.textContent = "这里好像不是去橡果镇的路。";
+    return;
+  }
+}
+
+function pointInRect(point, rect) {
+  return Math.abs(point.x - rect.x) <= rect.w / 2 && Math.abs(point.y - rect.y) <= rect.h / 2;
 }
 
 function canUseEscortCart() {
@@ -2186,7 +2125,6 @@ function checkCollectibles() {
         state.inventory.push(entry.type);
         state.hearts += 1;
       }
-      addRunPoints(1, entry.x, entry.y, "+1 积分");
       burst(entry.x, entry.y, itemColor(entry.type), 12);
       addFloatingText(entry.x, entry.y - 36, `+ ${entry.label}`, "#3f8a2f");
       messageEl.textContent =
@@ -2252,6 +2190,32 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "road_clear") {
+      task.progress += dt;
+      messageEl.textContent = task.speech;
+      if (task.progress >= (task.duration || 1)) {
+        completeTask(task, task.x, task.y);
+      }
+      continue;
+    }
+
+    if (task.kind === "direction_sign") {
+      const missing = missingNeeds(task.need);
+      messageEl.textContent = missing.length ? "先找到路牌碎片。" : "按 E 修好路牌。";
+      continue;
+    }
+
+    if (task.kind === "exit_area") {
+      messageEl.textContent = "这条路通向橡果镇，走近一点就可以通过。";
+      completeTask(task, task.x, task.y);
+      continue;
+    }
+
+    if (task.kind === "escort_npc") {
+      messageEl.textContent = task.following ? "小伙伴正在跟着你。" : "靠近小伙伴，它会自动跟上来。";
+      continue;
+    }
+
     if (task.animal === "appleCartStation" && !state.inventory.includes("giftAppleBasket")) {
       messageEl.textContent = "\u5148\u62ff\u5230\u793c\u7269\u679c\u7bee\uff0c\u518d\u6765\u63a8\u5c0f\u8f66\u3002";
       continue;
@@ -2269,12 +2233,14 @@ function checkTasks(dt) {
 }
 
 function completeTask(task, x, y) {
+  if (task.done) return;
   task.done = true;
   task.progress = 1;
-  state.tasks += 1;
-  state.hearts += 3;
-  state.time = Math.min(state.levelTime + 8, state.time + 5);
-  if (task.kind === "sort_basket") addRunPoints(10, x, y, "+10 sort");
+  if (!task.optional) {
+    state.tasks += 1;
+    state.hearts += 3;
+    state.time = Math.min(state.levelTime + 8, state.time + 5);
+  }
   if (task.reward) {
     state.inventory.push(task.reward);
     addFloatingText(x, y - 82, `+ ${itemLabel(task.reward)}`, "#f2ad31");
@@ -2284,11 +2250,14 @@ function completeTask(task, x, y) {
     addFloatingText(x, y - 74, "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01", "#f2ad31");
     messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
   }
-  if (task.kind === "delivery" || task.kind === "action") addRunPoints(10, x, y, "+10 积分");
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
   if (task.kind === "sort_basket") messageEl.textContent = sortBasketCompleteMessage(task);
+  if (task.kind === "road_clear") messageEl.textContent = "道路变干净啦！";
+  if (task.kind === "direction_sign") messageEl.textContent = task.directions?.join("  ") || "→ 橡果镇";
+  if (task.kind === "exit_area") messageEl.textContent = "找到去橡果镇的正确道路啦！";
+  if (task.kind === "escort_npc") messageEl.textContent = "到安全区啦！";
   if (task.animal === "owlPrincipal") messageEl.textContent = "\u732b\u5934\u9e70\u6821\u957f\u6536\u5230\u4e86\u4e30\u6536\u793c\u7269\uff01";
   if (task.animal === "appleCartStation") messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
 }
@@ -2345,6 +2314,7 @@ function itemLabel(type) {
     appleCart: "苹果小推车",
     harvestBadge: "丰收徽章",
     autumnLeaf: "秋叶",
+    signPiece: "路牌碎片",
     book: "\u4e66\u672c",
     pencil: "\u94c5\u7b14",
     leaf: "\u53f6\u5b50\u626b\u5e1a",
@@ -2383,6 +2353,10 @@ function taskShortHint(task) {
   if (task.done) return "\u5b8c\u6210";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
+  if (task.kind === "road_clear") return "\u6e05\u7406";
+  if (task.kind === "direction_sign") return task.done ? "\u8def\u724c" : "\u4fee\u8def\u724c";
+  if (task.kind === "exit_area") return "\u51fa\u53e3";
+  if (task.kind === "escort_npc") return task.following ? "\u8ddf\u968f\u4e2d" : "\u62a4\u9001";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? "\u5bf9\u8bdd" : "\u4ea4\u7ed9TA";
   if (task.kind === "boss") return "Boss";
   return "\u5e2e\u5fd9";
@@ -2395,6 +2369,10 @@ function taskNearHint(task) {
     const missing = missingNeeds(task.need);
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u653e\u8fdb${task.name}`;
   }
+  if (task.kind === "road_clear") return task.speech;
+  if (task.kind === "direction_sign") return missingNeeds(task.need).length ? "\u5148\u627e\u8def\u724c\u788e\u7247" : "\u6309 E \u4fee\u8def\u724c";
+  if (task.kind === "exit_area") return "\u6b63\u786e\u51fa\u53e3";
+  if (task.kind === "escort_npc") return task.following ? "\u53bb\u5b89\u5168\u533a" : "\u9760\u8fd1\u5c0f\u4f19\u4f34";
   if (task.kind === "delivery") {
     const missing = missingNeeds(task.need);
     if (task.animal === "owlPrincipal" && !canUseEscortCart()) return "\u5148\u8ba9\u5c0f\u63a8\u8f66\u8ddf\u7740\u4f60\u51fa\u53d1\u3002";
@@ -2405,7 +2383,7 @@ function taskNearHint(task) {
 }
 
 function shouldShowTaskHint(task) {
-  return state.nearbyTask === task || state.activeDialogue?.task === task || (task.kind === "action" && task.progress > 0.08);
+  return state.nearbyTask === task || state.activeDialogue?.task === task || ((task.kind === "action" || task.kind === "road_clear") && task.progress > 0.08);
 }
 
 function taskDialogueMode(task) {
@@ -2575,6 +2553,10 @@ function talkToNearbyTask() {
     shakeAppleTree(state.nearbyAppleTree);
     return;
   }
+  if (state.nearbyTask?.kind === "direction_sign") {
+    repairDirectionSign(state.nearbyTask);
+    return;
+  }
   if (levels[state.levelIndex]?.dialogueDisabled === true) {
     const task = state.nearbyTask;
     if (!task || task.done) return;
@@ -2633,13 +2615,10 @@ function openQuiz(task) {
 
 function answerQuiz(task, index) {
   if (index === task.quiz.answer) {
-    state.correctAnswers += 1;
-    addRunPoints(8, task.x, task.y, "+8 积分");
     closeQuiz();
     completeTask(task, task.x, task.y);
     return;
   }
-  state.wrongAnswers += 1;
   state.hearts = Math.max(0, state.hearts - 1);
   const penalty = applyTimePenalty("quiz", task.x, task.y);
   messageEl.textContent = penalty
@@ -2696,7 +2675,6 @@ function draw() {
   drawLandmarks();
   drawLeaves();
   drawSceneObjects();
-  drawEscortCart();
   drawCollectibles();
   drawTasks();
   drawHazards();
@@ -2893,9 +2871,11 @@ function drawLeaves() {
 
 function drawSceneObjects() {
   drawObstacles();
+  drawForestRoadZones();
   drawPropDecorations();
   drawNpcDecorations();
   drawDarkBubbles();
+  drawEscortCart();
   for (const puddle of state.puddles) drawGroundPuddle(puddle);
 
   for (let i = 0; i < 30; i += 1) {
@@ -2995,6 +2975,96 @@ function drawObstacles() {
     else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
     else if (obstacle.type === "appleTree") drawAppleTree(obstacle);
   }
+}
+
+function drawForestRoadZones() {
+  if (levels[state.levelIndex]?.world !== "forest_road") return;
+  for (const zone of state.crossingZones || []) drawCrossingZone(zone);
+  for (const zone of state.safeZones || []) drawSafeZone(zone);
+  for (const area of state.exitAreas || []) drawExitArea(area, false);
+  for (const light of state.trafficLights || []) drawTrafficLight(light);
+}
+
+function drawCrossingZone(zone) {
+  ctx.save();
+  ctx.translate(zone.x, zone.y);
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  roundRect(-zone.w / 2, -zone.h / 2, zone.w, zone.h, 10);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 4;
+  for (let x = -zone.w / 2 + 18; x < zone.w / 2; x += 28) {
+    ctx.beginPath();
+    ctx.moveTo(x, -zone.h / 2 + 10);
+    ctx.lineTo(x, zone.h / 2 - 10);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSafeZone(zone) {
+  ctx.save();
+  ctx.translate(zone.x, zone.y);
+  ctx.fillStyle = "rgba(131,184,61,0.16)";
+  circle(0, 0, zone.r);
+  ctx.strokeStyle = "rgba(63,138,47,0.72)";
+  ctx.lineWidth = 4;
+  circleStroke(0, 0, zone.r);
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 12px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  if (!drawPropImage(ctx, "safeFlag", -30, -44, 60, 68)) {
+    fitText(zone.label || "安全区", 0, 5, zone.r * 1.6);
+  }
+  fitText(zone.label || "安全区", 0, 44, zone.r * 1.8);
+  ctx.restore();
+}
+
+function drawExitArea(area, correct) {
+  ctx.save();
+  ctx.translate(area.x, area.y);
+  ctx.fillStyle = correct ? "rgba(131,184,61,0.16)" : "rgba(246,211,123,0.14)";
+  circle(0, 0, area.r);
+  ctx.strokeStyle = correct ? "rgba(63,138,47,0.72)" : "rgba(139,91,43,0.55)";
+  ctx.lineWidth = 3;
+  circleStroke(0, 0, area.r);
+  ctx.fillStyle = "#5b3212";
+  ctx.font = "900 11px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(area.label || "出口", 0, 4, area.r * 1.7);
+  ctx.restore();
+}
+
+function drawTrafficLight(light) {
+  ctx.save();
+  ctx.translate(light.x, light.y);
+  if (drawPropImage(ctx, "trafficLight", -34, -66, 68, 118)) {
+    const activeY = light.state === "red" ? -34 : 4;
+    ctx.globalAlpha = 0.96;
+    ctx.fillStyle = light.state === "red" ? "rgba(232,75,63,0.95)" : "rgba(111,180,71,0.95)";
+    circle(0, activeY, 15);
+    ctx.strokeStyle = light.state === "red" ? "rgba(255,235,210,0.92)" : "rgba(236,255,212,0.92)";
+    ctx.lineWidth = 4;
+    circleStroke(0, activeY, 19);
+    ctx.globalAlpha = 0.86;
+    ctx.fillStyle = light.state === "red" ? "#e84b3f" : "#4f9f33";
+    ctx.font = "900 11px Microsoft YaHei, Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(light.state === "red" ? "红灯" : "绿灯", 0, -72);
+    ctx.restore();
+    return;
+  }
+  ctx.fillStyle = "#5b3212";
+  roundRect(-8, 18, 16, 78, 6);
+  ctx.fill();
+  ctx.fillStyle = "#293241";
+  roundRect(-24, -54, 48, 78, 12);
+  ctx.fill();
+  ctx.fillStyle = light.state === "red" ? "#e84b3f" : "rgba(232,75,63,0.28)";
+  circle(0, -32, 13);
+  ctx.fillStyle = light.state === "green" ? "#6fb447" : "rgba(111,180,71,0.28)";
+  circle(0, 3, 13);
+  ctx.restore();
 }
 
 function drawEscortCart() {
@@ -3135,6 +3205,7 @@ const ART_PACK_PROP_KEYS = {
   appleCart: "appleCart",
   harvestBadge: "harvestBadge",
   autumnLeaf: "autumnLeaf",
+  signPiece: "signPiece",
   book: "book",
   pencil: "pencil",
   leaf: "leafBroom",
@@ -3163,6 +3234,7 @@ const ART_PACK_PROP_KEYS = {
   jellyfishCore: "jellyfishCore",
   aquaGem: "aquaGem",
   deepRune: "deepRune",
+  pearlCrown: "pearlCrown",
   moonPearlBadge: "moonPearl",
 };
 
@@ -3212,6 +3284,11 @@ const ART_PACK_SCENE_PROP_KEYS = {
   flower: "flowerBed",
   sign: "schoolSign",
   autumnLeaf: "autumnLeaf",
+  branchPile: "roadBranchPile",
+  leafPile: "leafPile",
+  roadStone: "roadStonePile",
+  directionSign: "directionSign",
+  correctExit: "safeFlag",
   spring: "bouncingMushroom",
   finish: "finishFlag",
 };
@@ -3228,6 +3305,11 @@ const NPC_VISUAL_OFFSETS = {
   otter: { x: 0, y: 12 },
   frog: { x: 0, y: 18 },
   seagull: { x: 0, y: 12 },
+  coco: { x: 0, y: 10 },
+  nono: { x: 0, y: 10 },
+  birdPostman: { x: 0, y: 12 },
+  moleFarmer: { x: 0, y: 10 },
+  owlPrincipal: { x: 0, y: 8 },
   beaver: { x: 0, y: 14 },
   clownfish: { x: 0, y: 10 },
   seaTurtle: { x: 0, y: 16 },
@@ -3253,6 +3335,12 @@ const ART_PACK_ITEM_BOUNDS = {
   appleCart: { x: -46, y: -38, w: 92, h: 76 },
   harvestBadge: { x: -28, y: -30, w: 56, h: 56 },
   autumnLeaf: { x: -24, y: -24, w: 48, h: 48 },
+  signPiece: { x: -27, y: -27, w: 54, h: 54 },
+  roadBranchPile: { x: -46, y: -36, w: 92, h: 72 },
+  leafPile: { x: -44, y: -36, w: 88, h: 72 },
+  roadStonePile: { x: -42, y: -34, w: 84, h: 68 },
+  directionSign: { x: -54, y: -70, w: 108, h: 120 },
+  safeFlag: { x: -42, y: -54, w: 84, h: 96 },
   book: { x: -27, y: -29, w: 54, h: 54 },
   pencil: { x: -24, y: -11, w: 48, h: 22 },
   leaf: { x: -23, y: -23, w: 46, h: 46 },
@@ -3285,6 +3373,7 @@ const ART_PACK_ITEM_BOUNDS = {
   jellyfishCore: { x: -27, y: -29, w: 54, h: 54 },
   aquaGem: { x: -27, y: -29, w: 54, h: 54 },
   deepRune: { x: -27, y: -29, w: 54, h: 54 },
+  pearlCrown: { x: -31, y: -29, w: 62, h: 58 },
   moonPearlBadge: { x: -28, y: -30, w: 56, h: 56 },
 };
 
@@ -3344,13 +3433,54 @@ function drawPropImage(ctxArg, key, x, y, width, height) {
   const pack = window.CATS_OWLS_ART_PACK_01;
   const image = pack?.get?.("props", key);
   if (image && image.complete && image.naturalWidth > 0) {
-    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
-    const drawWidth = image.naturalWidth * scale;
-    const drawHeight = image.naturalHeight * scale;
-    ctxArg.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+    const source = imageTransparentBounds(image);
+    const scale = Math.min(width / source.w, height / source.h);
+    const drawWidth = source.w * scale;
+    const drawHeight = source.h * scale;
+    ctxArg.drawImage(
+      image,
+      source.x,
+      source.y,
+      source.w,
+      source.h,
+      x + (width - drawWidth) / 2,
+      y + (height - drawHeight) / 2,
+      drawWidth,
+      drawHeight
+    );
     return true;
   }
   return false;
+}
+
+function imageTransparentBounds(image) {
+  if (image._catsOwlTrimBounds) return image._catsOwlTrimBounds;
+  const fallback = { x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight };
+  try {
+    const buffer = document.createElement("canvas");
+    buffer.width = image.naturalWidth;
+    buffer.height = image.naturalHeight;
+    const bufferCtx = buffer.getContext("2d", { willReadFrequently: true });
+    bufferCtx.drawImage(image, 0, 0);
+    const { data } = bufferCtx.getImageData(0, 0, buffer.width, buffer.height);
+    let minX = buffer.width;
+    let minY = buffer.height;
+    let maxX = -1;
+    let maxY = -1;
+    for (let y = 0; y < buffer.height; y += 1) {
+      for (let x = 0; x < buffer.width; x += 1) {
+        if (data[(y * buffer.width + x) * 4 + 3] <= 8) continue;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+    image._catsOwlTrimBounds = maxX >= 0 ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : fallback;
+  } catch (error) {
+    image._catsOwlTrimBounds = fallback;
+  }
+  return image._catsOwlTrimBounds;
 }
 
 function drawObstacleArtPackImage(obstacle, key) {
@@ -3632,6 +3762,7 @@ function drawItem(type) {
   else if (type === "appleCart") drawAppleCart();
   else if (type === "harvestBadge") drawHarvestBadge();
   else if (type === "autumnLeaf") drawAutumnLeaf();
+  else if (type === "signPiece") drawSignPiece();
   else if (type === "book") drawBook("#2f9dcc");
   else if (type === "pencil") drawPencil();
   else if (type === "leaf") drawLeafBroom();
@@ -3657,7 +3788,7 @@ function drawTasks() {
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
     drawAnimal(task.animal);
-    if (task.kind === "action" && !task.done) drawTaskProgress(task.progress);
+    if ((task.kind === "action" || task.kind === "road_clear") && !task.done) drawTaskProgress(task.progress, task.duration || 1.65);
     if (task.kind === "boss" && !task.done) drawBossProgress(task.progress);
     ctx.restore();
   }
@@ -3715,12 +3846,12 @@ function drawSpeech(task) {
   fitText(label, 0, -53, width - 12);
 }
 
-function drawTaskProgress(progress) {
+function drawTaskProgress(progress, duration = 1.65) {
   ctx.fillStyle = "rgba(255,255,255,0.78)";
   roundRect(-30, 34, 60, 9, 5);
   ctx.fill();
   ctx.fillStyle = "#83b83d";
-  roundRect(-30, 34, 60 * clamp(progress / 1.65, 0, 1), 9, 5);
+  roundRect(-30, 34, 60 * clamp(progress / duration, 0, 1), 9, 5);
   ctx.fill();
 }
 
@@ -3768,6 +3899,11 @@ function drawAnimal(kind) {
   else if (kind === "boss") drawForestBoss();
   else if (kind === "owl") drawOwl(0, 4, 0.92);
   else if (kind === "sign") drawSign();
+  else if (kind === "branchPile") drawBranchPile();
+  else if (kind === "leafPile") drawLeafPile();
+  else if (kind === "roadStone") drawRoadStone();
+  else if (kind === "directionSign") drawDirectionSign();
+  else if (kind === "correctExit") drawCorrectExit();
   else if (kind === "redBasket" || kind === "greenBasket" || kind === "giftBasket") drawSortBasket(kind);
   else if (kind === "appleCartStation") drawAppleCart();
   else if (kind === "light") drawTreeLight();
@@ -5336,6 +5472,82 @@ function drawSign() {
   ctx.fillText("\u5b66\u6821", 0, -13);
 }
 
+function drawSignPiece() {
+  ctx.save();
+  ctx.rotate(-0.16);
+  ctx.fillStyle = "#f6d77b";
+  roundRect(-22, -18, 44, 30, 7);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 18px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("→", 0, 4);
+  ctx.restore();
+}
+
+function drawDirectionSign() {
+  drawSign();
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 11px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("橡果镇", 0, -14);
+}
+
+function drawBranchPile() {
+  ctx.save();
+  ctx.strokeStyle = "#7a4a28";
+  ctx.lineWidth = 8;
+  ctx.lineCap = "round";
+  for (const [x1, y1, x2, y2] of [[-38, 16, 36, -18], [-30, -16, 32, 18], [-18, 22, 20, -28]]) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#6fb447";
+  circle(-18, -20, 9);
+  circle(26, -10, 8);
+  ctx.restore();
+}
+
+function drawLeafPile() {
+  ctx.save();
+  for (let i = 0; i < 12; i += 1) {
+    const angle = (Math.PI * 2 * i) / 12;
+    ctx.save();
+    ctx.translate(Math.cos(angle) * 22, Math.sin(angle) * 12);
+    ctx.rotate(angle);
+    ctx.fillStyle = i % 2 ? "#f2ad31" : "#d9743f";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 16, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawRoadStone() {
+  ctx.save();
+  ctx.fillStyle = "#9ca3ad";
+  circle(-14, 4, 18);
+  circle(10, -4, 22);
+  circle(28, 10, 14);
+  ctx.fillStyle = "rgba(255,255,255,0.24)";
+  circle(2, -12, 5);
+  ctx.restore();
+}
+
+function drawCorrectExit() {
+  drawExitArea({ x: 0, y: 0, r: 42, label: "橡果镇" }, true);
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 22px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("→", 0, 8);
+}
+
 function drawAppleTree(tree) {
   const t = performance.now() / 420 + tree.x;
   ctx.save();
@@ -5371,7 +5583,6 @@ function drawSortBasket(kind) {
     giftBasket: "giftAppleBasket2",
   }[kind];
   if (imageKey && drawPropImage(ctx, imageKey, -44, -44, 88, 88)) return;
-
   const color =
     kind === "redBasket" ? "#e84b3f" : kind === "greenBasket" ? "#6fb447" : kind === "giftBasket" ? "#ffd94a" : "#b86b32";
   ctx.save();
@@ -5695,7 +5906,7 @@ dialogueNextBtn?.addEventListener("click", nextDialogueLine);
 dialogueGiveBtn?.addEventListener("click", finishDialogueDelivery);
 dialogueQuizBtn?.addEventListener("click", startDialogueQuiz);
 storybookCloseBtn?.addEventListener("click", () => closeStorybookPage(false));
-storybookStartBtn?.addEventListener("click", () => closeStorybookPage(true));
+storybookStartBtn?.addEventListener("click", () => closeStorybookPage(storybookStartBtn.textContent === "开始任务"));
 
 document.querySelectorAll("[data-dir]").forEach((button) => {
   const dir = button.dataset.dir;
@@ -5730,10 +5941,6 @@ function syncDifficultyButtons() {
   });
 }
 
-function syncPlayerProfileInput() {
-  if (nicknameInput) nicknameInput.value = playerProfile.nickname;
-}
-
 function setDifficulty(difficulty, resetIdleLevel = true) {
   if (!DIFFICULTY_SETTINGS[difficulty]) return;
   selectedDifficulty = difficulty;
@@ -5755,15 +5962,6 @@ difficultyButtons.forEach((button) => {
   button.addEventListener("click", () => setDifficulty(button.dataset.difficulty || "normal"));
 });
 
-nicknameInput?.addEventListener("input", () => {
-  const limited = limitNickname(nicknameInput.value.replace(/[<>]/g, ""));
-  if (nicknameInput.value !== limited) nicknameInput.value = limited;
-  if (limited.trim()) savePlayerProfile(limited);
-});
-
-nicknameInput?.addEventListener("change", () => savePlayerProfile(nicknameInput.value));
-nicknameInput?.addEventListener("blur", () => savePlayerProfile(nicknameInput.value));
-
 window.catsOwlDifficulty = {
   get: () => selectedDifficulty,
   set: (difficulty) => setDifficulty(difficulty),
@@ -5771,14 +5969,6 @@ window.catsOwlDifficulty = {
 };
 
 startBtn.addEventListener("click", startGame);
-recordsBtn?.addEventListener("click", openRunHistory);
-homeRecordsBtn?.addEventListener("click", openRunHistory);
-scoreRecordsBtn?.addEventListener("click", openRunHistory);
-scoreSummaryCloseBtn?.addEventListener("click", closeScoreSummaryPanel);
-scoreContinueBtn?.addEventListener("click", continueNextLevel);
-scoreRetryBtn?.addEventListener("click", replayCurrentLevel);
-runHistoryCloseBtn?.addEventListener("click", closeRunHistory);
-clearHistoryBtn?.addEventListener("click", clearLocalScoreRecords);
 
 function initialLevelFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -5793,7 +5983,6 @@ const initialLevel = initialLevelFromUrl();
 preloadPlayerAssets();
 syncRoleButtons();
 syncDifficultyButtons();
-syncPlayerProfileInput();
 if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") === "1") {
   gameEntered = true;
 }
