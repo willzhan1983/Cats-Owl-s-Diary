@@ -97,6 +97,9 @@ const backgroundSources = {
   basketSortingStation: "./assets/bg/basket_sorting_station.png",
   forestSchoolDelivery: "./assets/bg/forest_school_apple_delivery.png",
   forestRoadEntrance: "./assets/bg/forest_road_entrance.png",
+  windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
+  escortForestPath: "./assets/bg/escort_forest_path.png",
+  acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
 };
 
 const backgroundSourceCandidates = {
@@ -123,6 +126,9 @@ const backgroundSourceCandidates = {
   basketSortingStation: ["./assets/bg/basket_sorting_station.png", "./assets/bg-level1-schoolyard.png", "./assets/bg-level2-forest.png"],
   forestSchoolDelivery: ["./assets/bg/forest_school_apple_delivery.png", "./assets/bg-level1-schoolyard.png", "./assets/v2/v2-forest-school-background.png"],
   forestRoadEntrance: ["./assets/bg/forest_road_entrance.png", "./assets/v2/v2-bg-city-road.png"],
+  windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
+  escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
+  acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
 };
 
 const backgrounds = {};
@@ -388,7 +394,7 @@ const WORLD_MAP = {
     name: "森林公路",
     background: "forestRoadEntrance",
     levels: [],
-    taskTypes: [TASK_TYPES.FETCH_ITEM],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
 };
 
@@ -410,6 +416,9 @@ const dayNames = [
   "果篮整理站",
   "送给猫头鹰校长",
   "森林公路入口",
+  "弯弯森林小路",
+  "护送小动物过路",
+  "橡果镇路口",
 ];
 
 const keys = new Set();
@@ -1162,6 +1171,78 @@ const levels = [
     puddles: [],
     obstacles: [],
   },
+  {
+    name: "弯弯森林小路",
+    bg: "windingForestCrossroad",
+    world: "forest_road",
+    time: 92,
+    start: { x: 118, y: 430 },
+    message: "找到路牌碎片，修好破损路牌，再选择去橡果镇的路。",
+    collectibles: [
+      item(292, 350, "signPiece", "路牌碎片"),
+    ],
+    tasks: [
+      directionSignTask(486, 260, "破损路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
+      exitTask(838, 236, "correctExit", "去橡果镇的路"),
+    ],
+    exitAreas: [
+      { x: 144, y: 246, r: 48, type: "wrongExit", label: "苹果谷方向" },
+      { x: 494, y: 438, r: 48, type: "wrongExit", label: "森林学校方向" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "护送小动物过路",
+    bg: "escortForestPath",
+    world: "forest_road",
+    time: 96,
+    start: { x: 120, y: 430 },
+    message: "小伙伴迷路了，靠近它，再跟着红绿灯节奏走到安全区。",
+    collectibles: [],
+    tasks: [
+      escortNpcTask(238, 342, "迷路小伙伴", "nono", "safeZone"),
+    ],
+    safeZones: [
+      { id: "safeZone", x: 806, y: 342, r: 54, label: "安全区" },
+    ],
+    trafficLights: [
+      { x: 520, y: 190, state: "green", timer: 0 },
+    ],
+    crossingZones: [
+      { x: 520, y: 338, w: 150, h: 118, lightIndex: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "橡果镇路口",
+    bg: "acornTownCrossroad",
+    world: "forest_road",
+    time: 110,
+    start: { x: 112, y: 430 },
+    message: "最后路口要综合测试：清理大路障、放好路牌、护送小伙伴到橡果镇入口。",
+    collectibles: [
+      item(320, 358, "signPiece", "最终路牌碎片"),
+    ],
+    tasks: [
+      roadClearTask(238, 346, "大路障", "branchPile", "正在清理树枝……", 1.2),
+      directionSignTask(472, 250, "最终路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
+      escortNpcTask(220, 424, "等候的小伙伴", "coco", "acornTownGate"),
+      exitTask(836, 246, "correctExit", "橡果镇入口"),
+    ],
+    safeZones: [
+      { id: "acornTownGate", x: 836, y: 246, r: 58, label: "橡果镇入口" },
+    ],
+    trafficLights: [
+      { x: 608, y: 180, state: "green", timer: 0 },
+    ],
+    crossingZones: [
+      { x: 608, y: 338, w: 150, h: 116, lightIndex: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1242,6 +1323,29 @@ function roadClearTask(x, y, name, animal, speech, duration) {
   return { x, y, name, animal, speech, duration, kind: "road_clear", done: false, progress: 0 };
 }
 
+function directionSignTask(x, y, name, directions) {
+  return {
+    x,
+    y,
+    name,
+    animal: "directionSign",
+    need: ["signPiece"],
+    speech: "收集路牌碎片后，按 E 修好路牌。",
+    directions,
+    kind: "direction_sign",
+    done: false,
+    progress: 0,
+  };
+}
+
+function exitTask(x, y, animal, name) {
+  return { x, y, name, animal, speech: "走到正确出口。", kind: "exit_area", done: false, progress: 0 };
+}
+
+function escortNpcTask(x, y, name, animal, safeZoneId) {
+  return { x, y, name, animal, safeZoneId, speech: "靠近小伙伴，让它跟着你去安全区。", kind: "escort_npc", done: false, progress: 0, following: false };
+}
+
 function quizTask(x, y, name, animal, speech, quiz) {
   return { x, y, name, animal, speech, quizKey: typeof quiz === "string" ? quiz : null, quiz, kind: "quiz", done: false, progress: 0 };
 }
@@ -1291,6 +1395,8 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     inventory: [],
     slowUntil: 0,
     puddleCooldownUntil: 0,
+    priorityMessage: "",
+    priorityMessageUntil: 0,
     bubbleLiftUntil: 0,
     activeBubbleLift: null,
     bubbleLiftCooldownUntil: 0,
@@ -1312,6 +1418,10 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     puddles: level.puddles.map((entry) => ({ ...entry })),
     obstacles: (level.obstacles || []).map((entry) => ({ ...entry })),
     escortCart: level.escortCart ? { ...level.escortCart } : null,
+    safeZones: (level.safeZones || []).map((entry) => ({ ...entry })),
+    trafficLights: (level.trafficLights || []).map((entry) => ({ ...entry })),
+    crossingZones: (level.crossingZones || []).map((entry) => ({ ...entry })),
+    exitAreas: (level.exitAreas || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
@@ -1829,6 +1939,7 @@ function update(dt) {
 
   updatePlayer(dt);
   updateAppleCart(dt);
+  updateForestRoadMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
   updateBossHazards(dt);
@@ -2087,6 +2198,81 @@ function updateAppleCart(dt) {
   cart.y += (targetY - cart.y) * follow;
 }
 
+function updateForestRoadMechanisms(dt) {
+  if (levels[state.levelIndex]?.world !== "forest_road") return;
+  updateTrafficLights(dt);
+  updateEscortNpcs(dt);
+  checkCrossingZones();
+  checkExitAreas();
+}
+
+function updateTrafficLights(dt) {
+  for (const light of state.trafficLights || []) {
+    light.timer = (light.timer || 0) + dt;
+    if (light.timer < 2) continue;
+    light.timer = 0;
+    light.state = light.state === "red" ? "green" : "red";
+    addFloatingText(light.x, light.y - 48, light.state === "green" ? "绿灯" : "红灯", light.state === "green" ? "#3f8a2f" : "#e84b3f");
+  }
+}
+
+function updateEscortNpcs(dt) {
+  const p = state.player;
+  for (const task of state.tasksList) {
+    if (task.kind !== "escort_npc" || task.done) continue;
+    if (!task.following && distance(p, task) < 62) {
+      task.following = true;
+      burst(task.x, task.y, "#ffd94a", 14);
+      addFloatingText(task.x, task.y - 46, "小伙伴跟上来啦！", "#3f8a2f");
+      messageEl.textContent = "小伙伴跟上来啦！";
+    }
+    if (!task.following) continue;
+    const targetX = p.x - 54 * p.dir;
+    const targetY = p.y + 10;
+    const gap = distance(task, p);
+    const follow = gap > 180 ? 1 : clamp(dt * 3.4, 0, 1);
+    task.x += (targetX - task.x) * follow;
+    task.y += (targetY - task.y) * follow;
+    const safeZone = state.safeZones.find((zone) => zone.id === task.safeZoneId);
+    if (safeZone && distance(task, safeZone) < safeZone.r + 24) {
+      completeTask(task, safeZone.x, safeZone.y);
+      messageEl.textContent = "到安全区啦！";
+    }
+  }
+}
+
+function checkCrossingZones() {
+  const now = performance.now();
+  if (now < state.puddleCooldownUntil) return;
+  for (const zone of state.crossingZones || []) {
+    if (!pointInRect(state.player, zone)) continue;
+    const light = state.trafficLights?.[zone.lightIndex || 0];
+    state.puddleCooldownUntil = now + 820;
+    if (light?.state === "red") {
+      addFloatingText(state.player.x, state.player.y - 42, "红灯", "#e84b3f");
+      messageEl.textContent = "先等等，绿灯再走哦！";
+    } else {
+      addFloatingText(state.player.x, state.player.y - 42, "绿灯", "#3f8a2f");
+      messageEl.textContent = "可以安全通过啦！";
+    }
+    state.priorityMessage = messageEl.textContent;
+    state.priorityMessageUntil = now + 900;
+    return;
+  }
+}
+
+function checkExitAreas() {
+  const now = performance.now();
+  if (now < state.puddleCooldownUntil) return;
+  for (const area of state.exitAreas || []) {
+    if (distance(state.player, area) >= area.r + 16) continue;
+    state.puddleCooldownUntil = now + 920;
+    addFloatingText(area.x, area.y - 44, "再看看路牌", "#8b5b2b");
+    messageEl.textContent = "这里好像不是去橡果镇的路。";
+    return;
+  }
+}
+
 function canUseEscortCart() {
   return Boolean(state?.escortCart?.active);
 }
@@ -2279,6 +2465,22 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "direction_sign") {
+      messageEl.textContent = missingNeeds(task.need).length ? "先找到路牌碎片。" : "按 E 修好路牌。";
+      continue;
+    }
+
+    if (task.kind === "exit_area") {
+      messageEl.textContent = "这条路通向橡果镇，走近一点就可以通过。";
+      completeTask(task, task.x, task.y);
+      continue;
+    }
+
+    if (task.kind === "escort_npc") {
+      messageEl.textContent = task.following ? "小伙伴正在跟着你。" : "靠近小伙伴，它会自动跟上来。";
+      continue;
+    }
+
     if (task.kind === "boss") {
       messageEl.textContent = firstBossWeapon()
         ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u6309\u7a7a\u683c\u6216\u70b9\u201c\u653b\u51fb\u201d\uff01"
@@ -2307,10 +2509,17 @@ function checkTasks(dt) {
       completeTask(task, task.x, task.y);
     }
   }
-  if (state.nearbyTask?.done && state.nearbyTask.kind === "road_clear") {
+  if (state.nearbyTask?.done && state.nearbyTask.kind === "direction_sign") {
+    messageEl.textContent = state.nearbyTask.directions?.join("  ") || "→ 橡果镇";
+  } else if (state.nearbyTask?.done && state.nearbyTask.kind === "road_clear") {
     messageEl.textContent = "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
   } else if (state.nearbyTask?.done) {
     messageEl.textContent = `${state.nearbyTask.name}\u5df2\u7ecf\u5f88\u5f00\u5fc3\u5566\u3002\u6309 E \u518d\u804a\u804a\u3002`;
+  }
+  if (state.priorityMessage && performance.now() < state.priorityMessageUntil) {
+    messageEl.textContent = state.priorityMessage;
+  } else if (state.priorityMessage) {
+    state.priorityMessage = "";
   }
 }
 
@@ -2330,11 +2539,16 @@ function completeTask(task, x, y) {
     addFloatingText(x, y - 74, "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01", "#f2ad31");
     messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
   }
-  if (task.kind === "delivery" || task.kind === "action" || task.kind === "road_clear") addRunPoints(10, x, y, "+10 积分");
+  if (task.kind === "delivery" || task.kind === "action" || task.kind === "road_clear" || task.kind === "direction_sign" || task.kind === "exit_area" || task.kind === "escort_npc") {
+    addRunPoints(10, x, y, "+10 积分");
+  }
   burst(x, y, "#f46a5c", 18);
   addFloatingText(x, y - 54, "\u5e2e\u5fd9\u6210\u529f +3", "#e84b3f");
   messageEl.textContent = `${task.name}\u5f00\u5fc3\u5566\uff0c\u7231\u5fc3 +3\uff0c\u65f6\u95f4 +5\u3002`;
   if (task.kind === "road_clear") messageEl.textContent = "道路变干净啦！";
+  if (task.kind === "direction_sign") messageEl.textContent = task.directions?.join("  ") || "→ 橡果镇";
+  if (task.kind === "exit_area") messageEl.textContent = "找到去橡果镇的正确道路啦！";
+  if (task.kind === "escort_npc") messageEl.textContent = "到安全区啦！";
   if (task.kind === "sort_basket") messageEl.textContent = sortBasketCompleteMessage(task);
   if (task.animal === "owlPrincipal") messageEl.textContent = "\u732b\u5934\u9e70\u6821\u957f\u6536\u5230\u4e86\u4e30\u6536\u793c\u7269\uff01";
   if (task.animal === "appleCartStation") messageEl.textContent = "\u5c0f\u63a8\u8f66\u51fa\u53d1\u5566\uff01";
@@ -2392,6 +2606,7 @@ function itemLabel(type) {
     appleCart: "苹果小推车",
     harvestBadge: "丰收徽章",
     autumnLeaf: "秋叶",
+    signPiece: "路牌碎片",
     book: "\u4e66\u672c",
     pencil: "\u94c5\u7b14",
     leaf: "\u53f6\u5b50\u626b\u5e1a",
@@ -2431,12 +2646,16 @@ function taskShortHint(task) {
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
+  if (task.kind === "direction_sign") return missingNeeds(task.need).length ? "\u627e\u788e\u7247" : "\u4fee\u8def\u724c";
+  if (task.kind === "exit_area") return "\u6b63\u786e\u51fa\u53e3";
+  if (task.kind === "escort_npc") return task.following ? "\u53bb\u5b89\u5168\u533a" : "\u9760\u8fd1";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? "\u5bf9\u8bdd" : "\u4ea4\u7ed9TA";
   if (task.kind === "boss") return "Boss";
   return "\u5e2e\u5fd9";
 }
 
 function taskNearHint(task) {
+  if (task.done && task.kind === "direction_sign") return task.directions?.join("  ") || "→ 橡果镇";
   if (task.done && task.kind === "road_clear") return "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
   if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
@@ -2451,6 +2670,9 @@ function taskNearHint(task) {
   }
   if (task.kind === "boss") return firstBossWeapon() ? "\u6309 E \u542c\u63d0\u793a\uff0c\u518d\u653b\u51fb\u3002" : "\u6309 E \u542c\u63d0\u793a\u3002";
   if (task.kind === "road_clear") return task.speech || "\u6b63\u5728\u6e05\u7406\u9053\u8def\u2026\u2026";
+  if (task.kind === "direction_sign") return missingNeeds(task.need).length ? "\u5148\u627e\u8def\u724c\u788e\u7247" : "\u6309 E \u4fee\u8def\u724c";
+  if (task.kind === "exit_area") return "\u6b63\u786e\u51fa\u53e3";
+  if (task.kind === "escort_npc") return task.following ? "\u53bb\u5b89\u5168\u533a" : "\u9760\u8fd1\u5c0f\u4f19\u4f34";
   return "\u6309 E \u5bf9\u8bdd";
 }
 
@@ -2661,7 +2883,29 @@ function talkToNearbyTask() {
     nextDialogueLine();
     return;
   }
+  if (state.nearbyTask?.kind === "direction_sign") {
+    repairDirectionSign(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask && ["road_clear", "exit_area", "escort_npc"].includes(state.nearbyTask.kind)) {
+    messageEl.textContent = taskNearHint(state.nearbyTask);
+    return;
+  }
   if (state.nearbyTask) openDialogue(state.nearbyTask);
+}
+
+function repairDirectionSign(task) {
+  if (!task || task.done) return;
+  const missing = missingNeeds(task.need);
+  if (missing.length) {
+    messageEl.textContent = "先找到路牌碎片。";
+    return;
+  }
+  consumeNeeds(task.need);
+  completeTask(task, task.x, task.y);
+  messageEl.textContent = task.directions?.join("  ") || "→ 橡果镇";
+  addFloatingText(task.x, task.y - 62, "路牌修好啦！", "#3f8a2f");
+  updateHud();
 }
 
 function openQuiz(task) {
@@ -2943,6 +3187,7 @@ function drawLeaves() {
 
 function drawSceneObjects() {
   drawObstacles();
+  drawForestRoadZones();
   drawPropDecorations();
   drawNpcDecorations();
   drawDarkBubbles();
@@ -3045,6 +3290,94 @@ function drawObstacles() {
     else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
     else if (obstacle.type === "appleTree") drawAppleTree(obstacle);
   }
+}
+
+function drawForestRoadZones() {
+  if (levels[state.levelIndex]?.world !== "forest_road") return;
+  for (const zone of state.crossingZones || []) drawCrossingZone(zone);
+  for (const zone of state.safeZones || []) drawSafeZone(zone);
+  for (const area of state.exitAreas || []) drawExitArea(area, false);
+  for (const light of state.trafficLights || []) drawTrafficLight(light);
+}
+
+function drawCrossingZone(zone) {
+  ctx.save();
+  ctx.translate(zone.x, zone.y);
+  ctx.fillStyle = "rgba(255,255,255,0.18)";
+  roundRect(-zone.w / 2, -zone.h / 2, zone.w, zone.h, 10);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 4;
+  for (let x = -zone.w / 2 + 18; x < zone.w / 2; x += 28) {
+    ctx.beginPath();
+    ctx.moveTo(x, -zone.h / 2 + 10);
+    ctx.lineTo(x, zone.h / 2 - 10);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSafeZone(zone) {
+  ctx.save();
+  ctx.translate(zone.x, zone.y);
+  ctx.fillStyle = "rgba(131,184,61,0.16)";
+  circle(0, 0, zone.r);
+  ctx.strokeStyle = "rgba(63,138,47,0.72)";
+  ctx.lineWidth = 4;
+  circleStroke(0, 0, zone.r);
+  ctx.fillStyle = "#34563e";
+  ctx.font = "900 12px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  if (!drawPropImage(ctx, "safeFlag", -30, -44, 60, 68)) fitText(zone.label || "安全区", 0, 5, zone.r * 1.6);
+  fitText(zone.label || "安全区", 0, 44, zone.r * 1.8);
+  ctx.restore();
+}
+
+function drawExitArea(area, correct) {
+  ctx.save();
+  ctx.translate(area.x, area.y);
+  ctx.fillStyle = correct ? "rgba(131,184,61,0.16)" : "rgba(246,211,123,0.14)";
+  circle(0, 0, area.r);
+  ctx.strokeStyle = correct ? "rgba(63,138,47,0.72)" : "rgba(139,91,43,0.55)";
+  ctx.lineWidth = 3;
+  circleStroke(0, 0, area.r);
+  ctx.fillStyle = "#5b3212";
+  ctx.font = "900 11px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(area.label || "出口", 0, 4, area.r * 1.7);
+  ctx.restore();
+}
+
+function drawTrafficLight(light) {
+  ctx.save();
+  ctx.translate(light.x, light.y);
+  if (drawPropImage(ctx, "trafficLight", -34, -66, 68, 118)) {
+    const activeY = light.state === "red" ? -34 : 4;
+    ctx.globalAlpha = 0.96;
+    ctx.fillStyle = light.state === "red" ? "rgba(232,75,63,0.95)" : "rgba(111,180,71,0.95)";
+    circle(0, activeY, 15);
+    ctx.strokeStyle = light.state === "red" ? "rgba(255,235,210,0.92)" : "rgba(236,255,212,0.92)";
+    ctx.lineWidth = 4;
+    circleStroke(0, activeY, 19);
+    ctx.globalAlpha = 0.86;
+    ctx.fillStyle = light.state === "red" ? "#e84b3f" : "#4f9f33";
+    ctx.font = "900 11px Microsoft YaHei, Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(light.state === "red" ? "红灯" : "绿灯", 0, -72);
+    ctx.restore();
+    return;
+  }
+  ctx.fillStyle = "#5b3212";
+  roundRect(-8, 18, 16, 78, 6);
+  ctx.fill();
+  ctx.fillStyle = "#293241";
+  roundRect(-24, -54, 48, 78, 12);
+  ctx.fill();
+  ctx.fillStyle = light.state === "red" ? "#e84b3f" : "rgba(232,75,63,0.28)";
+  circle(0, -32, 13);
+  ctx.fillStyle = light.state === "green" ? "#6fb447" : "rgba(111,180,71,0.28)";
+  circle(0, 3, 13);
+  ctx.restore();
 }
 
 function drawEscortCart() {
@@ -3185,6 +3518,7 @@ const ART_PACK_PROP_KEYS = {
   appleCart: "appleCart",
   harvestBadge: "harvestBadge",
   autumnLeaf: "autumnLeaf",
+  signPiece: "signPiece",
   book: "book",
   pencil: "pencil",
   leaf: "leafBroom",
@@ -3217,6 +3551,7 @@ const ART_PACK_PROP_KEYS = {
   branchPile: "roadBranchPile",
   leafPile: "leafPile",
   roadStone: "roadStonePile",
+  safeFlag: "safeFlag",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -3270,6 +3605,8 @@ const ART_PACK_SCENE_PROP_KEYS = {
   branchPile: "roadBranchPile",
   leafPile: "leafPile",
   roadStone: "roadStonePile",
+  directionSign: "directionSign",
+  correctExit: "safeFlag",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -3309,6 +3646,7 @@ const ART_PACK_ITEM_BOUNDS = {
   appleCart: { x: -46, y: -38, w: 92, h: 76 },
   harvestBadge: { x: -28, y: -30, w: 56, h: 56 },
   autumnLeaf: { x: -24, y: -24, w: 48, h: 48 },
+  signPiece: { x: -27, y: -27, w: 54, h: 54 },
   book: { x: -27, y: -29, w: 54, h: 54 },
   pencil: { x: -24, y: -11, w: 48, h: 22 },
   leaf: { x: -23, y: -23, w: 46, h: 46 },
@@ -3345,6 +3683,8 @@ const ART_PACK_ITEM_BOUNDS = {
   roadBranchPile: { x: -48, y: -38, w: 96, h: 76 },
   leafPile: { x: -44, y: -36, w: 88, h: 72 },
   roadStonePile: { x: -42, y: -34, w: 84, h: 68 },
+  directionSign: { x: -54, y: -70, w: 108, h: 120 },
+  safeFlag: { x: -36, y: -56, w: 72, h: 92 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -3403,13 +3743,54 @@ function drawPropImage(ctxArg, key, x, y, width, height) {
   const pack = window.CATS_OWLS_ART_PACK_01;
   const image = pack?.get?.("props", key);
   if (image && image.complete && image.naturalWidth > 0) {
-    const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
-    const drawWidth = image.naturalWidth * scale;
-    const drawHeight = image.naturalHeight * scale;
-    ctxArg.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+    const source = imageTransparentBounds(image);
+    const scale = Math.min(width / source.w, height / source.h);
+    const drawWidth = source.w * scale;
+    const drawHeight = source.h * scale;
+    ctxArg.drawImage(
+      image,
+      source.x,
+      source.y,
+      source.w,
+      source.h,
+      x + (width - drawWidth) / 2,
+      y + (height - drawHeight) / 2,
+      drawWidth,
+      drawHeight
+    );
     return true;
   }
   return false;
+}
+
+function imageTransparentBounds(image) {
+  if (image._catsOwlTrimBounds) return image._catsOwlTrimBounds;
+  const fallback = { x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight };
+  try {
+    const buffer = document.createElement("canvas");
+    buffer.width = image.naturalWidth;
+    buffer.height = image.naturalHeight;
+    const bufferCtx = buffer.getContext("2d", { willReadFrequently: true });
+    bufferCtx.drawImage(image, 0, 0);
+    const { data } = bufferCtx.getImageData(0, 0, buffer.width, buffer.height);
+    let minX = buffer.width;
+    let minY = buffer.height;
+    let maxX = -1;
+    let maxY = -1;
+    for (let y = 0; y < buffer.height; y += 1) {
+      for (let x = 0; x < buffer.width; x += 1) {
+        if (data[(y * buffer.width + x) * 4 + 3] <= 8) continue;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+    image._catsOwlTrimBounds = maxX >= 0 ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : fallback;
+  } catch (error) {
+    image._catsOwlTrimBounds = fallback;
+  }
+  return image._catsOwlTrimBounds;
 }
 
 function drawObstacleArtPackImage(obstacle, key) {
@@ -3838,6 +4219,8 @@ function drawAnimal(kind) {
   else if (kind === "branchPile") drawMiniPropFallback({ type: "branchPile", width: 88, height: 54, label: "树枝" });
   else if (kind === "leafPile") drawMiniPropFallback({ type: "leafPile", width: 82, height: 52, label: "落叶" });
   else if (kind === "roadStone") drawMiniPropFallback({ type: "roadStone", width: 78, height: 48, label: "石块" });
+  else if (kind === "directionSign") drawMiniPropFallback({ type: "directionSign", width: 96, height: 72, label: "路牌" });
+  else if (kind === "correctExit") drawMiniPropFallback({ type: "correctExit", width: 74, height: 56, label: "出口" });
   else if (kind === "math") drawQuizStand("#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
   else if (kind === "logic") drawQuizStand("#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
   else if (kind === "science") drawQuizStand("#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
@@ -5617,6 +6000,7 @@ function itemColor(type) {
     appleCart: "#b86b32",
     harvestBadge: "#ffd94a",
     autumnLeaf: "#d9782f",
+    signPiece: "#8b5b2b",
     book: "#2f9dcc",
     pencil: "#ffd75e",
     leaf: "#f2c65f",
@@ -5648,6 +6032,10 @@ function itemColor(type) {
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function pointInRect(point, rect) {
+  return Math.abs(point.x - rect.x) <= rect.w / 2 && Math.abs(point.y - rect.y) <= rect.h / 2;
 }
 
 function clamp(value, min, max) {
