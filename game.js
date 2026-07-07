@@ -393,7 +393,7 @@ const WORLD_MAP = {
     id: "forest_road",
     name: "森林公路",
     background: "forestRoadEntrance",
-    levels: [],
+    levels: [16, 17, 18, 19],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
 };
@@ -653,7 +653,7 @@ const levels = [
       { x: 810, y: 420, r: 30 },
     ],
     obstacles: [
-      { type: "bush", x: 300, y: 430, r: 34 },
+      { type: "bush", x: 300, y: 408, r: 34 },
       { type: "pit", x: 690, y: 340, r: 25 },
     ],
   },
@@ -683,7 +683,7 @@ const levels = [
     ],
     obstacles: [
       { type: "bush", x: 558, y: 414, r: 38 },
-      { type: "pit", x: 742, y: 438, r: 27 },
+      { type: "pit", x: 742, y: 412, r: 27 },
       { type: "pond", x: 272, y: 206, r: 34 },
     ],
   },
@@ -707,7 +707,7 @@ const levels = [
       delivery(820, 232, "\u5c0f\u72f8", "fox", ["map", "lantern"], "\u653e\u5b66\u8ff7\u8def\u4e86\uff0c\u9700\u8981\u5730\u56fe\u548c\u706f\u7b3c"),
       delivery(170, 144, "\u6821\u957f", "owl", ["apple", "map"], "\u5956\u52b1\u82f9\u679c\u548c\u56de\u5bb6\u5730\u56fe"),
       actionTask(512, 390, "\u6574\u7406\u6821\u724c", "sign", "\u628a\u5b66\u6821\u724c\u64e6\u4eae"),
-      actionTask(720, 112, "\u70b9\u4eae\u6811\u706f", "light", "\u70b9\u4eae\u6811\u4e0a\u7684\u5c0f\u706f"),
+      actionTask(720, 136, "\u70b9\u4eae\u6811\u706f", "light", "\u70b9\u4eae\u6811\u4e0a\u7684\u5c0f\u706f"),
     ],
     puddles: [
       { x: 290, y: 286, r: 34 },
@@ -732,9 +732,9 @@ const levels = [
     tasks: [
       quizTask(138, 326, "\u6570\u5b66\u6811\u6869", "math", "\u7b97\u9898", "math"),
       quizTask(322, 138, "\u903b\u8f91\u661f\u661f\u724c", "logic", "\u627e\u89c4\u5f8b", "logic"),
-      quizTask(500, 98, "\u79d1\u5b66\u82b1\u575b", "science", "\u770b\u4e00\u770b", "science"),
+      quizTask(500, 132, "\u79d1\u5b66\u82b1\u575b", "science", "\u770b\u4e00\u770b", "science"),
       quizTask(742, 160, "\u8bed\u6587\u6728\u724c", "language", "\u8ba4\u5b57", "language"),
-      quizTask(836, 354, "\u82f1\u8bed\u62fc\u56fe\u684c", "english", "ABC", "english"),
+      quizTask(812, 354, "\u82f1\u8bed\u62fc\u56fe\u684c", "english", "ABC", "english"),
       quizTask(462, 408, "\u731c\u5b57\u8c1c\u5c0f\u724c", "riddle", "\u731c\u8c1c", "riddle"),
     ],
     puddles: [
@@ -770,7 +770,7 @@ const levels = [
       { x: 842, y: 438, r: 26 },
     ],
     obstacles: [
-      { type: "bush", x: 292, y: 424, r: 35 },
+      { type: "bush", x: 292, y: 404, r: 35 },
       { type: "pit", x: 590, y: 224, r: 26 },
       { type: "pond", x: 746, y: 350, r: 35 },
     ],
@@ -791,7 +791,7 @@ const levels = [
     tasks: [
       actionTask(292, 360, "\u5f39\u8df3\u8611\u83c7", "spring", "\u7ad9\u4f4f\u4e00\u4f1a\uff0c\u5f39\u8fc7\u5c0f\u571f\u5751"),
       delivery(580, 362, "\u8df3\u8df3\u5154", "rabbit", "courageStar", "\u6211\u9700\u8981\u4e00\u9897\u8df3\u8df3\u661f"),
-      actionTask(842, 238, "\u7ec8\u70b9\u65d7", "finish", "\u5230\u8fbe\u7ec8\u70b9\uff0c\u51c6\u5907\u9762\u5bf9\u9ed1\u718a\u602a"),
+      actionTask(812, 238, "\u7ec8\u70b9\u65d7", "finish", "\u5230\u8fbe\u7ec8\u70b9\uff0c\u51c6\u5907\u9762\u5bf9\u9ed1\u718a\u602a"),
     ],
     puddles: [
       { x: 230, y: 436, r: 28 },
@@ -1017,7 +1017,7 @@ const levels = [
     ],
     obstacles: [
       { type: "moonPillar", x: 260, y: 200, r: 32, bossPart: "pillar" },
-      { type: "moonPillar", x: 480, y: 112, r: 32, bossPart: "pillar" },
+      { type: "moonPillar", x: 480, y: 190, r: 32, bossPart: "pillar" },
       { type: "moonPillar", x: 700, y: 200, r: 32, bossPart: "pillar" },
       { type: "pearlSwitch", x: 308, y: 346, r: 34 },
       { type: "pearlSwitch", x: 652, y: 346, r: 34 },
@@ -1084,7 +1084,7 @@ const levels = [
       { type: "appleTree", x: 560, y: 184, r: 44, drops: ["redApple", "greenApple", "greenApple"], shaken: false },
       { type: "appleTree", x: 752, y: 286, r: 42, drops: ["redApple", "greenApple", "goldenApple"], shaken: false },
       { type: "pond", x: 570, y: 232, r: 32 },
-      { type: "pit", x: 850, y: 420, r: 24 },
+      { type: "pit", x: 812, y: 398, r: 24 },
     ],
   },
   {
@@ -1144,7 +1144,7 @@ const levels = [
         options: ["和大家分享", "把苹果藏起来", "让大家迷路", "把篮子扔掉"],
         answer: 0,
       }),
-      delivery(844, 336, "Nono 小刺猬", "nono", "harvestBadge", "Nono 想把丰收徽章写进观察记录。"),
+      delivery(812, 336, "Nono 小刺猬", "nono", "harvestBadge", "Nono 想把丰收徽章写进观察记录。"),
     ],
     puddles: [
       { x: 256, y: 424, r: 26 },
@@ -1183,11 +1183,11 @@ const levels = [
     ],
     tasks: [
       directionSignTask(486, 260, "破损路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
-      exitTask(838, 236, "correctExit", "去橡果镇的路"),
+      exitTask(816, 236, "correctExit", "去橡果镇的路"),
     ],
     exitAreas: [
       { x: 144, y: 246, r: 48, type: "wrongExit", label: "苹果谷方向" },
-      { x: 494, y: 438, r: 48, type: "wrongExit", label: "森林学校方向" },
+      { x: 494, y: 412, r: 48, type: "wrongExit", label: "森林学校方向" },
     ],
     puddles: [],
     obstacles: [],
@@ -1204,7 +1204,7 @@ const levels = [
       escortNpcTask(238, 342, "迷路小伙伴", "nono", "safeZone"),
     ],
     safeZones: [
-      { id: "safeZone", x: 806, y: 342, r: 54, label: "安全区" },
+      { id: "safeZone", x: 792, y: 342, r: 60, label: "安全区" },
     ],
     trafficLights: [
       { x: 520, y: 190, state: "green", timer: 0 },
@@ -1228,11 +1228,11 @@ const levels = [
     tasks: [
       roadClearTask(238, 346, "大路障", "branchPile", "正在清理树枝……", 1.2),
       directionSignTask(472, 250, "最终路牌", ["→ 橡果镇", "← 苹果谷", "↓ 森林学校"]),
-      escortNpcTask(220, 424, "等候的小伙伴", "coco", "acornTownGate"),
-      exitTask(836, 246, "correctExit", "橡果镇入口"),
+      escortNpcTask(220, 408, "等候的小伙伴", "coco", "acornTownGate"),
+      exitTask(812, 246, "correctExit", "橡果镇入口"),
     ],
     safeZones: [
-      { id: "acornTownGate", x: 836, y: 246, r: 58, label: "橡果镇入口" },
+      { id: "acornTownGate", x: 812, y: 246, r: 64, label: "橡果镇入口" },
     ],
     trafficLights: [
       { x: 608, y: 180, state: "green", timer: 0 },
@@ -1271,9 +1271,7 @@ WORLD_MAP.apple_valley.levels = levels
   .map((level, index) => (level.world === "apple_valley" ? index : -1))
   .filter((index) => index >= 0);
 
-WORLD_MAP.forest_road.levels = levels
-  .map((level, index) => (level.world === "forest_road" ? index : -1))
-  .filter((index) => index >= 0);
+WORLD_MAP.forest_road.levels = [16, 17, 18, 19];
 
 function levelBackgroundKey(level) {
   if (!level) return null;
@@ -1283,6 +1281,8 @@ function levelBackgroundKey(level) {
 function taskSystemType(kind) {
   if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "quiz") return TASK_TYPES.SIMPLE_PUZZLE;
+  if (kind === "direction_sign" || kind === "exit_area") return TASK_TYPES.SIMPLE_PUZZLE;
+  if (kind === "escort_npc") return TASK_TYPES.HELP_NPC;
   if (kind === "delivery" || kind === "sort_basket") return TASK_TYPES.HELP_NPC;
   return TASK_TYPES.FETCH_ITEM;
 }
