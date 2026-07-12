@@ -1164,9 +1164,13 @@ const levels = [
     message: "森林公路入口被树枝、落叶和小石块挡住了，先试试清理道路。",
     collectibles: [],
     tasks: [
-      roadClearTask(248, 346, "树枝堆", "branchPile", "正在清理树枝……", 0.9),
-      roadClearTask(468, 398, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
-      roadClearTask(708, 318, "小石块", "roadStone", "正在搬开小石块……", 1),
+      roadClearTask(184, 406, "树枝堆", "branchPile", "正在清理树枝……", 0.9),
+      roadClearTask(306, 338, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
+      roadClearTask(428, 404, "小石块", "roadStone", "正在搬开小石块……", 1),
+      roadClearTask(548, 310, "树枝堆", "branchPile", "正在清理树枝……", 0.9),
+      roadClearTask(656, 392, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
+      roadClearTask(744, 270, "小石块", "roadStone", "正在搬开小石块……", 1),
+      roadClearTask(798, 354, "落叶堆", "leafPile", "正在清理落叶……", 1.1),
     ],
     puddles: [],
     obstacles: [],
@@ -1186,8 +1190,8 @@ const levels = [
       exitTask(816, 236, "correctExit", "去橡果镇的路"),
     ],
     exitAreas: [
-      { x: 144, y: 246, r: 48, type: "wrongExit", label: "苹果谷方向" },
-      { x: 494, y: 412, r: 48, type: "wrongExit", label: "森林学校方向" },
+      { x: 144, y: 246, r: 48, type: "wrongExit", label: "苹果谷方向", propKey: "appleValleyMapSign" },
+      { x: 494, y: 412, r: 48, type: "wrongExit", label: "森林学校方向", propKey: "forestSchoolDirectionSign" },
     ],
     puddles: [],
     obstacles: [],
@@ -3303,6 +3307,10 @@ function drawForestRoadZones() {
 function drawCrossingZone(zone) {
   ctx.save();
   ctx.translate(zone.x, zone.y);
+  if (drawPropImage(ctx, "zebraCrossing", -zone.w / 2, -zone.h / 2, zone.w, zone.h)) {
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = "rgba(255,255,255,0.18)";
   roundRect(-zone.w / 2, -zone.h / 2, zone.w, zone.h, 10);
   ctx.fill();
@@ -3336,6 +3344,10 @@ function drawSafeZone(zone) {
 function drawExitArea(area, correct) {
   ctx.save();
   ctx.translate(area.x, area.y);
+  if (area.propKey && drawPropImage(ctx, area.propKey, -52, -78, 104, 118)) {
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = correct ? "rgba(131,184,61,0.16)" : "rgba(246,211,123,0.14)";
   circle(0, 0, area.r);
   ctx.strokeStyle = correct ? "rgba(63,138,47,0.72)" : "rgba(139,91,43,0.55)";
@@ -3646,7 +3658,7 @@ const ART_PACK_ITEM_BOUNDS = {
   appleCart: { x: -46, y: -38, w: 92, h: 76 },
   harvestBadge: { x: -28, y: -30, w: 56, h: 56 },
   autumnLeaf: { x: -24, y: -24, w: 48, h: 48 },
-  signPiece: { x: -27, y: -27, w: 54, h: 54 },
+  signPiece: { x: -38, y: -35, w: 76, h: 70 },
   book: { x: -27, y: -29, w: 54, h: 54 },
   pencil: { x: -24, y: -11, w: 48, h: 22 },
   leaf: { x: -23, y: -23, w: 46, h: 46 },

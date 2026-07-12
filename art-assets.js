@@ -57,9 +57,12 @@
     leafPile: "assets/props/leaf_pile.png",
     roadStonePile: "assets/props/road_stone_pile.png",
     directionSign: "assets/props/direction_sign.png",
-    signPiece: "assets/props/sign_piece.png",
+    signPiece: "assets/props/sign_piece_pickup.png",
     safeFlag: "assets/props/safe_flag.png",
     trafficLight: "assets/props/traffic_light.png",
+    zebraCrossing: "assets/props/zebra_crossing.png",
+    forestSchoolDirectionSign: "assets/props/forest_school_direction_sign.png",
+    appleValleyMapSign: "assets/props/apple_valley_map_sign.png",
   };
 
   const registry = {
@@ -155,6 +158,9 @@
       signPiece: window.ART_ASSETS.props.signPiece,
       safeFlag: window.ART_ASSETS.props.safeFlag,
       trafficLight: window.ART_ASSETS.props.trafficLight,
+      zebraCrossing: window.ART_ASSETS.props.zebraCrossing,
+      forestSchoolDirectionSign: window.ART_ASSETS.props.forestSchoolDirectionSign,
+      appleValleyMapSign: window.ART_ASSETS.props.appleValleyMapSign,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
