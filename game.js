@@ -4200,6 +4200,21 @@ function drawBossProgress(progress) {
   ctx.fill();
 }
 
+const QUIZ_SIGN_ART_KEYS = {
+  math: "quizSignMath",
+  logic: "quizSignLogic",
+  science: "quizSignScience",
+  language: "quizSignLanguage",
+  english: "quizSignEnglish",
+  riddle: "quizSignRiddle",
+};
+
+function drawQuizStandArt(kind, fallbackColor, fallbackLabel) {
+  const artKey = QUIZ_SIGN_ART_KEYS[kind];
+  if (artKey && drawArtPackImage("props", artKey, -36, -44, 72, 80)) return;
+  drawQuizStand(fallbackColor, fallbackLabel);
+}
+
 function drawAnimal(kind) {
   const visualOffset = NPC_VISUAL_OFFSETS[kind];
   if (visualOffset) ctx.translate(visualOffset.x, visualOffset.y);
@@ -4233,12 +4248,12 @@ function drawAnimal(kind) {
   else if (kind === "roadStone") drawMiniPropFallback({ type: "roadStone", width: 78, height: 48, label: "石块" });
   else if (kind === "directionSign") drawMiniPropFallback({ type: "directionSign", width: 96, height: 72, label: "路牌" });
   else if (kind === "correctExit") drawMiniPropFallback({ type: "correctExit", width: 74, height: 56, label: "出口" });
-  else if (kind === "math") drawQuizStand("#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
-  else if (kind === "logic") drawQuizStand("#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
-  else if (kind === "science") drawQuizStand("#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
-  else if (kind === "language") drawQuizStand("#f6d77b", quizDisplay("language")?.sign || "\u8ba4\u5b57");
-  else if (kind === "english") drawQuizStand("#2f9dcc", quizDisplay("english")?.sign || "ABC");
-  else if (kind === "riddle") drawQuizStand("#f59a8b", quizDisplay("riddle")?.sign || "\u731c\u8c1c");
+  else if (kind === "math") drawQuizStandArt("math", "#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
+  else if (kind === "logic") drawQuizStandArt("logic", "#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
+  else if (kind === "science") drawQuizStandArt("science", "#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
+  else if (kind === "language") drawQuizStandArt("language", "#f6d77b", quizDisplay("language")?.sign || "\u8ba4\u5b57");
+  else if (kind === "english") drawQuizStandArt("english", "#2f9dcc", quizDisplay("english")?.sign || "ABC");
+  else if (kind === "riddle") drawQuizStandArt("riddle", "#f59a8b", quizDisplay("riddle")?.sign || "\u731c\u8c1c");
 }
 
 function drawPlayer() {
