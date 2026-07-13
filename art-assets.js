@@ -63,12 +63,12 @@
     zebraCrossing: "assets/props/zebra_crossing.png",
     forestSchoolDirectionSign: "assets/props/forest_school_direction_sign.png",
     appleValleyMapSign: "assets/props/apple_valley_map_sign.png",
-    quizSignMath: "assets/props/quiz_sign_math.png?v=forest-quiz-signs-20260713",
-    quizSignLogic: "assets/props/quiz_sign_logic.png?v=forest-quiz-signs-20260713",
-    quizSignScience: "assets/props/quiz_sign_science.png?v=forest-quiz-signs-20260713",
-    quizSignLanguage: "assets/props/quiz_sign_language.png?v=forest-quiz-signs-20260713",
-    quizSignEnglish: "assets/props/quiz_sign_english.png?v=forest-quiz-signs-20260713",
-    quizSignRiddle: "assets/props/quiz_sign_riddle.png?v=forest-quiz-signs-20260713",
+    quizSignMath: "assets/props/quiz_sign_math.png?v=quiz-signs-20260713",
+    quizSignLogic: "assets/props/quiz_sign_logic.png?v=quiz-signs-20260713",
+    quizSignScience: "assets/props/quiz_sign_science.png?v=quiz-signs-20260713",
+    quizSignLanguage: "assets/props/quiz_sign_language.png?v=quiz-signs-20260713",
+    quizSignEnglish: "assets/props/quiz_sign_english.png?v=quiz-signs-20260713",
+    quizSignRiddle: "assets/props/quiz_sign_riddle.png?v=quiz-signs-20260713",
   };
 
   const registry = {
