@@ -63,6 +63,12 @@
     zebraCrossing: "assets/props/zebra_crossing.png",
     forestSchoolDirectionSign: "assets/props/forest_school_direction_sign.png",
     appleValleyMapSign: "assets/props/apple_valley_map_sign.png",
+    quizSignMath: "assets/props/quiz_sign_math.png?v=quiz-signs-20260713",
+    quizSignLogic: "assets/props/quiz_sign_logic.png?v=quiz-signs-20260713",
+    quizSignScience: "assets/props/quiz_sign_science.png?v=quiz-signs-20260713",
+    quizSignLanguage: "assets/props/quiz_sign_language.png?v=quiz-signs-20260713",
+    quizSignEnglish: "assets/props/quiz_sign_english.png?v=quiz-signs-20260713",
+    quizSignRiddle: "assets/props/quiz_sign_riddle.png?v=quiz-signs-20260713",
   };
 
   const registry = {
@@ -161,6 +167,12 @@
       zebraCrossing: window.ART_ASSETS.props.zebraCrossing,
       forestSchoolDirectionSign: window.ART_ASSETS.props.forestSchoolDirectionSign,
       appleValleyMapSign: window.ART_ASSETS.props.appleValleyMapSign,
+      quizSignMath: window.ART_ASSETS.props.quizSignMath,
+      quizSignLogic: window.ART_ASSETS.props.quizSignLogic,
+      quizSignScience: window.ART_ASSETS.props.quizSignScience,
+      quizSignLanguage: window.ART_ASSETS.props.quizSignLanguage,
+      quizSignEnglish: window.ART_ASSETS.props.quizSignEnglish,
+      quizSignRiddle: window.ART_ASSETS.props.quizSignRiddle,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
