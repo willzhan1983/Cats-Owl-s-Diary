@@ -52,6 +52,7 @@ const runHistorySummary = document.getElementById("runHistorySummary");
 const runHistoryList = document.getElementById("runHistoryList");
 const runHistoryCloseBtn = document.getElementById("runHistoryCloseBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+const APPLE_VALLEY_COLLECTIBLE_BOB = 1.5;
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1280,6 +1281,10 @@ WORLD_MAP.forest_road.levels = [16, 17, 18, 19];
 function levelBackgroundKey(level) {
   if (!level) return null;
   return level.bg || WORLD_MAP[level.world]?.background;
+}
+
+function isAppleValleyLevel() {
+  return levels[state.levelIndex]?.world === "apple_valley";
 }
 
 function taskSystemType(kind) {
@@ -3398,6 +3403,7 @@ function drawEscortCart() {
   ctx.save();
   ctx.translate(cart.x, cart.y);
   ctx.scale(0.92, 0.92);
+  drawAppleValleyGroundShadow(0, 40, 34, 7);
   drawAppleCart();
   ctx.restore();
 }
@@ -3747,6 +3753,28 @@ function drawArtPackImage(category, key, x, y, w, h) {
   return true;
 }
 
+function drawGroundedArtPackImage(category, key, x, y, width, height) {
+  const pack = window.CATS_OWLS_ART_PACK_01;
+  const image = pack?.get?.(category, key);
+  if (!image || !image.complete || image.naturalWidth <= 0) return false;
+  const source = imageTransparentBounds(image);
+  const scale = Math.min(width / source.w, height / source.h);
+  const drawWidth = source.w * scale;
+  const drawHeight = source.h * scale;
+  ctx.drawImage(
+    image,
+    source.x,
+    source.y,
+    source.w,
+    source.h,
+    x + (width - drawWidth) / 2,
+    y + height - drawHeight,
+    drawWidth,
+    drawHeight
+  );
+  return true;
+}
+
 function drawEffectArtPackImage(key, x, y, w, h) {
   return drawArtPackImage("effects", key, x, y, w, h);
 }
@@ -3809,14 +3837,20 @@ function drawObstacleArtPackImage(obstacle, key) {
   const getBounds = ART_PACK_OBSTACLE_BOUNDS[key];
   if (!getBounds) return false;
   const bounds = getBounds(obstacle.r);
+  const groundedAppleTree = obstacle.type === "appleTree" && isAppleValleyLevel();
   ctx.save();
   ctx.translate(obstacle.x, obstacle.y);
+  if (groundedAppleTree) {
+    drawAppleValleyGroundShadow(0, bounds.y + bounds.h + 2, obstacle.r * 1.18, Math.max(7, obstacle.r * 0.24));
+  }
   if (obstacle.type === "moonPillar") {
     ctx.fillStyle = obstacle.lit ? "rgba(223,246,255,0.55)" : "rgba(141,170,190,0.18)";
     circle(0, -obstacle.r * 0.55, obstacle.r * 1.12);
   }
   if (obstacle.closed) ctx.globalAlpha = 0.36;
-  const drawn = drawArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h);
+  const drawn = groundedAppleTree
+    ? drawGroundedArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h)
+    : drawArtPackImage("obstacles", key, bounds.x, bounds.y, bounds.w, bounds.h);
   ctx.restore();
   return drawn;
 }
@@ -3826,6 +3860,9 @@ function drawItemArtPackImage(type) {
   const bounds = ART_PACK_ITEM_BOUNDS[type];
   if (!key || !bounds) return false;
   if (window.ART_ASSETS?.props?.[key]) {
+    if (isAppleValleyLevel()) {
+      return drawGroundedArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
+    }
     return drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h);
   }
   return drawArtPackImage("props", key, bounds.x, bounds.y, bounds.w, bounds.h);
@@ -3835,6 +3872,9 @@ function drawNpcArtPackImage(kind) {
   const key = ART_PACK_NPC_KEYS[kind];
   const bounds = ART_PACK_NPC_BOUNDS[kind];
   if (!key || !bounds) return false;
+  if (isAppleValleyLevel()) {
+    return drawGroundedArtPackImage("npc", key, bounds.x, bounds.y, bounds.w, bounds.h);
+  }
   return drawArtPackImage("npc", key, bounds.x, bounds.y, bounds.w, bounds.h);
 }
 
@@ -4055,16 +4095,32 @@ function drawLandmarks() {
   }
 }
 
+function appleValleyTaskGroundShadow(task) {
+  if (!isAppleValleyLevel()) return null;
+  const npcBounds = ART_PACK_NPC_BOUNDS[task.animal];
+  if (npcBounds) {
+    return { y: npcBounds.y + npcBounds.h + 2, width: Math.max(22, npcBounds.w * 0.34), height: 6 };
+  }
+  if (task.kind === "sort_basket") return { y: 46, width: 31, height: 7 };
+  if (task.kind === "quiz") return { y: 38, width: 27, height: 6 };
+  if (task.animal === "appleCartStation") return { y: 40, width: 34, height: 7 };
+  return null;
+}
+
 function drawCollectibles() {
   for (const entry of state.collectibles) {
     if (entry.taken) continue;
     const t = performance.now() / 260 + entry.x;
-    const bob = entry.type === "potion" ? Math.sin(t) * 1.4 : Math.sin(t) * 5;
+    const bobAmplitude = isAppleValleyLevel() ? APPLE_VALLEY_COLLECTIBLE_BOB : 5;
+    const bob = entry.type === "potion" ? Math.sin(t) * 1.4 : Math.sin(t) * bobAmplitude;
     const scale = 1 + Math.sin(t) * 0.04;
+    const grounded = isAppleValleyLevel();
     ctx.save();
-    ctx.translate(entry.x, entry.y + bob);
+    ctx.translate(entry.x, entry.y);
+    if (grounded) drawAppleValleyGroundShadow(0, 25, entry.type === "potion" ? 20 : 31, 8);
+    ctx.translate(0, bob);
     if (entry.type !== "potion") drawCollectibleGlow(t);
-    drawItemShadow(0, 25, entry.type === "potion" ? 20 : 31, 8);
+    if (!grounded) drawItemShadow(0, 25, entry.type === "potion" ? 20 : 31, 8);
     ctx.scale(scale, scale);
     drawCollectibleSparkles(t, entry.type);
     drawItem(entry.type);
@@ -4103,9 +4159,13 @@ function drawTasks() {
     if (task.kind === "road_clear" && task.done) continue;
     ctx.save();
     const t = performance.now() / 360 + task.x * 0.03;
-    const idleBob = task.done || task.kind === "boss" ? 0 : Math.sin(t) * 2.2;
+    const idleAmplitude = isAppleValleyLevel() ? 1 : 2.2;
+    const idleBob = task.done || task.kind === "boss" ? 0 : Math.sin(t) * idleAmplitude;
     const idleScale = task.done || task.kind === "boss" ? 1 : 1 + Math.sin(t + 0.8) * 0.018;
-    ctx.translate(task.x, task.y + idleBob);
+    const groundShadow = appleValleyTaskGroundShadow(task);
+    ctx.translate(task.x, task.y);
+    if (groundShadow) drawAppleValleyGroundShadow(0, groundShadow.y, groundShadow.width, groundShadow.height);
+    ctx.translate(0, idleBob);
     ctx.scale(idleScale, idleScale);
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
@@ -4211,7 +4271,12 @@ const QUIZ_SIGN_ART_KEYS = {
 
 function drawQuizStandArt(kind, fallbackColor, fallbackLabel) {
   const artKey = QUIZ_SIGN_ART_KEYS[kind];
-  if (artKey && drawArtPackImage("props", artKey, -36, -44, 72, 80)) return;
+  if (artKey) {
+    const drawn = isAppleValleyLevel()
+      ? drawGroundedArtPackImage("props", artKey, -36, -44, 72, 80)
+      : drawArtPackImage("props", artKey, -36, -44, 72, 80);
+    if (drawn) return;
+  }
   drawQuizStand(fallbackColor, fallbackLabel);
 }
 
@@ -4732,7 +4797,7 @@ function drawTinyApple(x, y, color) {
 }
 
 function drawAppleCart() {
-  if (drawArtPackImage("props", "appleCart", -46, -38, 92, 76)) return;
+  if (drawGroundedArtPackImage("props", "appleCart", -46, -38, 92, 76)) return;
   drawItemShadow(0, 25, 32, 7);
   ctx.strokeStyle = "#6b3b20";
   ctx.lineWidth = 5;
@@ -4872,6 +4937,15 @@ function drawItemShadow(x, y, w, h) {
   ctx.fillStyle = "rgba(33, 55, 40, 0.18)";
   ctx.beginPath();
   ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawAppleValleyGroundShadow(x, y, width, height) {
+  ctx.save();
+  ctx.fillStyle = "rgba(83, 57, 31, 0.34)";
+  ctx.beginPath();
+  ctx.ellipse(x, y, width, height, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -5845,7 +5919,12 @@ function drawSortBasket(kind) {
     greenBasket: "greenAppleBasket",
     giftBasket: "giftAppleBasket2",
   }[kind];
-  if (imageKey && drawPropImage(ctx, imageKey, -44, -44, 88, 88)) return;
+  if (imageKey) {
+    const drawn = isAppleValleyLevel()
+      ? drawGroundedArtPackImage("props", imageKey, -44, -44, 88, 88)
+      : drawPropImage(ctx, imageKey, -44, -44, 88, 88);
+    if (drawn) return;
+  }
 
   const color =
     kind === "redBasket" ? "#e84b3f" : kind === "greenBasket" ? "#6fb447" : kind === "giftBasket" ? "#ffd94a" : "#b86b32";
