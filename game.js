@@ -459,10 +459,36 @@ let bestScore = readStoredNumber(BEST_SCORE_KEY);
 const music = {
   ctx: null,
   master: null,
+  audio: null,
+  audioSrc: "",
+  audioFailed: new Set(),
   timer: null,
   enabled: true,
+  key: "",
   pattern: "",
   step: 0,
+};
+
+const MUSIC_BY_WORLD = {
+  forest_school: "assets/audio/bgm_forest_school.mp3",
+  moonlight_lake: "assets/audio/bgm_moonlight_lake.mp3",
+  apple_valley: "assets/audio/bgm_apple_valley.mp3",
+  forest_road: "assets/audio/bgm_forest_road.mp3",
+  dark_swamp: "assets/audio/bgm_dark_swamp.mp3",
+  boss: "assets/audio/bgm_boss.mp3",
+};
+
+const MUSIC_PATTERN_BY_WORLD = {
+  forest_school: "happy",
+  moonlight_lake: "moonlight",
+  apple_valley: "harvest",
+  forest_road: "road",
+  dark_swamp: "danger",
+  boss: "boss",
+};
+
+const MUSIC_WORLD_ALIASES = {
+  mist_swamp: "dark_swamp",
 };
 
 function ensureBackground(key) {
@@ -1814,6 +1840,17 @@ function enterGame() {
 
 function initAudio() {
   if (!music.enabled) return;
+  if (!music.audio) {
+    music.audio = new Audio();
+    music.audio.loop = true;
+    music.audio.preload = "auto";
+    music.audio.volume = 0.28;
+    music.audio.addEventListener("error", () => {
+      if (!music.key) return;
+      music.audioFailed.add(music.key);
+      startSynthMusicForKey(music.key);
+    });
+  }
   if (!music.ctx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
@@ -1826,10 +1863,40 @@ function initAudio() {
 }
 
 function startMusicForLevel() {
-  if (!music.enabled || !music.ctx) return;
-  const pattern = musicPatternForLevel(state.levelIndex);
-  if (music.pattern === pattern && music.timer) return;
+  if (!state) return;
+  startMusicForKey(musicKeyForLevel(state.levelIndex));
+}
+
+function startMusicForWorld(worldId) {
+  const key = MUSIC_WORLD_ALIASES[worldId] || worldId;
+  startMusicForKey(MUSIC_BY_WORLD[key] ? key : "forest_school");
+}
+
+function startMusicForKey(key) {
+  if (!music.enabled) return;
+  initAudio();
+  if (!music.ctx) return;
+  if (music.key === key && (music.timer || (music.audio && !music.audio.paused))) return;
   stopMusic();
+  music.key = key;
+  const src = MUSIC_BY_WORLD[key];
+  if (src && music.audio && !music.audioFailed.has(key)) {
+    music.audioSrc = src;
+    music.audio.src = src;
+    music.audio.currentTime = 0;
+    const playResult = music.audio.play();
+    if (playResult?.catch) playResult.catch(() => startSynthMusicForKey(key));
+    return;
+  }
+  startSynthMusicForKey(key);
+}
+
+function startSynthMusicForKey(key) {
+  if (!music.enabled || !music.ctx) return;
+  if (music.audio) music.audio.pause();
+  const pattern = MUSIC_PATTERN_BY_WORLD[key] || "happy";
+  if (music.pattern === pattern && music.timer) return;
+  if (music.timer) window.clearInterval(music.timer);
   music.pattern = pattern;
   music.step = 0;
   playMusicStep();
@@ -1837,10 +1904,12 @@ function startMusicForLevel() {
 }
 
 function stopMusic() {
+  if (music.audio) music.audio.pause();
   if (music.timer) {
     window.clearInterval(music.timer);
     music.timer = null;
   }
+  music.key = "";
   music.pattern = "";
 }
 
@@ -1856,10 +1925,13 @@ function toggleSound() {
 }
 
 function musicPatternForLevel(levelIndex) {
-  if (levelIndex >= levels.length - 1) return "boss";
-  if (levelIndex >= levels.length - 2) return "danger";
-  if (levelIndex >= 2) return "adventure";
-  return "happy";
+  return MUSIC_PATTERN_BY_WORLD[musicKeyForLevel(levelIndex)] || "happy";
+}
+
+function musicKeyForLevel(levelIndex) {
+  const level = levels[levelIndex];
+  if (level?.tasks?.some((task) => task.kind === "boss" || task.kind === "moon_boss")) return "boss";
+  return MUSIC_BY_WORLD[level?.world] ? level.world : "forest_school";
 }
 
 function playMusicStep() {
@@ -1868,7 +1940,9 @@ function playMusicStep() {
   const pattern = music.pattern || "happy";
   const notes = {
     happy: [523, 659, 784, 659, 698, 784, 880, 784],
-    adventure: [392, 523, 587, 659, 587, 523, 440, 523],
+    moonlight: [392, 494, 587, 659, 587, 494, 440, 392],
+    harvest: [523, 587, 659, 784, 659, 587, 523, 659],
+    road: [440, 523, 587, 523, 659, 587, 523, 440],
     danger: [330, 392, 440, 392, 349, 392, 330, 294],
     boss: [196, 220, 196, 247, 185, 220, 165, 196],
   }[pattern];
@@ -6329,6 +6403,14 @@ window.catsOwlDifficulty = {
   get: () => selectedDifficulty,
   set: (difficulty) => setDifficulty(difficulty),
   settings: DIFFICULTY_SETTINGS,
+};
+
+window.CatsOwlMusic = {
+  playWorld: (worldId) => startMusicForWorld(worldId),
+  playLevel: (levelIndex) => startMusicForKey(musicKeyForLevel(levelIndex)),
+  current: () => ({ key: music.key, pattern: music.pattern, audioSrc: music.audioSrc }),
+  stop: stopMusic,
+  tracks: MUSIC_BY_WORLD,
 };
 
 startBtn.addEventListener("click", startGame);

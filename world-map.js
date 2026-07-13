@@ -445,8 +445,9 @@
       const node = event.target.closest("[data-region]");
       if (!node) return;
       map.querySelectorAll("[data-region]").forEach((entry) => entry.setAttribute("aria-pressed", "false"));
-        node.setAttribute("aria-pressed", "true");
-        renderRegionDetail(node.dataset.region);
+      node.setAttribute("aria-pressed", "true");
+      window.CatsOwlMusic?.playWorld(node.dataset.region);
+      renderRegionDetail(node.dataset.region);
     };
 
     renderMapOverview();
