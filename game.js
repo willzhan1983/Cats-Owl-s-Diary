@@ -1402,7 +1402,7 @@ const levels = [
       mistBubbleTask(330, 330, "黑雾泡泡一"),
       mistBubbleTask(520, 350, "黑雾泡泡二"),
       mistBubbleTask(700, 330, "黑雾泡泡三"),
-      { x: 810, y: 260, name: "迷雾精灵", animal: "mistSpirit", kind: "mist_core", done: false, progress: 0 },
+      { x: 810, y: 260, name: "迷雾精灵", animal: "mistSpirit", kind: "mist_core", done: false, progress: 0, reward: "fireflyLantern" },
     ],
     puddles: [],
     obstacles: [],
@@ -3351,9 +3351,7 @@ function interactMistSwampTask(task) {
       messageEl.textContent = "先点亮大雾灯并清除黑雾泡泡。";
       return true;
     }
-    for (const reward of ["mistBadge", "fireflyLantern"]) {
-      if (!state.inventory.includes(reward)) state.inventory.push(reward);
-    }
+    if (!state.inventory.includes("mistBadge")) state.inventory.push("mistBadge");
     completeTask(task, task.x, task.y);
     messageEl.textContent = "迷雾精灵恢复清醒啦！沼泽重新亮起来了。";
     return true;
