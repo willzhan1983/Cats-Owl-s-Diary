@@ -35,3 +35,5 @@ assert.ok(!quiz.includes("moonlightShared"));
 assert.ok(quiz.includes("function refreshCurrentMistSwampLevel()"));
 assert.match(game, /else if \(levels\[state\.levelIndex\]\?\.world === "mist_swamp"\) \{\s*drawMistSwampFallbackBackground\(\);/);
 assert.ok(game.includes("function drawMistSwampFallbackBackground()"));
+assert.match(game, /const MIST_SWAMP_NPC_RENDERERS = \{[\s\S]*?typeof drawFirefly === "function"[\s\S]*?typeof drawMudMonster === "function"/);
+assert.match(game, /function drawMistSwampNpcFallback\(label\)/);

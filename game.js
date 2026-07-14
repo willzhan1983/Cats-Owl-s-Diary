@@ -262,6 +262,15 @@ const PROP_USAGE_POLICY = {
   keyItem: "appears only for route, story, or unlock moments",
 };
 
+const MIST_SWAMP_NPC_RENDERERS = {
+  fireflyGuide: typeof drawFirefly === "function" ? drawFirefly : () => drawMistSwampNpcFallback("萤火虫"),
+  littleFrog: typeof drawFrog === "function" ? drawFrog : () => drawMistSwampNpcFallback("小青蛙"),
+  swampSnail: typeof drawHedgehog === "function" ? drawHedgehog : () => drawMistSwampNpcFallback("沼泽蜗牛"),
+  mistSpirit: typeof drawFirefly === "function" ? drawFirefly : () => drawMistSwampNpcFallback("迷雾精灵"),
+  ruru: typeof drawSquirrel === "function" ? drawSquirrel : () => drawMistSwampNpcFallback("Ruru"),
+  mudMonster: typeof drawMudMonster === "function" ? drawMudMonster : () => drawMistSwampNpcFallback("泥浆怪"),
+};
+
 const NPC_REGISTRY = {
   deer: { id: "deer", displayName: "\u5c0f\u9e7f", renderer: drawDeer, world: "forest_school" },
   squirrel: { id: "squirrel", displayName: "\u677e\u9f20", renderer: drawSquirrel, world: "forest_school" },
@@ -289,12 +298,12 @@ const NPC_REGISTRY = {
   nessie: { id: "nessie", displayName: "尼斯湖怪", renderer: drawNessie, world: "moonlight_lake" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
-  fireflyGuide: { id: "fireflyGuide", displayName: "萤火虫向导", renderer: drawFirefly, world: "mist_swamp" },
-  littleFrog: { id: "littleFrog", displayName: "小青蛙", renderer: drawFrog, world: "mist_swamp" },
-  swampSnail: { id: "swampSnail", displayName: "沼泽蜗牛", renderer: drawHedgehog, world: "mist_swamp" },
-  mistSpirit: { id: "mistSpirit", displayName: "迷雾精灵", renderer: drawFirefly, world: "mist_swamp" },
-  ruru: { id: "ruru", displayName: "Ruru 小浣熊", renderer: drawSquirrel, world: "mist_swamp" },
-  mudMonster: { id: "mudMonster", displayName: "沼泽泥浆怪", renderer: drawMudMonster, world: "mist_swamp" },
+  fireflyGuide: { id: "fireflyGuide", displayName: "萤火虫向导", renderer: MIST_SWAMP_NPC_RENDERERS.fireflyGuide, world: "mist_swamp" },
+  littleFrog: { id: "littleFrog", displayName: "小青蛙", renderer: MIST_SWAMP_NPC_RENDERERS.littleFrog, world: "mist_swamp" },
+  swampSnail: { id: "swampSnail", displayName: "沼泽蜗牛", renderer: MIST_SWAMP_NPC_RENDERERS.swampSnail, world: "mist_swamp" },
+  mistSpirit: { id: "mistSpirit", displayName: "迷雾精灵", renderer: MIST_SWAMP_NPC_RENDERERS.mistSpirit, world: "mist_swamp" },
+  ruru: { id: "ruru", displayName: "Ruru 小浣熊", renderer: MIST_SWAMP_NPC_RENDERERS.ruru, world: "mist_swamp" },
+  mudMonster: { id: "mudMonster", displayName: "沼泽泥浆怪", renderer: MIST_SWAMP_NPC_RENDERERS.mudMonster, world: "mist_swamp" },
 };
 
 const DIALOGUE_LIBRARY = {
@@ -6150,6 +6159,24 @@ function drawMudMonster() {
   circle(-48, -46, 4);
   circle(46, -38, 4);
   circle(2, -58, 3);
+  ctx.restore();
+}
+
+function drawMistSwampNpcFallback(label) {
+  ctx.save();
+  drawShadow(0, 25, 52, 12);
+  ctx.fillStyle = "#75906a";
+  circle(0, 0, 28);
+  ctx.fillStyle = "#fff8df";
+  circle(-9, -6, 7);
+  circle(9, -6, 7);
+  ctx.fillStyle = "#30422c";
+  circle(-8, -5, 3);
+  circle(8, -5, 3);
+  ctx.fillStyle = "#fff8df";
+  ctx.font = "700 10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(label, 0, 44);
   ctx.restore();
 }
 

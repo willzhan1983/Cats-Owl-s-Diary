@@ -3,8 +3,8 @@
   const MIST_SWAMP_WORLD_ID = "mist_swamp";
 
   function mistSwampStartIndex() {
-    const gameLevels = window.CATS_OWLS_GAME_DATA?.levels || levels;
-    return gameLevels.findIndex((level) => level.world === MIST_SWAMP_WORLD_ID);
+    if (!Array.isArray(levels)) return -1;
+    return levels.findIndex((level) => level.world === MIST_SWAMP_WORLD_ID);
   }
 
   function openMistSwamp() {

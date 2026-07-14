@@ -19,3 +19,7 @@ for (const [file, label, marker, resetCall] of chapters) {
   assert.ok(entry.includes(marker));
   assert.ok(entry.includes(resetCall));
 }
+
+const mistSwampEntry = readFileSync(new URL("../mist-swamp-map-entry.js", import.meta.url), "utf8");
+assert.match(mistSwampEntry, /if \(!Array\.isArray\(levels\)\) return -1;/);
+assert.doesNotMatch(mistSwampEntry, /window\.CATS_OWLS_GAME_DATA\?\.levels/);
