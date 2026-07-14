@@ -101,6 +101,11 @@ const backgroundSources = {
   windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
   escortForestPath: "./assets/bg/escort_forest_path.png",
   acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
+  mistSwampEntrance: "./assets/v2/v2-bg-swamp-boss.png",
+  fireflyTrailPath: "./assets/v2/v2-bg-wetland.png",
+  sleepingWoodenBridge: "./assets/v2/v2-bg-pond.png",
+  mistCoreClearing: "./assets/v2/v2-bg-swamp-boss.png",
+  mudMonsterLair: "./assets/v2/v2-bg-swamp-boss.png",
 };
 
 const backgroundSourceCandidates = {
@@ -130,6 +135,11 @@ const backgroundSourceCandidates = {
   windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
   escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
   acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
+  mistSwampEntrance: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  fireflyTrailPath: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  sleepingWoodenBridge: ["./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
+  mistCoreClearing: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  mudMonsterLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
 const backgrounds = {};
@@ -252,6 +262,15 @@ const PROP_USAGE_POLICY = {
   keyItem: "appears only for route, story, or unlock moments",
 };
 
+const MIST_SWAMP_NPC_RENDERERS = {
+  fireflyGuide: typeof drawFirefly === "function" ? drawFirefly : () => drawMistSwampNpcFallback("萤火虫"),
+  littleFrog: typeof drawFrog === "function" ? drawFrog : () => drawMistSwampNpcFallback("小青蛙"),
+  swampSnail: typeof drawHedgehog === "function" ? drawHedgehog : () => drawMistSwampNpcFallback("沼泽蜗牛"),
+  mistSpirit: typeof drawFirefly === "function" ? drawFirefly : () => drawMistSwampNpcFallback("迷雾精灵"),
+  ruru: typeof drawSquirrel === "function" ? drawSquirrel : () => drawMistSwampNpcFallback("Ruru"),
+  mudMonster: typeof drawMudMonster === "function" ? drawMudMonster : () => drawMistSwampNpcFallback("泥浆怪"),
+};
+
 const NPC_REGISTRY = {
   deer: { id: "deer", displayName: "\u5c0f\u9e7f", renderer: drawDeer, world: "forest_school" },
   squirrel: { id: "squirrel", displayName: "\u677e\u9f20", renderer: drawSquirrel, world: "forest_school" },
@@ -279,6 +298,12 @@ const NPC_REGISTRY = {
   nessie: { id: "nessie", displayName: "尼斯湖怪", renderer: drawNessie, world: "moonlight_lake" },
   owl: { id: "owl", displayName: "Owlly / \u59da\u5934\u9e70", renderer: () => drawOwl(0, 4, 0.92), world: "forest_school" },
   boss: { id: "boss", displayName: "Black Bear", renderer: drawForestBoss, characterId: "blackBear", world: "dark_swamp" },
+  fireflyGuide: { id: "fireflyGuide", displayName: "萤火虫向导", renderer: MIST_SWAMP_NPC_RENDERERS.fireflyGuide, world: "mist_swamp" },
+  littleFrog: { id: "littleFrog", displayName: "小青蛙", renderer: MIST_SWAMP_NPC_RENDERERS.littleFrog, world: "mist_swamp" },
+  swampSnail: { id: "swampSnail", displayName: "沼泽蜗牛", renderer: MIST_SWAMP_NPC_RENDERERS.swampSnail, world: "mist_swamp" },
+  mistSpirit: { id: "mistSpirit", displayName: "迷雾精灵", renderer: MIST_SWAMP_NPC_RENDERERS.mistSpirit, world: "mist_swamp" },
+  ruru: { id: "ruru", displayName: "Ruru 小浣熊", renderer: MIST_SWAMP_NPC_RENDERERS.ruru, world: "mist_swamp" },
+  mudMonster: { id: "mudMonster", displayName: "沼泽泥浆怪", renderer: MIST_SWAMP_NPC_RENDERERS.mudMonster, world: "mist_swamp" },
 };
 
 const DIALOGUE_LIBRARY = {
@@ -397,6 +422,14 @@ const WORLD_MAP = {
     levels: [16, 17, 18, 19],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  mist_swamp: {
+    id: "mist_swamp",
+    name: "迷雾沼泽",
+    background: "mistSwampEntrance",
+    levels: [],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE, TASK_TYPES.BOSS_FIGHT],
+    boss: "mudMonster",
+  },
 };
 
 const dayNames = [
@@ -420,6 +453,11 @@ const dayNames = [
   "弯弯森林小路",
   "护送小动物过路",
   "橡果镇路口",
+  "迷雾沼泽入口",
+  "萤火虫小径",
+  "沉睡木桥",
+  "迷雾核心",
+  "沼泽泥浆怪",
 ];
 
 const keys = new Set();
@@ -1274,6 +1312,102 @@ const levels = [
     puddles: [],
     obstacles: [],
   },
+  {
+    name: "迷雾沼泽入口",
+    bg: "mistSwampEntrance",
+    world: "mist_swamp",
+    time: 90,
+    start: { x: 120, y: 390 },
+    message: "跟随温柔的光，点亮迷雾沼泽入口。",
+    collectibles: [
+      item(250, 190, "fireflyCore", "萤火虫灯芯"),
+      item(470, 330, "fireflyCore", "萤火虫灯芯"),
+      item(730, 170, "fireflyCore", "萤火虫灯芯"),
+    ],
+    tasks: [
+      delivery(350, 220, "入口雾灯", "light", "fireflyCore", "点亮入口雾灯"),
+      delivery(650, 300, "深处雾灯", "light", "fireflyCore", "点亮深处雾灯"),
+      delivery(820, 390, "Ruru 小浣熊", "ruru", "fireflyCore", "确认旧路方向"),
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "萤火虫小径",
+    bg: "fireflyTrailPath",
+    world: "mist_swamp",
+    time: 95,
+    start: { x: 110, y: 390 },
+    message: "收集发光孢子，找到木桥钥匙。",
+    collectibles: [
+      item(250, 330, "glowSpore", "发光孢子"),
+      item(390, 210, "glowSpore", "发光孢子"),
+      item(560, 350, "glowSpore", "发光孢子"),
+      item(710, 220, "glowSpore", "发光孢子"),
+      item(820, 360, "bridgeKey", "木桥钥匙"),
+    ],
+    tasks: [
+      delivery(480, 150, "萤火虫向导", "fireflyGuide", ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], "跟着萤火虫走吧！"),
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "沉睡木桥",
+    bg: "sleepingWoodenBridge",
+    world: "mist_swamp",
+    time: 100,
+    start: { x: 120, y: 400 },
+    message: "找齐木桥板和钥匙，帮助小青蛙安全过桥。",
+    collectibles: [
+      item(230, 180, "bridgePlank", "木桥板"),
+      item(440, 350, "bridgePlank", "木桥板"),
+      item(690, 170, "bridgePlank", "木桥板"),
+      item(800, 350, "bridgeKey", "木桥钥匙"),
+    ],
+    tasks: [
+      delivery(550, 280, "沉睡木桥", "sign", ["bridgePlank", "bridgePlank", "bridgePlank"], "修复沉睡木桥"),
+      delivery(820, 210, "小青蛙", "littleFrog", "bridgeKey", "打开安全过桥的小门"),
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "迷雾核心",
+    bg: "mistCoreClearing",
+    world: "mist_swamp",
+    time: 110,
+    start: { x: 120, y: 390 },
+    message: "收集光之孢子，帮助迷雾精灵恢复清醒。",
+    collectibles: [
+      item(250, 180, "lightSpore", "光之孢子"),
+      item(470, 350, "lightSpore", "光之孢子"),
+      item(710, 180, "lightSpore", "光之孢子"),
+    ],
+    tasks: [
+      { ...delivery(780, 300, "迷雾精灵", "mistSpirit", ["lightSpore", "lightSpore", "lightSpore"], "净化迷雾核心"), reward: "fireflyLantern" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    name: "沼泽泥浆怪",
+    bg: "mudMonsterLair",
+    world: "mist_swamp",
+    time: 120,
+    start: { x: 120, y: 390 },
+    message: "用光和知识帮助沼泽守护者。",
+    collectibles: [
+      item(220, 180, "lightSpore", "光之孢子"),
+      item(380, 350, "lightSpore", "光之孢子"),
+      item(560, 170, "lightSpore", "光之孢子"),
+    ],
+    tasks: [
+      { ...delivery(780, 230, "沼泽泥浆怪", "mudMonster", ["lightSpore", "lightSpore", "lightSpore"], "帮助守护者恢复清醒"), reward: "mistGuardianBadge" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1303,6 +1437,10 @@ WORLD_MAP.apple_valley.levels = levels
   .filter((index) => index >= 0);
 
 WORLD_MAP.forest_road.levels = [16, 17, 18, 19];
+
+WORLD_MAP.mist_swamp.levels = levels
+  .map((level, index) => (level.world === "mist_swamp" ? index : -1))
+  .filter((index) => index >= 0);
 
 function levelBackgroundKey(level) {
   if (!level) return null;
@@ -2716,6 +2854,20 @@ function itemLabel(type) {
     aquaGem: "海蓝宝石",
     pearlCrown: "深海珍珠王冠",
     moonPearlBadge: "月光珍珠徽章",
+    fireflyCore: "萤火虫灯芯",
+    mistLamp: "雾灯",
+    glowSpore: "发光孢子",
+    bridgePlank: "木桥板",
+    bridgeKey: "木桥钥匙",
+    mushroomLamp: "蘑菇灯",
+    lightSpore: "光之孢子",
+    mistBadge: "迷雾徽章",
+    fireflyLantern: "萤火虫灯笼",
+    darkMistBubble: "黑雾泡泡",
+    mudBubble: "泥浆泡泡",
+    mudCore: "泥浆核心",
+    bigMistLamp: "大雾灯",
+    mistGuardianBadge: "迷雾守护徽章",
   }[type] || type;
 }
 
@@ -3109,6 +3261,8 @@ function drawBackground() {
     ctx.restore();
   } else if (levels[state.levelIndex]?.world === "moonlight_lake") {
     drawMoonlightLakeFallbackBackground();
+  } else if (levels[state.levelIndex]?.world === "mist_swamp") {
+    drawMistSwampFallbackBackground();
   } else {
     drawTree(90, 135, 1.15);
     drawTree(850, 125, 1.05);
@@ -3128,6 +3282,33 @@ function drawBackground() {
   ctx.beginPath();
   ctx.ellipse(480, 536, 520, 70, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawMistSwampFallbackBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, "#9bb9b5");
+  sky.addColorStop(0.52, "#759b88");
+  sky.addColorStop(1, "#496f62");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "rgba(51, 91, 83, 0.72)";
+  ctx.beginPath();
+  ctx.ellipse(205, 405, 220, 92, -0.12, 0, Math.PI * 2);
+  ctx.ellipse(760, 390, 250, 100, 0.08, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(210, 240, 203, 0.34)";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(70, 470);
+  ctx.bezierCurveTo(250, 330, 460, 430, 560, 290);
+  ctx.bezierCurveTo(690, 125, 820, 210, 920, 105);
+  ctx.stroke();
+  for (const [x, y] of [[150, 145], [330, 215], [540, 125], [720, 240], [860, 155]]) {
+    ctx.fillStyle = "rgba(255, 226, 92, 0.22)";
+    circle(x, y, 17);
+    ctx.fillStyle = "#ffe26a";
+    circle(x, y, 5);
+  }
 }
 
 function drawMoonlightLakeFallbackBackground() {
@@ -5945,6 +6126,56 @@ function drawForestBoss() {
   ctx.beginPath();
   ctx.arc(0, -6, 12, 0.15, Math.PI - 0.15);
   ctx.stroke();
+  ctx.restore();
+}
+
+function drawMudMonster() {
+  const pulse = 1 + Math.sin(performance.now() / 420) * 0.03;
+  ctx.save();
+  ctx.scale(pulse, pulse);
+  drawShadow(0, 34, 92, 18);
+  const body = ctx.createLinearGradient(0, -48, 0, 38);
+  body.addColorStop(0, "#829b59");
+  body.addColorStop(1, "#5f6f3d");
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 54, 46, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.ellipse(-18, -12, 13, 16, 0, 0, Math.PI * 2);
+  ctx.ellipse(18, -12, 13, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#30422c";
+  circle(-16, -10, 6);
+  circle(16, -10, 6);
+  ctx.strokeStyle = "#30422c";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 5, 15, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  ctx.fillStyle = "#ffd94a";
+  circle(-48, -46, 4);
+  circle(46, -38, 4);
+  circle(2, -58, 3);
+  ctx.restore();
+}
+
+function drawMistSwampNpcFallback(label) {
+  ctx.save();
+  drawShadow(0, 25, 52, 12);
+  ctx.fillStyle = "#75906a";
+  circle(0, 0, 28);
+  ctx.fillStyle = "#fff8df";
+  circle(-9, -6, 7);
+  circle(9, -6, 7);
+  ctx.fillStyle = "#30422c";
+  circle(-8, -5, 3);
+  circle(8, -5, 3);
+  ctx.fillStyle = "#fff8df";
+  ctx.font = "700 10px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(label, 0, 44);
   ctx.restore();
 }
 
