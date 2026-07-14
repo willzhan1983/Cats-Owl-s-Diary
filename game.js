@@ -1347,7 +1347,7 @@ const levels = [
       item(820, 360, "bridgeKey", "木桥钥匙"),
     ],
     tasks: [
-      delivery(480, 120, "萤火虫向导", "fireflyGuide", ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], "跟着萤火虫走吧！"),
+      delivery(480, 150, "萤火虫向导", "fireflyGuide", ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], "跟着萤火虫走吧！"),
     ],
     puddles: [],
     obstacles: [],
@@ -1401,10 +1401,9 @@ const levels = [
       item(220, 180, "lightSpore", "光之孢子"),
       item(380, 350, "lightSpore", "光之孢子"),
       item(560, 170, "lightSpore", "光之孢子"),
-      item(720, 360, "fireflyLantern", "萤火虫灯笼"),
     ],
     tasks: [
-      { ...delivery(780, 230, "沼泽泥浆怪", "mudMonster", ["lightSpore", "lightSpore", "lightSpore", "fireflyLantern"], "帮助守护者恢复清醒"), reward: "mistGuardianBadge" },
+      { ...delivery(780, 230, "沼泽泥浆怪", "mudMonster", ["lightSpore", "lightSpore", "lightSpore"], "帮助守护者恢复清醒"), reward: "mistGuardianBadge" },
     ],
     puddles: [],
     obstacles: [],

@@ -6,6 +6,14 @@ const map = readFileSync(new URL("../world-map.js", import.meta.url), "utf8");
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const names = ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"];
 
+function levelBlock(name) {
+  const start = game.indexOf(`name: "${name}"`);
+  const next = game.indexOf("\n  },\n  {", start);
+  const end = next >= 0 ? next : game.indexOf("\n];", start);
+  assert.notEqual(start, -1, `${name} level should exist`);
+  return game.slice(start, end);
+}
+
 for (const name of names) {
   assert.ok(game.includes(`"${name}"`), `${name} should be appended`);
 }
@@ -37,3 +45,16 @@ assert.match(game, /else if \(levels\[state\.levelIndex\]\?\.world === "mist_swa
 assert.ok(game.includes("function drawMistSwampFallbackBackground()"));
 assert.match(game, /const MIST_SWAMP_NPC_RENDERERS = \{[\s\S]*?typeof drawFirefly === "function"[\s\S]*?typeof drawMudMonster === "function"/);
 assert.match(game, /function drawMistSwampNpcFallback\(label\)/);
+
+const fireflyTrail = levelBlock("萤火虫小径");
+assert.match(fireflyTrail, /delivery\(480, 150, "萤火虫向导"/);
+
+const mistCore = levelBlock("迷雾核心");
+assert.match(mistCore, /reward: "fireflyLantern"/);
+
+const mudMonster = levelBlock("沼泽泥浆怪");
+assert.doesNotMatch(mudMonster, /fireflyLantern/);
+assert.match(mudMonster, /reward: "mistGuardianBadge"/);
+
+const completeTask = game.slice(game.indexOf("function completeTask("), game.indexOf("function sortBasketCompleteMessage("));
+assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.inventory\.push\(task\.reward\)/);
