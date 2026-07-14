@@ -87,7 +87,7 @@ const runtime = loadGameRuntime();
 const levels = runtime.CATS_OWLS_GAME_DATA.levels;
 const mistLevels = levels.filter((level) => level.world === "mist_swamp");
 const advancedKinds = new Set(["mist_lamp", "firefly_trail", "mushroom_lamp", "broken_bridge", "mist_bubble", "mud_bubble", "mist_core", "mud_boss"]);
-const completableKinds = new Set(["delivery", "quiz", ...advancedKinds]);
+const completableKinds = new Set(["delivery", "quiz", "escort_npc", ...advancedKinds]);
 
 assert.equal(mistLevels.length, 5);
 for (const level of mistLevels) {
@@ -141,13 +141,91 @@ const trailCompletesAfterItems = vm.runInContext(`
 assert.equal(trailCompletesAfterItems, true);
 
 const wrongMushroomFeedback = vm.runInContext(`
+  selectedDifficulty = "hard";
   resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
   interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === "blue"));
   ({ step: state.mushroomStep, priorityMessage: state.priorityMessage, priorityMessageUntil: state.priorityMessageUntil });
 `, runtime);
 assert.equal(wrongMushroomFeedback.step, 0);
-assert.equal(wrongMushroomFeedback.priorityMessage, "再看一看萤火虫提示哦。");
+assert.match(wrongMushroomFeedback.priorityMessage, /^再看一看萤火虫提示哦。/);
 assert.ok(wrongMushroomFeedback.priorityMessageUntil > 0);
+
+for (const [difficulty, plankCount] of Object.entries({ easy: 2, normal: 2, hard: 3, crazy: 3 })) {
+  const bridgeSetup = vm.runInContext(`
+    selectedDifficulty = "${difficulty}";
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+    state.tasksList.push({ kind: "quiz", mistSwampShared: true, done: false });
+    prepareSleepingBridgeLevel();
+    ({
+      plankCount: state.tasksList.find((task) => task.kind === "broken_bridge").need.length,
+      completedMushrooms: state.tasksList.filter((task) => task.kind === "mushroom_lamp" && task.done).length,
+      completedTasks: state.tasks,
+      sharedQuizDone: state.tasksList.find((task) => task.mistSwampShared).done,
+      safeZone: state.safeZones.find((zone) => zone.id === "mistBridgeExit"),
+      frog: state.tasksList.find((task) => task.animal === "littleFrog"),
+    });
+  `, runtime);
+  assert.equal(bridgeSetup.plankCount, plankCount, `${difficulty} plank requirement`);
+  assert.equal(bridgeSetup.completedMushrooms, difficulty === "easy" || difficulty === "normal" ? 4 : 0);
+  assert.equal(bridgeSetup.completedTasks, difficulty === "easy" || difficulty === "normal" ? 5 : 1);
+  assert.equal(bridgeSetup.sharedQuizDone, true);
+  assert.deepEqual(
+    bridgeSetup.safeZone && { id: bridgeSetup.safeZone.id, x: bridgeSetup.safeZone.x, y: bridgeSetup.safeZone.y, r: bridgeSetup.safeZone.r },
+    { id: "mistBridgeExit", x: 830, y: 210, r: 80 }
+  );
+  assert.equal(bridgeSetup.frog.kind, "escort_npc");
+  assert.equal(bridgeSetup.frog.safeZoneId, "mistBridgeExit");
+}
+
+const stableBridgeRepair = vm.runInContext(`
+  selectedDifficulty = "easy";
+  resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+  const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+  state.inventory.push("bridgePlank");
+  interactMistSwampTask(bridge);
+  const blockedWithOne = !bridge.done;
+  state.inventory.push("bridgePlank");
+  interactMistSwampTask(bridge);
+  const tasksAfterRepair = state.tasks;
+  state.priorityMessage = "蘑菇灯都亮啦！";
+  state.priorityMessageUntil = 999;
+  interactMistSwampTask(bridge);
+  state.player.x = bridge.x;
+  state.player.y = bridge.y;
+  checkTasks(0.016);
+  ({ blockedWithOne, done: bridge.done, planksLeft: state.inventory.filter((item) => item === "bridgePlank").length, tasksAfterRepair, tasksAfterRepeat: state.tasks, message: messageEl.textContent });
+`, runtime);
+assert.equal(stableBridgeRepair.blockedWithOne, true);
+assert.equal(stableBridgeRepair.done, true);
+assert.equal(stableBridgeRepair.planksLeft, 0);
+assert.equal(stableBridgeRepair.tasksAfterRepair, 5);
+assert.equal(stableBridgeRepair.tasksAfterRepeat, 5);
+assert.match(stableBridgeRepair.message, /已经修好/);
+
+const frogEscort = vm.runInContext(`
+  selectedDifficulty = "normal";
+  resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+  const frogBridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+  const frogTask = state.tasksList.find((task) => task.animal === "littleFrog");
+  state.player.x = frogTask.x;
+  state.player.y = frogTask.y;
+  updateMistSwampMechanisms(0.016);
+  const followedBeforeRepair = frogTask.following;
+  state.inventory.push("bridgePlank", "bridgePlank");
+  interactMistSwampTask(frogBridge);
+  updateMistSwampMechanisms(0.016);
+  const followedAfterRepair = frogTask.following;
+  state.player.x = 830;
+  state.player.y = 210;
+  frogTask.x = 830;
+  frogTask.y = 210;
+  updateMistSwampMechanisms(0.016);
+  ({ followedBeforeRepair, followedAfterRepair, frogDone: frogTask.done, frogX: frogTask.x, frogY: frogTask.y, bridgeDone: frogBridge.done, safeZone: state.safeZones[0], completedTasks: state.tasks, totalTasks: state.tasksList.length });
+`, runtime);
+assert.equal(frogEscort.followedBeforeRepair, false);
+assert.equal(frogEscort.followedAfterRepair, true);
+assert.equal(frogEscort.frogDone, true, JSON.stringify(frogEscort));
+assert.equal(frogEscort.completedTasks, frogEscort.totalTasks);
 
 const legacyTaskKindCounts = Array.from(levels)
   .filter((level) => level.world !== "mist_swamp")

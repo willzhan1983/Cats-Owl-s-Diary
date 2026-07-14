@@ -55,6 +55,7 @@ const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const APPLE_VALLEY_COLLECTIBLE_BOB = 1.5;
 const MIST_CLEAR_TIME_BY_DIFFICULTY = { easy: null, normal: 12000, hard: 8000, crazy: 6000 };
 const MUD_BUBBLE_COUNT_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
+const BRIDGE_PLANK_COUNT_BY_DIFFICULTY = { easy: 2, normal: 2, hard: 3, crazy: 3 };
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1364,12 +1365,11 @@ const levels = [
     world: "mist_swamp",
     time: 100,
     start: { x: 120, y: 400 },
-    message: "找齐木桥板和钥匙，帮助小青蛙安全过桥。",
+    message: "找齐木桥板，修好木桥，再带小青蛙去出口。",
     collectibles: [
       item(230, 180, "bridgePlank", "木桥板"),
       item(440, 350, "bridgePlank", "木桥板"),
       item(690, 170, "bridgePlank", "木桥板"),
-      item(800, 350, "bridgeKey", "木桥钥匙"),
     ],
     tasks: [
       mushroomLampTask(250, 170, "yellow", "黄色蘑菇灯"),
@@ -1377,9 +1377,12 @@ const levels = [
       mushroomLampTask(570, 170, "purple", "紫色蘑菇灯"),
       mushroomLampTask(730, 160, "green", "绿色蘑菇灯"),
       { x: 550, y: 280, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
-      delivery(820, 210, "小青蛙", "littleFrog", "bridgeKey", "打开安全过桥的小门"),
+      escortNpcTask(680, 340, "小青蛙", "littleFrog", "mistBridgeExit"),
     ],
     mushroomSequence: ["yellow", "blue", "purple", "green"],
+    safeZones: [
+      { id: "mistBridgeExit", x: 830, y: 210, r: 80, label: "木桥出口" },
+    ],
     puddles: [],
     obstacles: [],
   },
@@ -1473,6 +1476,11 @@ function isAppleValleyLevel() {
 
 function isMistSwampLevel() {
   return levels[state.levelIndex]?.world === "mist_swamp";
+}
+
+function isMistSwampSleepingBridgeLevel() {
+  const level = levels[state.levelIndex];
+  return level?.world === "mist_swamp" && level.name === "沉睡木桥";
 }
 
 function taskSystemType(kind) {
@@ -1657,10 +1665,26 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     floaters: [],
     leaves: makeLeaves(levelIndex),
   };
+  if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
   messageEl.textContent = level.message;
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
+}
+
+function prepareSleepingBridgeLevel() {
+  if (!isMistSwampSleepingBridgeLevel()) return;
+  const plankCount = BRIDGE_PLANK_COUNT_BY_DIFFICULTY[selectedDifficulty] || 2;
+  const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+  if (bridge) bridge.need = Array(plankCount).fill("bridgePlank");
+  const skipMushrooms = selectedDifficulty === "easy" || selectedDifficulty === "normal";
+  const optionalTasks = state.tasksList.filter((task) => task.mistSwampShared || (skipMushrooms && task.kind === "mushroom_lamp"));
+  optionalTasks.forEach((task) => {
+    if (task.done) return;
+    task.done = true;
+    if (task.kind === "mushroom_lamp") task.lit = true;
+    state.tasks += 1;
+  });
 }
 
 function prepareMudBossLevel() {
@@ -2537,6 +2561,11 @@ function updateMistSwampMechanisms(dt) {
     }
   }
 
+  if (isMistSwampSleepingBridgeLevel()) {
+    const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+    if (bridge?.done) updateEscortNpcs(dt);
+  }
+
   const mudBoss = state.tasksList.find((task) => task.kind === "mud_boss" && !task.done);
   state.nearbyMudBubble = null;
   if (mudBoss?.phase === 1) {
@@ -2844,7 +2873,10 @@ function checkTasks(dt) {
     }
 
     if (task.kind === "escort_npc") {
-      messageEl.textContent = task.following ? "小伙伴正在跟着你。" : "靠近小伙伴，它会自动跟上来。";
+      const bridgeReady = !isMistSwampSleepingBridgeLevel() || state.tasksList.some((entry) => entry.kind === "broken_bridge" && entry.done);
+      messageEl.textContent = !bridgeReady
+        ? "先修好木桥，小青蛙就会跟上来。"
+        : task.following ? "小青蛙正在跟着你，带它去木桥出口。" : "靠近小青蛙，它会自动跟上来。";
       continue;
     }
 
@@ -2880,6 +2912,8 @@ function checkTasks(dt) {
     messageEl.textContent = state.nearbyTask.directions?.join("  ") || "→ 橡果镇";
   } else if (state.nearbyTask?.done && state.nearbyTask.kind === "road_clear") {
     messageEl.textContent = "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
+  } else if (isMistSwampSleepingBridgeLevel() && state.nearbyTask?.done && state.nearbyTask.kind === "broken_bridge") {
+    messageEl.textContent = "木桥已经修好啦，可以安全通过了！";
   } else if (state.nearbyTask?.done) {
     messageEl.textContent = `${state.nearbyTask.name}\u5df2\u7ecf\u5f88\u5f00\u5fc3\u5566\u3002\u6309 E \u518d\u804a\u804a\u3002`;
   }
@@ -3309,13 +3343,17 @@ function interactMistSwampTask(task) {
     return true;
   }
   if (task.kind === "mushroom_lamp") {
+    if (task.done) {
+      messageEl.textContent = "蘑菇灯已经亮啦！";
+      return true;
+    }
     const expected = state.mushroomSequence[state.mushroomStep];
     if (task.color !== expected) {
       state.mushroomStep = 0;
       state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => { entry.lit = false; });
-      messageEl.textContent = "再看一看萤火虫提示哦。";
+      messageEl.textContent = "再看一看萤火虫提示哦。黄 → 蓝 → 紫 → 绿";
       state.priorityMessage = messageEl.textContent;
-      state.priorityMessageUntil = performance.now() + 1200;
+      state.priorityMessageUntil = performance.now() + (selectedDifficulty === "crazy" ? 900 : 1800);
       return true;
     }
     task.lit = true;
@@ -3331,8 +3369,15 @@ function interactMistSwampTask(task) {
     return true;
   }
   if (task.kind === "broken_bridge") {
-    if (missingNeeds(task.need).length) {
-      messageEl.textContent = "还需要 3 块木桥板。";
+    state.priorityMessage = "";
+    state.priorityMessageUntil = 0;
+    if (task.done) {
+      messageEl.textContent = "木桥已经修好啦，可以安全通过了！";
+      return true;
+    }
+    const missingPlanks = missingNeeds(task.need).length;
+    if (missingPlanks) {
+      messageEl.textContent = `还需要 ${missingPlanks} 块木桥板。`;
       return true;
     }
     consumeNeeds(task.need);
@@ -3700,6 +3745,9 @@ function drawLeaves() {
 function drawSceneObjects() {
   drawObstacles();
   drawForestRoadZones();
+  if (isMistSwampSleepingBridgeLevel()) {
+    for (const zone of state.safeZones || []) drawSafeZone(zone);
+  }
   drawPropDecorations();
   drawNpcDecorations();
   drawDarkBubbles();
