@@ -8,9 +8,10 @@ assert.match(game, /MUD_BUBBLE_COUNT_BY_DIFFICULTY\s*=\s*\{\s*easy:\s*2,\s*norma
 assert.match(game, /function isMistSwampLevel\(\)[\s\S]*?world\s*===\s*"mist_swamp"/);
 assert.match(game, /function updateMistSwampMechanisms\(dt\)\s*\{\s*if \(!isMistSwampLevel\(\)\) return;/);
 
-for (const kind of ["mist_lamp", "firefly_trail", "mushroom_lamp", "broken_bridge", "mist_bubble", "mist_core", "mud_boss"]) {
+for (const kind of ["mist_lamp", "firefly_trail", "mushroom_lamp", "broken_bridge", "mist_bubble", "mud_bubble", "mist_core", "mud_boss"]) {
   assert.ok(game.includes(`kind: "${kind}"`), `${kind} should exist`);
 }
+assert.ok(!game.includes('kind: "big_mist_lamp"'));
 
 for (const copy of [
   "雾灯亮起来啦！",

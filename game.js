@@ -1349,8 +1349,7 @@ const levels = [
       item(820, 360, "bridgeKey", "木桥钥匙"),
     ],
     tasks: [
-      delivery(480, 150, "萤火虫向导", "fireflyGuide", ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], "跟着萤火虫走吧！"),
-      { x: 820, y: 300, name: "萤火虫小径", animal: "fireflyGuide", kind: "firefly_trail", done: false, progress: 0 },
+      { x: 480, y: 150, name: "萤火虫小径", animal: "fireflyGuide", need: ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], kind: "firefly_trail", done: false, progress: 0 },
     ],
     fireflyTrail: [
       { x: 210, y: 360 }, { x: 340, y: 275 }, { x: 480, y: 325 }, { x: 620, y: 235 }, { x: 760, y: 300 },
@@ -1581,6 +1580,10 @@ function mistBubbleTask(x, y, name, animal = "darkMistBubble") {
   return { x, y, name, animal, kind: "mist_bubble", done: false, progress: 0 };
 }
 
+function mudBubbleTask(x, y, index) {
+  return { x, y, name: `泥浆泡泡${index + 1}`, animal: "mudBubble", kind: "mud_bubble", done: false, progress: 0, broken: false, active: false, bossPhase: 2, r: 24, phase: index * 0.8 };
+}
+
 function mudBossTask(x, y) {
   return { x, y, name: "沼泽泥浆怪", animal: "mudMonster", kind: "mud_boss", done: false, phase: 1, phaseProgress: 0, quizKey: "mistSwampBoss", quiz: null, reward: "mistGuardianBadge", speech: "点亮雾灯，帮泥浆怪恢复清醒。" };
 }
@@ -1663,13 +1666,13 @@ function resetGame(levelIndex = 0, keepHearts = false) {
 function prepareMudBossLevel() {
   if (!isMistSwampLevel()) return;
   const requiredBubbles = MUD_BUBBLE_COUNT_BY_DIFFICULTY[selectedDifficulty] || 3;
-  state.mudBubbles = Array.from({ length: requiredBubbles }, (_, index) => ({
-    x: 430 + (index % 2) * 210,
-    y: 260 + Math.floor(index / 2) * 115,
-    r: 24,
-    broken: false,
-    phase: index * 0.8,
-  }));
+  const level = levels[state.levelIndex];
+  state.mudBubbles = Array.from({ length: requiredBubbles }, (_, index) => prepareTask(
+    mudBubbleTask(430 + (index % 2) * 210, 260 + Math.floor(index / 2) * 115, index),
+    level,
+    state.tasksList.length + index
+  ));
+  state.tasksList.push(...state.mudBubbles);
   const reachableSpores = state.collectibles.filter((entry) => entry.type === "lightSpore").length;
   for (let index = reachableSpores; index < 3; index += 1) {
     state.inventory.push("lightSpore");
@@ -2523,7 +2526,14 @@ function updateMistSwampMechanisms(dt) {
     if (nextPoint && distance(state.player, nextPoint) < 42) {
       state.fireflyTrailIndex += 1;
       burst(nextPoint.x, nextPoint.y, "#ffe26a", 12);
-      if (state.fireflyTrailIndex >= correct.length) completeTask(trailTask, nextPoint.x, nextPoint.y);
+    }
+    if (state.fireflyTrailIndex >= correct.length) {
+      if (missingNeeds(trailTask.need).length) messageEl.textContent = "再沿着光点找齐发光孢子和木桥钥匙吧。";
+      else {
+        consumeNeeds(trailTask.need);
+        const trailEnd = correct[correct.length - 1];
+        completeTask(trailTask, trailEnd.x, trailEnd.y);
+      }
     }
   }
 
@@ -2533,14 +2543,15 @@ function updateMistSwampMechanisms(dt) {
     const lamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
     if (lamps.length === 3 && lamps.every((task) => task.done)) {
       mudBoss.phase = 2;
+      state.mudBubbles.forEach((bubble) => { bubble.active = true; });
       messageEl.textContent = "黑雾变淡了，泥浆怪露出了泥浆泡泡！";
     }
   } else if (mudBoss?.phase === 2) {
     for (const bubble of state.mudBubbles) {
       bubble.phase += dt * (selectedDifficulty === "crazy" ? 1.8 : 1.1);
-      if (!bubble.broken && distance(state.player, bubble) < bubble.r + 48) state.nearbyMudBubble = bubble;
+      if (!bubble.done && distance(state.player, bubble) < bubble.r + 48) state.nearbyMudBubble = bubble;
     }
-    if (state.mudBubbles.every((bubble) => bubble.broken)) {
+    if (state.mudBubbles.every((bubble) => bubble.done)) {
       mudBoss.phase = 3;
       messageEl.textContent = "第二步完成：带着萤火虫灯笼靠近泥浆核心。";
     }
@@ -2769,6 +2780,7 @@ function checkTasks(dt) {
   state.nearbyTask = null;
   let nearestDistance = Infinity;
   for (const task of state.tasksList) {
+    if (isMistSwampLevel() && task.kind === "mud_bubble" && (!task.active || task.done)) continue;
     const near = distance(p, task) < 58;
     if (near) {
       const dist = distance(p, task);
@@ -2802,8 +2814,9 @@ function checkTasks(dt) {
       continue;
     }
 
-    if (isMistSwampLevel() && ["mist_lamp", "mushroom_lamp", "broken_bridge", "mist_bubble", "mist_core", "mud_boss", "firefly_trail"].includes(task.kind)) {
+    if (isMistSwampLevel() && ["mist_lamp", "mushroom_lamp", "broken_bridge", "mist_bubble", "mud_bubble", "mist_core", "mud_boss", "firefly_trail"].includes(task.kind)) {
       if (task.kind === "firefly_trail") messageEl.textContent = "跟着萤火虫走吧！";
+      else if (task.kind === "mud_bubble") messageEl.textContent = "按 E 清除泥浆泡泡。";
       else if (task.kind === "mud_boss") messageEl.textContent = task.phase === 3 ? "带着萤火虫灯笼，按 E 净化泥浆核心。" : task.speech;
       else messageEl.textContent = "按 E 互动";
       continue;
@@ -3212,8 +3225,10 @@ function startDialogueQuiz() {
 function talkToNearbyTask() {
   if (!state?.running || state.activeQuiz) return;
   if (isMistSwampLevel() && state.nearbyMudBubble) {
-    state.nearbyMudBubble.broken = true;
-    burst(state.nearbyMudBubble.x, state.nearbyMudBubble.y, "#a6d66f", 18);
+    const bubble = state.nearbyMudBubble;
+    bubble.broken = true;
+    completeTask(bubble, bubble.x, bubble.y);
+    burst(bubble.x, bubble.y, "#a6d66f", 18);
     messageEl.textContent = "泥浆泡泡清除啦！";
     state.nearbyMudBubble = null;
     return;
@@ -3299,6 +3314,8 @@ function interactMistSwampTask(task) {
       state.mushroomStep = 0;
       state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => { entry.lit = false; });
       messageEl.textContent = "再看一看萤火虫提示哦。";
+      state.priorityMessage = messageEl.textContent;
+      state.priorityMessageUntil = performance.now() + 1200;
       return true;
     }
     task.lit = true;
@@ -3308,6 +3325,8 @@ function interactMistSwampTask(task) {
         if (!entry.done) completeTask(entry, entry.x, entry.y);
       });
       messageEl.textContent = "蘑菇灯都亮啦！";
+      state.priorityMessage = messageEl.textContent;
+      state.priorityMessageUntil = performance.now() + 1200;
     }
     return true;
   }
@@ -4645,6 +4664,7 @@ function drawItem(type) {
 function drawTasks() {
   for (const task of state.tasksList) {
     if (task.kind === "road_clear" && task.done) continue;
+    if (isMistSwampLevel() && task.kind === "mud_bubble") continue;
     ctx.save();
     const t = performance.now() / 360 + task.x * 0.03;
     const idleAmplitude = isAppleValleyLevel() ? 1 : 2.2;
