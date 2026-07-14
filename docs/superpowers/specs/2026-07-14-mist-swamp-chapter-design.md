@@ -18,10 +18,10 @@ The implementation adds only Mist Swamp data, task kinds, update/draw branches, 
 
 Delivery is split into two reviewable changes because the complete chapter is too large for one safe PR:
 
-- PR A — Mist Swamp base chapter, five traversable level definitions, world-map entry, Canvas backgrounds, isolated quiz bank, basic tasks, completion, and score settlement.
+- PR A — Mist Swamp base chapter, five traversable level definitions, world-map entry, Canvas backgrounds, isolated quiz bank, basic Mist Swamp-only placeholder tasks, completion, and score settlement. It does not implement any advanced mechanism state machine.
 - PR B — timed fog, decoy fireflies, four-color mushroom memory, Mist Core mechanisms, and the three-phase Swamp Mud Monster Boss.
 
-PR A must prove the priority path `能进入 → 能完成 → 能结算` before PR B adds advanced effects. PR B is based on PR A and must preserve that path after each mechanism is added.
+PR A must prove the priority path `能进入 → 能完成 → 能结算` for all five levels before PR B adds advanced effects. Any placeholder task reserved for PR B is explicitly named and guarded as Mist Swamp-only. PR B is based on PR A and must preserve the completion path after each mechanism is added.
 
 ## Data and chapter routing
 
@@ -78,9 +78,9 @@ The player gathers three `lightSpore`, lights three `bigMistLamp`, clears three 
 
 The `mud_boss` is a mechanism Boss and never directly damages the player.
 
-- Phase 1: collect/use `lightSpore` to light three `bigMistLamp`. Completion displays `黑雾变淡了，泥浆怪露出了泥浆泡泡！`.
-- Phase 2: clear nearby `mudBubble` objects using interaction or attack. Required bubble counts are easy 2, normal 3, hard 4, crazy 4. Bubbles float slowly; crazy only increases their speed slightly. Completion advances to the core.
-- Phase 3: with `fireflyLantern` in inventory, interact with the Boss core to open one isolated final quiz. The Boss level contains a reachable `fireflyLantern`; if entry state still lacks one, reset grants a temporary level-only lantern so the level cannot deadlock. A correct answer completes `mud_boss`, awards `mistBadge`, and displays `泥浆怪安静下来了，它原来是在守护沼泽。`.
+- Phase 1: collect/use `lightSpore` to light three `bigMistLamp`. The level contains at least three reachable spores; if entry state cannot satisfy the phase, reset grants only the missing number as temporary level-only `lightSpore`. Completion displays `黑雾变淡了，泥浆怪露出了泥浆泡泡！`.
+- Phase 2: clear nearby `mudBubble` objects with the existing interaction key. Attack-key support may be added only if it can reuse the current stable attack action without changing its behavior. Required bubble counts are easy 2, normal 3, hard 4, crazy 4. Bubbles float slowly; crazy only increases their speed slightly. Completion advances to the core.
+- Phase 3: with `fireflyLantern` in inventory, interact with the Boss core to open one isolated final quiz. The Boss level contains a reachable `fireflyLantern`; if entry state still lacks one, reset grants a temporary level-only lantern so the level cannot deadlock. A correct answer completes `mud_boss`, awards `mistGuardianBadge` as a distinct Level 5 reward, and displays `泥浆怪安静下来了，它原来是在守护沼泽。`.
 
 The arena may contain `softMud`. Hard and crazy enlarge its slowing radius slightly. There is no health damage, irreversible item loss, or failure state that can trap a child.
 
@@ -88,7 +88,7 @@ The arena may contain `softMud`. Hard and crazy enlarge its slowing radius sligh
 
 New task kinds are handled by narrow branches in the existing update, interaction, hint, completion, and drawing dispatchers. New per-level arrays and counters are copied into `state` during `resetGame`; no global task-flow rewrite is allowed.
 
-Every Mist Swamp update, interaction, fog, movement, and drawing mechanism begins behind `levels[state.levelIndex]?.world === "mist_swamp"`. Existing Day 1–7, Moonlight Lake, Apple Valley, Forest Road, score settlement, difficulty code, `boss`, and `moon_boss` branches remain byte-for-byte unchanged unless an unavoidable shared dispatcher receives one isolated Mist Swamp-only branch. All completion paths use the existing `completeTask` and level-completion logic so the local score summary continues to appear normally.
+Every Mist Swamp update, interaction, fog, movement, and drawing mechanism begins behind `levels[state.levelIndex]?.world === "mist_swamp"`. Existing Day 1–7, Moonlight Lake, Apple Valley, Forest Road, score settlement, difficulty code, `boss`, and `moon_boss` behavior remains unchanged. If an unavoidable shared dispatcher is edited, the change only appends an explicitly guarded Mist Swamp branch and does not modify any existing condition or branch body. All completion paths use the existing `completeTask` and level-completion logic so the local score summary continues to appear normally.
 
 ## Quiz coverage
 
@@ -109,6 +109,6 @@ Add focused Node tests before implementation. Tests must initially fail because 
 - isolated quiz bank and map entry script loading;
 - unchanged existing chapter-entry tests.
 
-Tests also assert that the Boss level supplies or grants `fireflyLantern`, easy fog uses the explicit permanent state, decoy coordinates stay inside the safe play area and near the correct path, new task kinds are snake_case, new item/prop keys are camelCase, and every new mechanism has an explicit Mist Swamp world guard.
+Tests also assert that the Boss level supplies or grants enough `lightSpore` and `fireflyLantern`, Level 4 and Level 5 rewards are distinct, easy fog uses the explicit permanent state, decoy coordinates stay inside the safe play area and near the correct path, new task kinds are snake_case, new item/prop keys are camelCase, and every new mechanism has an explicit Mist Swamp world guard.
 
-Final verification runs `npm test` when available and otherwise `node --test tests/*.test.mjs`, plus `node --check game.js`, `node --check world-map.js`, `node --check mist-swamp-map-entry.js`, and `node --check mist-swamp-quiz-bank.js`. Browser smoke testing enters each Mist Swamp level and checks that the score panel remains reachable, with explicit spot checks that Black Bear and Nessie code paths still load without console errors.
+After PR A and again after PR B, verification runs `npm test` when available and otherwise `node --test tests/*.test.mjs`, plus `node --check game.js`, `node --check world-map.js`, `node --check mist-swamp-map-entry.js`, and `node --check mist-swamp-quiz-bank.js`. Before either PR is opened, browser smoke testing enters every Mist Swamp level, completes it, confirms the score panel appears, and checks that Black Bear and Nessie still load without console errors.
