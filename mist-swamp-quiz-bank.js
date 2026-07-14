@@ -17,7 +17,6 @@
     { level: "萤火虫小径", x: 650, y: 390, name: "萤火虫观察题", animal: "science" },
     { level: "沉睡木桥", x: 350, y: 390, name: "木桥知识题", animal: "english" },
     { level: "迷雾核心", x: 500, y: 210, name: "迷雾核心题", animal: "language" },
-    { level: "沼泽泥浆怪", x: 520, y: 390, name: "守护者理解题", animal: "logic" },
   ];
 
   if (!Array.isArray(quizBank[MIST_SWAMP_QUIZ_KEY])) quizBank[MIST_SWAMP_QUIZ_KEY] = [];
@@ -25,6 +24,11 @@
   questions.forEach((question) => {
     if (!existing.has(question.question)) quizBank[MIST_SWAMP_QUIZ_KEY].push(question);
   });
+  quizBank.mistSwampBoss = [
+    { difficulty: "normal", title: "守护者理解题", question: "泥浆怪被黑雾困住了，我们应该怎么做？", options: ["帮助它恢复正常", "把沼泽弄得更脏", "抢走它的灯笼", "不理它"], answer: 0 },
+    { difficulty: "hard", title: "守护者判断题", question: "帮助被困住的沼泽守护者，最重要的是什么？", options: ["观察线索并温柔净化", "直接伤害它", "关掉所有灯", "把桥拆掉"], answer: 0 },
+    { difficulty: "crazy", title: "守护者综合题", question: "雾灯、光之孢子和萤火虫灯笼的共同作用是什么？", options: ["带来光并驱散黑雾", "制造更多泥浆", "藏起正确路线", "让木桥消失"], answer: 0 },
+  ];
 
   placements.forEach((placement) => {
     const level = levels.find((entry) => entry.world === MIST_SWAMP_WORLD_ID && entry.name === placement.level);

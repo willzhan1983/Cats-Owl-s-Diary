@@ -47,14 +47,15 @@ assert.match(game, /const MIST_SWAMP_NPC_RENDERERS = \{[\s\S]*?typeof drawFirefl
 assert.match(game, /function drawMistSwampNpcFallback\(label\)/);
 
 const fireflyTrail = levelBlock("萤火虫小径");
-assert.match(fireflyTrail, /delivery\(480, 150, "萤火虫向导"/);
+assert.match(fireflyTrail, /x: 480, y: 150,[\s\S]*?animal: "fireflyGuide"[\s\S]*?kind: "firefly_trail"/);
 
 const mistCore = levelBlock("迷雾核心");
 assert.match(mistCore, /reward: "fireflyLantern"/);
 
 const mudMonster = levelBlock("沼泽泥浆怪");
 assert.doesNotMatch(mudMonster, /fireflyLantern/);
-assert.match(mudMonster, /reward: "mistGuardianBadge"/);
+assert.match(mudMonster, /mudBossTask\(780, 230\)/);
+assert.match(game, /function mudBossTask\([\s\S]*?reward: "mistGuardianBadge"/);
 
 const completeTask = game.slice(game.indexOf("function completeTask("), game.indexOf("function sortBasketCompleteMessage("));
 assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.inventory\.push\(task\.reward\)/);
