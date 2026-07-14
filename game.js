@@ -53,6 +53,8 @@ const runHistoryList = document.getElementById("runHistoryList");
 const runHistoryCloseBtn = document.getElementById("runHistoryCloseBtn");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
 const APPLE_VALLEY_COLLECTIBLE_BOB = 1.5;
+const MIST_CLEAR_TIME_BY_DIFFICULTY = { easy: null, normal: 12000, hard: 8000, crazy: 6000 };
+const MUD_BUBBLE_COUNT_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1325,8 +1327,8 @@ const levels = [
       item(730, 170, "fireflyCore", "萤火虫灯芯"),
     ],
     tasks: [
-      delivery(350, 220, "入口雾灯", "light", "fireflyCore", "点亮入口雾灯"),
-      delivery(650, 300, "深处雾灯", "light", "fireflyCore", "点亮深处雾灯"),
+      mistLampTask(350, 220, "入口雾灯"),
+      mistLampTask(650, 300, "深处雾灯"),
       delivery(820, 390, "Ruru 小浣熊", "ruru", "fireflyCore", "确认旧路方向"),
     ],
     puddles: [],
@@ -1348,9 +1350,14 @@ const levels = [
     ],
     tasks: [
       delivery(480, 150, "萤火虫向导", "fireflyGuide", ["glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey"], "跟着萤火虫走吧！"),
+      { x: 820, y: 300, name: "萤火虫小径", animal: "fireflyGuide", kind: "firefly_trail", done: false, progress: 0 },
+    ],
+    fireflyTrail: [
+      { x: 210, y: 360 }, { x: 340, y: 275 }, { x: 480, y: 325 }, { x: 620, y: 235 }, { x: 760, y: 300 },
+      { x: 500, y: 390, decoy: true }, { x: 590, y: 405, decoy: true },
     ],
     puddles: [],
-    obstacles: [],
+    obstacles: [{ type: "softMud", x: 520, y: 255, r: 38 }],
   },
   {
     name: "沉睡木桥",
@@ -1366,9 +1373,14 @@ const levels = [
       item(800, 350, "bridgeKey", "木桥钥匙"),
     ],
     tasks: [
-      delivery(550, 280, "沉睡木桥", "sign", ["bridgePlank", "bridgePlank", "bridgePlank"], "修复沉睡木桥"),
+      mushroomLampTask(250, 170, "yellow", "黄色蘑菇灯"),
+      mushroomLampTask(410, 160, "blue", "蓝色蘑菇灯"),
+      mushroomLampTask(570, 170, "purple", "紫色蘑菇灯"),
+      mushroomLampTask(730, 160, "green", "绿色蘑菇灯"),
+      { x: 550, y: 280, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
       delivery(820, 210, "小青蛙", "littleFrog", "bridgeKey", "打开安全过桥的小门"),
     ],
+    mushroomSequence: ["yellow", "blue", "purple", "green"],
     puddles: [],
     obstacles: [],
   },
@@ -1385,7 +1397,13 @@ const levels = [
       item(710, 180, "lightSpore", "光之孢子"),
     ],
     tasks: [
-      { ...delivery(780, 300, "迷雾精灵", "mistSpirit", ["lightSpore", "lightSpore", "lightSpore"], "净化迷雾核心"), reward: "fireflyLantern" },
+      mistLampTask(250, 170, "大雾灯一", "lightSpore", "bigMistLamp"),
+      mistLampTask(480, 130, "大雾灯二", "lightSpore", "bigMistLamp"),
+      mistLampTask(710, 170, "大雾灯三", "lightSpore", "bigMistLamp"),
+      mistBubbleTask(330, 330, "黑雾泡泡一"),
+      mistBubbleTask(520, 350, "黑雾泡泡二"),
+      mistBubbleTask(700, 330, "黑雾泡泡三"),
+      { x: 810, y: 260, name: "迷雾精灵", animal: "mistSpirit", kind: "mist_core", done: false, progress: 0 },
     ],
     puddles: [],
     obstacles: [],
@@ -1403,10 +1421,13 @@ const levels = [
       item(560, 170, "lightSpore", "光之孢子"),
     ],
     tasks: [
-      { ...delivery(780, 230, "沼泽泥浆怪", "mudMonster", ["lightSpore", "lightSpore", "lightSpore"], "帮助守护者恢复清醒"), reward: "mistGuardianBadge" },
+      mistLampTask(250, 170, "大雾灯一", "lightSpore", "bigMistLamp"),
+      mistLampTask(480, 130, "大雾灯二", "lightSpore", "bigMistLamp"),
+      mistLampTask(710, 170, "大雾灯三", "lightSpore", "bigMistLamp"),
+      mudBossTask(780, 230),
     ],
     puddles: [],
-    obstacles: [],
+    obstacles: [{ type: "softMud", x: 540, y: 335, r: 48 }],
   },
 ];
 
@@ -1451,8 +1472,13 @@ function isAppleValleyLevel() {
   return levels[state.levelIndex]?.world === "apple_valley";
 }
 
+function isMistSwampLevel() {
+  return levels[state.levelIndex]?.world === "mist_swamp";
+}
+
 function taskSystemType(kind) {
   if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
+  if (kind === "mud_boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "quiz") return TASK_TYPES.SIMPLE_PUZZLE;
   if (kind === "direction_sign" || kind === "exit_area") return TASK_TYPES.SIMPLE_PUZZLE;
   if (kind === "escort_npc") return TASK_TYPES.HELP_NPC;
@@ -1543,6 +1569,22 @@ function moonBossTask(x, y) {
   };
 }
 
+function mistLampTask(x, y, name, need = "fireflyCore", animal = "light") {
+  return { x, y, name, animal, need: [need], kind: "mist_lamp", done: false, progress: 0, lit: false };
+}
+
+function mushroomLampTask(x, y, color, name) {
+  return { x, y, color, name, animal: "mushroomLamp", kind: "mushroom_lamp", done: false, progress: 0, lit: false };
+}
+
+function mistBubbleTask(x, y, name, animal = "darkMistBubble") {
+  return { x, y, name, animal, kind: "mist_bubble", done: false, progress: 0 };
+}
+
+function mudBossTask(x, y) {
+  return { x, y, name: "沼泽泥浆怪", animal: "mudMonster", kind: "mud_boss", done: false, phase: 1, phaseProgress: 0, quizKey: "mistSwampBoss", quiz: null, reward: "mistGuardianBadge", speech: "点亮雾灯，帮泥浆怪恢复清醒。" };
+}
+
 function resetGame(levelIndex = 0, keepHearts = false) {
   const level = levels[levelIndex];
   const levelTime = levelTimeForDifficulty(level);
@@ -1581,6 +1623,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeQuiz: null,
     activeDialogue: null,
     nearbyTask: null,
+    nearbyMudBubble: null,
     nearbyAppleTree: null,
     storybookIntroPage: randomStorybookPage(storybookIntroPages),
     storybookVictoryPage: randomStorybookPage(storybookVictoryPages),
@@ -1598,13 +1641,45 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
+    fireflyTrail: (level.fireflyTrail || []).map((entry) => ({ ...entry, faded: false })),
+    fireflyTrailIndex: 0,
+    mushroomSequence: [...(level.mushroomSequence || [])],
+    mushroomStep: 0,
+    mistOpacity: level.world === "mist_swamp" ? 0.32 : 0,
+    mistClearUntil: 0,
+    mistPermanentClear: false,
+    mudBubbles: [],
+    temporaryMistItems: [],
     sparkles: [],
     floaters: [],
     leaves: makeLeaves(levelIndex),
   };
+  if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
   messageEl.textContent = level.message;
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
+}
+
+function prepareMudBossLevel() {
+  if (!isMistSwampLevel()) return;
+  const requiredBubbles = MUD_BUBBLE_COUNT_BY_DIFFICULTY[selectedDifficulty] || 3;
+  state.mudBubbles = Array.from({ length: requiredBubbles }, (_, index) => ({
+    x: 430 + (index % 2) * 210,
+    y: 260 + Math.floor(index / 2) * 115,
+    r: 24,
+    broken: false,
+    phase: index * 0.8,
+  }));
+  const reachableSpores = state.collectibles.filter((entry) => entry.type === "lightSpore").length;
+  for (let index = reachableSpores; index < 3; index += 1) {
+    state.inventory.push("lightSpore");
+    state.temporaryMistItems.push("lightSpore");
+  }
+  const hasLantern = state.collectibles.some((entry) => entry.type === "fireflyLantern") || state.inventory.includes("fireflyLantern");
+  if (!hasLantern) {
+    state.inventory.push("fireflyLantern");
+    state.temporaryMistItems.push("fireflyLantern");
+  }
 }
 
 function prepareTask(entry, level, index) {
@@ -2161,6 +2236,7 @@ function update(dt) {
   updatePlayer(dt);
   updateAppleCart(dt);
   updateForestRoadMechanisms(dt);
+  updateMistSwampMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
   updateBossHazards(dt);
@@ -2427,6 +2503,56 @@ function updateForestRoadMechanisms(dt) {
   checkExitAreas();
 }
 
+function updateMistSwampMechanisms(dt) {
+  if (!isMistSwampLevel()) return;
+  const now = performance.now();
+  if (state.mistPermanentClear) state.mistOpacity = Math.max(0.06, state.mistOpacity - dt * 0.45);
+  else if (state.mistClearUntil > now) state.mistOpacity = Math.max(0.08, state.mistOpacity - dt * 0.45);
+  else state.mistOpacity = Math.min(0.32, state.mistOpacity + dt * 0.035);
+
+  const trailTask = state.tasksList.find((task) => task.kind === "firefly_trail" && !task.done);
+  if (trailTask) {
+    for (const point of state.fireflyTrail.filter((entry) => entry.decoy && !entry.faded)) {
+      if (distance(state.player, point) < 36) {
+        point.faded = true;
+        messageEl.textContent = "这不是正确路线，再观察一下吧。";
+      }
+    }
+    const correct = state.fireflyTrail.filter((entry) => !entry.decoy);
+    const nextPoint = correct[state.fireflyTrailIndex];
+    if (nextPoint && distance(state.player, nextPoint) < 42) {
+      state.fireflyTrailIndex += 1;
+      burst(nextPoint.x, nextPoint.y, "#ffe26a", 12);
+      if (state.fireflyTrailIndex >= correct.length) completeTask(trailTask, nextPoint.x, nextPoint.y);
+    }
+  }
+
+  const mudBoss = state.tasksList.find((task) => task.kind === "mud_boss" && !task.done);
+  state.nearbyMudBubble = null;
+  if (mudBoss?.phase === 1) {
+    const lamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
+    if (lamps.length === 3 && lamps.every((task) => task.done)) {
+      mudBoss.phase = 2;
+      messageEl.textContent = "黑雾变淡了，泥浆怪露出了泥浆泡泡！";
+    }
+  } else if (mudBoss?.phase === 2) {
+    for (const bubble of state.mudBubbles) {
+      bubble.phase += dt * (selectedDifficulty === "crazy" ? 1.8 : 1.1);
+      if (!bubble.broken && distance(state.player, bubble) < bubble.r + 48) state.nearbyMudBubble = bubble;
+    }
+    if (state.mudBubbles.every((bubble) => bubble.broken)) {
+      mudBoss.phase = 3;
+      messageEl.textContent = "第二步完成：带着萤火虫灯笼靠近泥浆核心。";
+    }
+  }
+
+  for (const mud of state.obstacles.filter((entry) => entry.type === "softMud")) {
+    if (distance(state.player, mud) < mud.r + (selectedDifficulty === "hard" || selectedDifficulty === "crazy" ? 28 : 18)) {
+      state.slowUntil = now + 160;
+    }
+  }
+}
+
 function updateTrafficLights(dt) {
   for (const light of state.trafficLights || []) {
     light.timer = (light.timer || 0) + dt;
@@ -2673,6 +2799,13 @@ function checkTasks(dt) {
 
     if (task.kind === "quiz") {
       messageEl.textContent = taskNearHint(task);
+      continue;
+    }
+
+    if (isMistSwampLevel() && ["mist_lamp", "mushroom_lamp", "broken_bridge", "mist_bubble", "mist_core", "mud_boss", "firefly_trail"].includes(task.kind)) {
+      if (task.kind === "firefly_trail") messageEl.textContent = "跟着萤火虫走吧！";
+      else if (task.kind === "mud_boss") messageEl.textContent = task.phase === 3 ? "带着萤火虫灯笼，按 E 净化泥浆核心。" : task.speech;
+      else messageEl.textContent = "按 E 互动";
       continue;
     }
 
@@ -3078,6 +3211,13 @@ function startDialogueQuiz() {
 
 function talkToNearbyTask() {
   if (!state?.running || state.activeQuiz) return;
+  if (isMistSwampLevel() && state.nearbyMudBubble) {
+    state.nearbyMudBubble.broken = true;
+    burst(state.nearbyMudBubble.x, state.nearbyMudBubble.y, "#a6d66f", 18);
+    messageEl.textContent = "泥浆泡泡清除啦！";
+    state.nearbyMudBubble = null;
+    return;
+  }
   if (state.nearbyAppleTree && !state.activeDialogue) {
     shakeAppleTree(state.nearbyAppleTree);
     return;
@@ -3118,6 +3258,7 @@ function talkToNearbyTask() {
     nextDialogueLine();
     return;
   }
+  if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
   if (state.nearbyTask?.kind === "direction_sign") {
     repairDirectionSign(state.nearbyTask);
     return;
@@ -3127,6 +3268,90 @@ function talkToNearbyTask() {
     return;
   }
   if (state.nearbyTask) openDialogue(state.nearbyTask);
+}
+
+function interactMistSwampTask(task) {
+  if (!task) return false;
+  if (task.kind === "mist_lamp") {
+    if (task.done && (state.mistPermanentClear || state.mistClearUntil > performance.now())) {
+      messageEl.textContent = "雾灯还亮着，不需要重复放入灯芯。";
+      return true;
+    }
+    const need = task.need?.[0];
+    if (!task.done) {
+      if (!state.inventory.includes(need)) {
+        messageEl.textContent = `${task.name}需要${itemLabel(need)}。`;
+        return true;
+      }
+      consumeNeeds([need]);
+      completeTask(task, task.x, task.y);
+    }
+    task.lit = true;
+    const clearTime = MIST_CLEAR_TIME_BY_DIFFICULTY[selectedDifficulty];
+    if (clearTime === null) state.mistPermanentClear = true;
+    else state.mistClearUntil = performance.now() + clearTime;
+    messageEl.textContent = "雾灯亮起来啦！";
+    return true;
+  }
+  if (task.kind === "mushroom_lamp") {
+    const expected = state.mushroomSequence[state.mushroomStep];
+    if (task.color !== expected) {
+      state.mushroomStep = 0;
+      state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => { entry.lit = false; });
+      messageEl.textContent = "再看一看萤火虫提示哦。";
+      return true;
+    }
+    task.lit = true;
+    state.mushroomStep += 1;
+    if (state.mushroomStep === state.mushroomSequence.length) {
+      state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => {
+        if (!entry.done) completeTask(entry, entry.x, entry.y);
+      });
+      messageEl.textContent = "蘑菇灯都亮啦！";
+    }
+    return true;
+  }
+  if (task.kind === "broken_bridge") {
+    if (missingNeeds(task.need).length) {
+      messageEl.textContent = "还需要 3 块木桥板。";
+      return true;
+    }
+    consumeNeeds(task.need);
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "木桥修好啦，可以安全通过了！";
+    return true;
+  }
+  if (task.kind === "mist_bubble") {
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "黑雾泡泡变成亮晶晶的水汽啦！";
+    return true;
+  }
+  if (task.kind === "mist_core") {
+    const prerequisites = state.tasksList.filter((entry) => entry.kind === "mist_lamp" || entry.kind === "mist_bubble");
+    if (!prerequisites.every((entry) => entry.done)) {
+      messageEl.textContent = "先点亮大雾灯并清除黑雾泡泡。";
+      return true;
+    }
+    for (const reward of ["mistBadge", "fireflyLantern"]) {
+      if (!state.inventory.includes(reward)) state.inventory.push(reward);
+    }
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "迷雾精灵恢复清醒啦！沼泽重新亮起来了。";
+    return true;
+  }
+  if (task.kind === "mud_boss") {
+    if (task.phase < 3) {
+      messageEl.textContent = task.phase === 1 ? "第一步：点亮 3 盏大雾灯，驱散泥浆怪身边的黑雾。" : "第二步：清除泥浆泡泡，找到泥浆怪心里的光。";
+      return true;
+    }
+    if (!state.inventory.includes("fireflyLantern")) {
+      state.inventory.push("fireflyLantern");
+      state.temporaryMistItems.push("fireflyLantern");
+    }
+    openQuiz(task);
+    return true;
+  }
+  return false;
 }
 
 function repairDirectionSign(task) {
@@ -3166,6 +3391,9 @@ function answerQuiz(task, index) {
     addRunPoints(8, task.x, task.y, "+8 积分");
     closeQuiz();
     completeTask(task, task.x, task.y);
+    if (isMistSwampLevel() && task.kind === "mud_boss") {
+      messageEl.textContent = "泥浆怪安静下来了，它原来是在守护沼泽。";
+    }
     return;
   }
   state.wrongAnswers += 1;
@@ -3225,9 +3453,12 @@ function draw() {
   drawLandmarks();
   drawLeaves();
   drawSceneObjects();
+  drawFireflyTrail();
   drawEscortCart();
   drawCollectibles();
   drawTasks();
+  drawMudBubbles();
+  drawMistFog();
   drawHazards();
   drawProjectiles();
   drawPlayer();
@@ -4435,6 +4666,48 @@ function drawTasks() {
   }
 }
 
+function drawFireflyTrail() {
+  if (!isMistSwampLevel()) return;
+  const correct = state.fireflyTrail.filter((entry) => !entry.decoy);
+  state.fireflyTrail.forEach((point, index) => {
+    if (point.faded) return;
+    const active = !point.decoy && correct[state.fireflyTrailIndex] === point;
+    ctx.save();
+    ctx.globalAlpha = point.decoy ? 0.55 : 0.85;
+    ctx.fillStyle = active ? "rgba(255, 236, 112, 0.35)" : "rgba(202, 235, 132, 0.22)";
+    circle(point.x, point.y, active ? 18 : 12);
+    ctx.fillStyle = point.decoy ? "#bdd391" : "#ffe26a";
+    circle(point.x, point.y, active ? 6 : 4);
+    ctx.restore();
+  });
+}
+
+function drawMudBubbles() {
+  if (!isMistSwampLevel()) return;
+  const mudBoss = state.tasksList.find((task) => task.kind === "mud_boss");
+  if (mudBoss?.phase < 2) return;
+  for (const bubble of state.mudBubbles) {
+    if (bubble.broken) continue;
+    const bob = Math.sin(bubble.phase) * 5;
+    ctx.save();
+    ctx.translate(bubble.x, bubble.y + bob);
+    ctx.fillStyle = "rgba(92, 112, 57, 0.78)";
+    circle(0, 0, bubble.r);
+    ctx.strokeStyle = "rgba(218, 239, 151, 0.8)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawMistFog() {
+  if (!isMistSwampLevel() || state.mistOpacity <= 0) return;
+  ctx.save();
+  ctx.fillStyle = `rgba(103, 126, 142, ${state.mistOpacity})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+}
+
 function drawHazards() {
   for (const hazard of state.hazards) {
     ctx.save();
@@ -4570,12 +4843,43 @@ function drawAnimal(kind) {
   else if (kind === "roadStone") drawMiniPropFallback({ type: "roadStone", width: 78, height: 48, label: "石块" });
   else if (kind === "directionSign") drawMiniPropFallback({ type: "directionSign", width: 96, height: 72, label: "路牌" });
   else if (kind === "correctExit") drawMiniPropFallback({ type: "correctExit", width: 74, height: 56, label: "出口" });
+  else if (kind === "mushroomLamp") drawMushroomLamp();
+  else if (kind === "bigMistLamp") drawBigMistLamp();
+  else if (kind === "darkMistBubble") drawDarkMistBubble();
+  else if (kind === "brokenBridge") drawMiniPropFallback({ type: "brokenBridge", width: 96, height: 58, label: "木桥" });
   else if (kind === "math") drawQuizStandArt("math", "#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
   else if (kind === "logic") drawQuizStandArt("logic", "#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
   else if (kind === "science") drawQuizStandArt("science", "#83b83d", quizDisplay("science")?.sign || "\u89c2\u5bdf");
   else if (kind === "language") drawQuizStandArt("language", "#f6d77b", quizDisplay("language")?.sign || "\u8ba4\u5b57");
   else if (kind === "english") drawQuizStandArt("english", "#2f9dcc", quizDisplay("english")?.sign || "ABC");
   else if (kind === "riddle") drawQuizStandArt("riddle", "#f59a8b", quizDisplay("riddle")?.sign || "\u731c\u8c1c");
+}
+
+function drawMushroomLamp() {
+  ctx.fillStyle = "#f4ead0";
+  roundRect(-6, -4, 12, 30, 5);
+  ctx.fill();
+  ctx.fillStyle = "#8a70c2";
+  ctx.beginPath();
+  ctx.arc(0, -5, 24, Math.PI, 0);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawBigMistLamp() {
+  ctx.fillStyle = "#556f65";
+  roundRect(-18, -28, 36, 56, 8);
+  ctx.fill();
+  ctx.fillStyle = "#ffe26a";
+  circle(0, -2, 13);
+}
+
+function drawDarkMistBubble() {
+  ctx.fillStyle = "rgba(92, 75, 119, 0.78)";
+  circle(0, 0, 25);
+  ctx.strokeStyle = "#c9b7e8";
+  ctx.lineWidth = 3;
+  ctx.stroke();
 }
 
 function drawPlayer() {
