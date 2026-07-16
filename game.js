@@ -1102,13 +1102,13 @@ const levels = [
     bg: "appleValleyEntrance",
     world: "apple_valley",
     time: 86,
-    start: { x: 116, y: 428 },
+    start: { x: 600, y: 460 },
     message: "苹果谷丰收啦！先帮 Coco 小松鼠捡起掉在路边的红苹果吧。",
     collectibles: [
       item(164, 412, "appleBasket", "果篮"),
     ],
     tasks: [
-      delivery(232, 360, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
+      delivery(450, 410, "Coco 小松鼠", "coco", ["redApple", "redApple", "redApple"], "Coco 想先收好 3 个红苹果。"),
       quizTask(512, 316, "苹果英语木牌", "english", "木牌想考考 apple 的意思。", {
         title: "苹果谷英语题",
         question: "apple 的中文意思是？",
@@ -1119,7 +1119,7 @@ const levels = [
     ],
     puddles: [],
     obstacles: [
-      { type: "appleTree", x: 336, y: 274, r: 38, drops: ["redApple", "redApple", "redApple"], shaken: false },
+      { type: "appleTree", x: 336, y: 318, r: 38, drops: ["redApple", "redApple", "redApple"], shaken: false },
     ],
   },
   {
@@ -1127,15 +1127,15 @@ const levels = [
     bg: "harvestOrchard",
     world: "apple_valley",
     time: 98,
-    start: { x: 120, y: 420 },
+    start: { x: 610, y: 460 },
     message: "果园里红苹果、青苹果都成熟了，帮果园鼹鼠一起摇树收果吧。",
     collectibles: [
       item(238, 358, "redApple", "红苹果"),
       item(412, 210, "greenApple", "青苹果"),
     ],
     tasks: [
-      delivery(824, 236, "果园鼹鼠", "moleFarmer", ["greenApple", "greenApple"], "果园鼹鼠想记录青苹果的颜色变化。"),
-      delivery(246, 262, "小鸟邮差", "birdPostman", ["redApple", "redApple"], "小鸟邮差要把 2 个红苹果送到整理站。"),
+      delivery(430, 300, "果园鼹鼠", "moleFarmer", ["greenApple", "greenApple"], "果园鼹鼠想记录青苹果的颜色变化。"),
+      delivery(420, 415, "小鸟邮差", "birdPostman", ["redApple", "redApple"], "小鸟邮差要把 2 个红苹果送到整理站。"),
       quizTask(514, 342, "果园数学牌", "math", "算一算篮子里的苹果。", {
         title: "苹果谷数学题",
         question: "篮子里有 3 个苹果，又放进 4 个，一共有几个？",
@@ -1148,11 +1148,11 @@ const levels = [
       { x: 708, y: 406, r: 30 },
     ],
     obstacles: [
-      { type: "appleTree", x: 286, y: 248, r: 42, drops: ["redApple", "redApple", "greenApple"], shaken: false },
-      { type: "appleTree", x: 560, y: 184, r: 44, drops: ["redApple", "greenApple", "greenApple"], shaken: false },
-      { type: "appleTree", x: 752, y: 286, r: 42, drops: ["redApple", "greenApple", "goldenApple"], shaken: false },
+      { type: "appleTree", x: 286, y: 345, r: 42, drops: ["redApple", "redApple", "greenApple"], shaken: false },
+      { type: "appleTree", x: 560, y: 314, r: 44, drops: ["redApple", "greenApple", "greenApple"], shaken: false },
+      { type: "appleTree", x: 752, y: 355, r: 42, drops: ["redApple", "greenApple", "goldenApple"], shaken: false },
       { type: "pond", x: 570, y: 232, r: 32 },
-      { type: "pit", x: 812, y: 398, r: 24 },
+      { type: "pit", x: 850, y: 420, r: 24 },
     ],
   },
   {
@@ -1160,7 +1160,7 @@ const levels = [
     bg: "basketSortingStation",
     world: "apple_valley",
     time: 104,
-    start: { x: 118, y: 430 },
+    start: { x: 510, y: 460 },
     message: "苹果要分进不同果篮，再做成送给学校的丰收礼物篮。",
     collectibles: [
       item(158, 182, "redApple", "红苹果"),
@@ -1176,7 +1176,7 @@ const levels = [
       sortBasket(262, 250, "红苹果篮", "redBasket", ["redApple", "redApple", "redApple"], "把红苹果放进红篮子里。"),
       sortBasket(626, 250, "青苹果篮", "greenBasket", ["greenApple", "greenApple", "greenApple"], "把青苹果放进绿篮子里。"),
       sortBasket(804, 240, "礼物果篮", "giftBasket", ["goldenApple", "appleBasket"], "把金苹果和果篮做成丰收礼物篮。", "giftAppleBasket"),
-      quizTask(470, 404, "丰收语文牌", "language", "想一想“丰收”的意思。", {
+      quizTask(620, 440, "丰收语文牌", "language", "想一想“丰收”的意思。", {
         title: "苹果谷语文题",
         question: "“丰收”的意思更接近哪一个？",
         options: ["收获很多", "天气很冷", "走得很快", "睡觉很香"],
@@ -1197,22 +1197,22 @@ const levels = [
     bg: "forestSchoolDelivery",
     world: "apple_valley",
     time: 92,
-    start: { x: 122, y: 426 },
+    start: { x: 520, y: 460 },
     message: "猫头鹰校长收到了丰收苹果，大家一起分享秋天的礼物！",
     collectibles: [
       item(224, 360, "giftAppleBasket", "礼物果篮"),
       item(612, 164, "harvestBadge", "丰收徽章"),
     ],
     tasks: [
-      delivery(736, 210, "猫头鹰校长", "owlPrincipal", "giftAppleBasket", "把礼物果篮护送到猫头鹰校长这里。"),
+      delivery(560, 330, "猫头鹰校长", "owlPrincipal", "giftAppleBasket", "把礼物果篮护送到猫头鹰校长这里。"),
       actionTask(468, 336, "苹果小推车", "appleCartStation", "拿到礼物果篮后，站在小推车旁让它跟着你出发。"),
-      quizTask(318, 226, "分享理解题", "riddle", "想一想为什么要分享丰收苹果。", {
+      quizTask(450, 410, "分享理解题", "riddle", "想一想为什么要分享丰收苹果。", {
         title: "苹果谷理解题",
         question: "Coco 把苹果送到学校，是为了什么？",
         options: ["和大家分享", "把苹果藏起来", "让大家迷路", "把篮子扔掉"],
         answer: 0,
       }),
-      delivery(812, 336, "Nono 小刺猬", "nono", "harvestBadge", "Nono 想把丰收徽章写进观察记录。"),
+      delivery(660, 300, "Nono 小刺猬", "nono", "harvestBadge", "Nono 想把丰收徽章写进观察记录。"),
     ],
     puddles: [
       { x: 256, y: 424, r: 26 },
@@ -3512,6 +3512,7 @@ function draw() {
     ctx.translate(Math.sin(performance.now() / 24) * shake, Math.cos(performance.now() / 32) * shake);
   }
   drawBackground();
+  drawAppleValleyBackDepth();
   drawLandmarks();
   drawLeaves();
   drawSceneObjects();
@@ -3525,6 +3526,7 @@ function draw() {
   drawProjectiles();
   drawPlayer();
   drawParticles();
+  drawAppleValleyForegroundDepth();
   if (!state.running && !state.levelClear && state.time === state.levelTime) drawStartHint();
   if (state.levelClear) drawLevelRibbon();
   ctx.restore();
@@ -3575,6 +3577,95 @@ function drawBackground() {
   ctx.beginPath();
   ctx.ellipse(480, 536, 520, 70, 0, 0, Math.PI * 2);
   ctx.fill();
+}
+
+function drawAppleValleyBackDepth() {
+  if (!isAppleValleyLevel()) return;
+  const t = performance.now() / 1000;
+  ctx.save();
+
+  const glow = ctx.createRadialGradient(720, 76, 18, 720, 76, 430);
+  glow.addColorStop(0, "rgba(255, 238, 150, 0.34)");
+  glow.addColorStop(0.46, "rgba(255, 214, 118, 0.12)");
+  glow.addColorStop(1, "rgba(255, 214, 118, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.globalAlpha = 0.24;
+  ctx.fillStyle = "#7fb05a";
+  ctx.beginPath();
+  ctx.moveTo(0, 258);
+  ctx.bezierCurveTo(160, 214, 250, 244, 374, 210);
+  ctx.bezierCurveTo(536, 166, 694, 220, 960, 172);
+  ctx.lineTo(960, 338);
+  ctx.lineTo(0, 338);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = "#476b42";
+  for (let i = 0; i < 9; i += 1) {
+    const x = 34 + i * 112 + Math.sin(t * 0.18 + i) * 3;
+    const y = 190 + (i % 3) * 18;
+    ctx.beginPath();
+    ctx.moveTo(x - 30, y + 70);
+    ctx.quadraticCurveTo(x, y - 22, x + 34, y + 70);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 0.2;
+  ctx.strokeStyle = "rgba(255, 247, 223, 0.75)";
+  ctx.lineWidth = 18;
+  ctx.lineCap = "round";
+  for (let i = 0; i < 3; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(640 + i * 58, 16);
+    ctx.lineTo(428 + i * 76, 330);
+    ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+  const groundLight = ctx.createRadialGradient(480, 430, 30, 480, 430, 410);
+  groundLight.addColorStop(0, "rgba(255, 234, 145, 0.18)");
+  groundLight.addColorStop(1, "rgba(255, 234, 145, 0)");
+  ctx.fillStyle = groundLight;
+  ctx.fillRect(0, 250, canvas.width, canvas.height - 250);
+
+  ctx.restore();
+}
+
+function drawAppleValleyForegroundDepth() {
+  if (!isAppleValleyLevel()) return;
+  const t = performance.now() / 1000;
+  ctx.save();
+
+  ctx.globalAlpha = 0.34;
+  for (let i = 0; i < 16; i += 1) {
+    const x = (i * 73 + Math.sin(t * 0.7 + i) * 6) % 990 - 15;
+    const y = 510 + (i % 4) * 9;
+    ctx.fillStyle = i % 2 ? "rgba(76, 125, 40, 0.58)" : "rgba(131, 184, 61, 0.52)";
+    ctx.beginPath();
+    ctx.ellipse(x, y, 26 + (i % 3) * 6, 8, -0.28 + (i % 4) * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 0.42;
+  for (let i = 0; i < 11; i += 1) {
+    const x = (i * 89 + Math.sin(t * 0.45 + i) * 8) % 960;
+    const y = 112 + ((i * 47) % 330) + Math.sin(t + i) * 3;
+    ctx.fillStyle = i % 3 === 0 ? "rgba(255, 236, 148, 0.62)" : "rgba(255, 179, 112, 0.34)";
+    circle(x, y, 2.2 + (i % 3));
+  }
+
+  const vignette = ctx.createRadialGradient(480, 292, 190, 480, 292, 610);
+  vignette.addColorStop(0, "rgba(255,255,255,0)");
+  vignette.addColorStop(1, "rgba(67, 82, 42, 0.16)");
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.restore();
 }
 
 function drawMistSwampFallbackBackground() {
@@ -4713,9 +4804,10 @@ function drawTasks() {
     if (isMistSwampLevel() && task.kind === "mud_bubble") continue;
     ctx.save();
     const t = performance.now() / 360 + task.x * 0.03;
+    const groundedNpc = isAppleValleyLevel() && task.kind === "delivery" && NPC_REGISTRY[task.animal]?.world === "apple_valley";
     const idleAmplitude = isAppleValleyLevel() ? 1 : 2.2;
-    const idleBob = task.done || task.kind === "boss" ? 0 : Math.sin(t) * idleAmplitude;
-    const idleScale = task.done || task.kind === "boss" ? 1 : 1 + Math.sin(t + 0.8) * 0.018;
+    const idleBob = task.done || task.kind === "boss" || groundedNpc ? 0 : Math.sin(t) * idleAmplitude;
+    const idleScale = task.done || task.kind === "boss" || groundedNpc ? 1 : 1 + Math.sin(t + 0.8) * 0.018;
     const groundShadow = appleValleyTaskGroundShadow(task);
     ctx.translate(task.x, task.y);
     if (groundShadow) drawAppleValleyGroundShadow(0, groundShadow.y, groundShadow.width, groundShadow.height);
