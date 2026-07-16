@@ -1,7 +1,4 @@
-/* Shared Moonlight Lake quiz bank and quiz task injection.
- * Loaded after game.js and grade-quiz.js so Moonlight Lake can reuse the
- * grade-aware randomQuiz picker without editing the core level system.
- */
+/* Shared Moonlight Lake quiz bank and quiz task injection. */
 (function setupMoonlightSharedQuizBank() {
   if (typeof quizBank === "undefined" || typeof levels === "undefined") return;
 
