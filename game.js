@@ -1102,7 +1102,7 @@ const levels = [
     bg: "appleValleyEntrance",
     world: "apple_valley",
     time: 86,
-    start: { x: 600, y: 460 },
+    start: { x: 600, y: 435 },
     message: "苹果谷丰收啦！先帮 Coco 小松鼠捡起掉在路边的红苹果吧。",
     collectibles: [
       item(164, 412, "appleBasket", "果篮"),
@@ -1127,7 +1127,7 @@ const levels = [
     bg: "harvestOrchard",
     world: "apple_valley",
     time: 98,
-    start: { x: 610, y: 460 },
+    start: { x: 610, y: 435 },
     message: "果园里红苹果、青苹果都成熟了，帮果园鼹鼠一起摇树收果吧。",
     collectibles: [
       item(238, 358, "redApple", "红苹果"),
@@ -1152,7 +1152,7 @@ const levels = [
       { type: "appleTree", x: 560, y: 314, r: 44, drops: ["redApple", "greenApple", "greenApple"], shaken: false },
       { type: "appleTree", x: 752, y: 355, r: 42, drops: ["redApple", "greenApple", "goldenApple"], shaken: false },
       { type: "pond", x: 570, y: 232, r: 32 },
-      { type: "pit", x: 850, y: 420, r: 24 },
+      { type: "pit", x: 816, y: 400, r: 24 },
     ],
   },
   {
@@ -1160,7 +1160,7 @@ const levels = [
     bg: "basketSortingStation",
     world: "apple_valley",
     time: 104,
-    start: { x: 510, y: 460 },
+    start: { x: 510, y: 435 },
     message: "苹果要分进不同果篮，再做成送给学校的丰收礼物篮。",
     collectibles: [
       item(158, 182, "redApple", "红苹果"),
@@ -1176,7 +1176,7 @@ const levels = [
       sortBasket(262, 250, "红苹果篮", "redBasket", ["redApple", "redApple", "redApple"], "把红苹果放进红篮子里。"),
       sortBasket(626, 250, "青苹果篮", "greenBasket", ["greenApple", "greenApple", "greenApple"], "把青苹果放进绿篮子里。"),
       sortBasket(804, 240, "礼物果篮", "giftBasket", ["goldenApple", "appleBasket"], "把金苹果和果篮做成丰收礼物篮。", "giftAppleBasket"),
-      quizTask(620, 440, "丰收语文牌", "language", "想一想“丰收”的意思。", {
+      quizTask(680, 320, "丰收语文牌", "language", "想一想“丰收”的意思。", {
         title: "苹果谷语文题",
         question: "“丰收”的意思更接近哪一个？",
         options: ["收获很多", "天气很冷", "走得很快", "睡觉很香"],
@@ -1197,7 +1197,7 @@ const levels = [
     bg: "forestSchoolDelivery",
     world: "apple_valley",
     time: 92,
-    start: { x: 520, y: 460 },
+    start: { x: 520, y: 435 },
     message: "猫头鹰校长收到了丰收苹果，大家一起分享秋天的礼物！",
     collectibles: [
       item(224, 360, "giftAppleBasket", "礼物果篮"),
@@ -1206,7 +1206,7 @@ const levels = [
     tasks: [
       delivery(560, 330, "猫头鹰校长", "owlPrincipal", "giftAppleBasket", "把礼物果篮护送到猫头鹰校长这里。"),
       actionTask(468, 336, "苹果小推车", "appleCartStation", "拿到礼物果篮后，站在小推车旁让它跟着你出发。"),
-      quizTask(450, 410, "分享理解题", "riddle", "想一想为什么要分享丰收苹果。", {
+      quizTask(730, 390, "分享理解题", "riddle", "想一想为什么要分享丰收苹果。", {
         title: "苹果谷理解题",
         question: "Coco 把苹果送到学校，是为了什么？",
         options: ["和大家分享", "把苹果藏起来", "让大家迷路", "把篮子扔掉"],
