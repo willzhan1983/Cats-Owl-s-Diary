@@ -22,6 +22,8 @@
     hard: ["hard", "normal", "easy"],
     crazy: ["crazy", "hard", "normal", "easy"],
   };
+  const quizBags = new Map();
+  const lastQuestionByBag = new Map();
 
   function normalizeMode(value) {
     return DIFFICULTIES.includes(value) ? value : "normal";
@@ -66,28 +68,83 @@
     return list.filter((question) => normalizeQuizDifficulty(question) === selectedDifficulty);
   }
 
-  function pickQuizForDifficulty(list, selectedDifficulty) {
+  function shuffle(list) {
+    const result = list.slice();
+    for (let index = result.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+    }
+    return result;
+  }
+
+  function questionId(question) {
+    return String(question?.id || question?.question || "");
+  }
+
+  function questionsForSelectedMode(list, selectedDifficulty) {
     const source = Array.isArray(list) ? list : [];
     const mode = normalizeMode(selectedDifficulty);
     const fallbackOrder = FALLBACK_ORDER[mode] || FALLBACK_ORDER.normal;
 
     for (const difficulty of fallbackOrder) {
       const candidates = filterQuizByDifficulty(source, difficulty);
-      if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
+      if (candidates.length) return { candidates, difficulty };
     }
 
-    return source[Math.floor(Math.random() * source.length)] || quizBank.math?.[0];
+    return { candidates: source, difficulty: "any" };
+  }
+
+  function pickQuizForDifficulty(list, selectedDifficulty) {
+    const { candidates } = questionsForSelectedMode(list, selectedDifficulty);
+    return candidates[Math.floor(Math.random() * candidates.length)] || quizBank.math?.[0];
+  }
+
+  function shuffleQuizOptions(question) {
+    if (!question || !Array.isArray(question.options) || question.options.length < 2) return question;
+    const indexedOptions = question.options.map((option, index) => ({ option, index }));
+    let shuffled = shuffle(indexedOptions);
+    if (shuffled.every((entry, index) => entry.index === index)) {
+      shuffled = [...shuffled.slice(1), shuffled[0]];
+    }
+    return {
+      ...question,
+      options: shuffled.map((entry) => entry.option),
+      answer: shuffled.findIndex((entry) => entry.index === question.answer),
+    };
+  }
+
+  function pickQuizWithoutRepeats(list, selectedDifficulty, key, scope) {
+    const { candidates, difficulty } = questionsForSelectedMode(list, selectedDifficulty);
+    const fallback = quizBank.math?.[0];
+    if (!candidates.length) return shuffleQuizOptions(fallback);
+
+    const bagKey = `${scope || "global"}\u0000${key}\u0000${difficulty}`;
+    let bag = quizBags.get(bagKey);
+    if (!bag?.length) {
+      bag = shuffle(candidates);
+      const lastQuestion = lastQuestionByBag.get(bagKey);
+      if (bag.length > 1 && questionId(bag[bag.length - 1]) === lastQuestion) {
+        [bag[0], bag[bag.length - 1]] = [bag[bag.length - 1], bag[0]];
+      }
+      quizBags.set(bagKey, bag);
+    }
+
+    const question = bag.pop();
+    lastQuestionByBag.set(bagKey, questionId(question));
+    return shuffleQuizOptions(question);
   }
 
   function refreshCurrentQuizTasks() {
     if (typeof state === "undefined" || !state) return;
+    const level = typeof levels === "undefined" ? null : levels[state.levelIndex];
+    const scope = level?.id || level?.bg || level?.name;
     state.tasksList?.forEach((task) => {
-      if (task.kind === "quiz" && task.quizKey) task.quiz = randomQuiz(task.quizKey);
+      if (task.kind === "quiz" && task.quizKey) task.quiz = randomQuiz(task.quizKey, scope);
     });
   }
 
-  randomQuiz = function randomDifficultyQuiz(key) {
-    return pickQuizForDifficulty(quizBank[key] || [], getQuizDifficultyForSelectedMode());
+  randomQuiz = function randomDifficultyQuiz(key, scope) {
+    return pickQuizWithoutRepeats(quizBank[key] || [], getQuizDifficultyForSelectedMode(), key, scope);
   };
 
   window.catsOwlQuizDifficulty = {

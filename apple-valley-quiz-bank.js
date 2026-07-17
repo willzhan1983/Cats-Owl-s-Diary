@@ -1,7 +1,4 @@
-/* Shared Apple Valley quiz bank and quiz task injection.
- * Loaded after game.js and grade-quiz.js so Apple Valley can reuse the
- * difficulty-aware quiz picker without editing the core level system.
- */
+/* Shared Apple Valley quiz bank and quiz task injection. */
 (function setupAppleValleySharedQuizBank() {
   if (typeof quizBank === "undefined" || typeof levels === "undefined") return;
 
