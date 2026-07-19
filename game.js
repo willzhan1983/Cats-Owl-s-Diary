@@ -56,6 +56,9 @@ const APPLE_VALLEY_COLLECTIBLE_BOB = 1.5;
 const MIST_CLEAR_TIME_BY_DIFFICULTY = { easy: null, normal: 12000, hard: 8000, crazy: 6000 };
 const MUD_BUBBLE_COUNT_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
 const BRIDGE_PLANK_COUNT_BY_DIFFICULTY = { easy: 2, normal: 2, hard: 3, crazy: 3 };
+const MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
+const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy: 2 };
+const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1330,7 +1333,7 @@ const levels = [
     tasks: [
       mistLampTask(350, 220, "入口雾灯"),
       mistLampTask(650, 300, "深处雾灯"),
-      delivery(820, 390, "Ruru 小浣熊", "ruru", "fireflyCore", "确认旧路方向"),
+      { ...delivery(820, 390, "Ruru 小浣熊", "ruru", "fireflyCore", "确认旧路方向"), requiresActiveLamp: true },
     ],
     puddles: [],
     obstacles: [],
@@ -1483,6 +1486,27 @@ function isMistSwampSleepingBridgeLevel() {
   return level?.world === "mist_swamp" && level.name === "沉睡木桥";
 }
 
+function isMistSwampMistCoreLevel() {
+  const level = levels[state.levelIndex];
+  return level?.world === "mist_swamp" && level.name === "迷雾核心";
+}
+
+function isMistLampActive(task, now = performance.now()) {
+  return !!task?.lit && (task.litUntil === null || task.litUntil > now);
+}
+
+function hasActiveMistLamp() {
+  return isMistSwampLevel() && state.tasksList.some((task) => task.kind === "mist_lamp" && isMistLampActive(task));
+}
+
+function canTalkToMistSwampTask(task) {
+  return !isMistSwampLevel() || !task?.requiresActiveLamp || selectedDifficulty === "easy" || hasActiveMistLamp();
+}
+
+function requiredTasksForCurrentLevel() {
+  return isMistSwampSleepingBridgeLevel() ? state.tasksList.filter((task) => !task.optional) : state.tasksList;
+}
+
 function taskSystemType(kind) {
   if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "mud_boss") return TASK_TYPES.BOSS_FIGHT;
@@ -1577,7 +1601,7 @@ function moonBossTask(x, y) {
 }
 
 function mistLampTask(x, y, name, need = "fireflyCore", animal = "light") {
-  return { x, y, name, animal, need: [need], kind: "mist_lamp", done: false, progress: 0, lit: false };
+  return { x, y, name, animal, need: [need], kind: "mist_lamp", done: false, progress: 0, lit: false, litUntil: 0 };
 }
 
 function mushroomLampTask(x, y, color, name) {
@@ -1656,10 +1680,13 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     fireflyTrailIndex: 0,
     mushroomSequence: [...(level.mushroomSequence || [])],
     mushroomStep: 0,
+    mistCoreBubbleIndex: 0,
     mistOpacity: level.world === "mist_swamp" ? 0.32 : 0,
     mistClearUntil: 0,
     mistPermanentClear: false,
     mudBubbles: [],
+    lanternCharge: 0,
+    lanternChargeRequired: MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY[selectedDifficulty] || 2,
     temporaryMistItems: [],
     sparkles: [],
     floaters: [],
@@ -1677,12 +1704,15 @@ function prepareSleepingBridgeLevel() {
   const plankCount = BRIDGE_PLANK_COUNT_BY_DIFFICULTY[selectedDifficulty] || 2;
   const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
   if (bridge) bridge.need = Array(plankCount).fill("bridgePlank");
-  const skipMushrooms = selectedDifficulty === "easy" || selectedDifficulty === "normal";
-  const optionalTasks = state.tasksList.filter((task) => task.mistSwampShared || (skipMushrooms && task.kind === "mushroom_lamp"));
-  optionalTasks.forEach((task) => {
+  const mushroomsOptional = selectedDifficulty === "easy" || selectedDifficulty === "normal";
+  const sequenceLength = MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY[selectedDifficulty] || 3;
+  state.mushroomSequence = state.mushroomSequence.slice(0, sequenceLength);
+  state.tasksList.filter((task) => task.kind === "mushroom_lamp").forEach((task) => {
+    task.optional = mushroomsOptional;
+  });
+  state.tasksList.filter((task) => task.mistSwampShared).forEach((task) => {
     if (task.done) return;
     task.done = true;
-    if (task.kind === "mushroom_lamp") task.lit = true;
     state.tasks += 1;
   });
 }
@@ -2222,13 +2252,15 @@ function playNoise(time, duration) {
 }
 
 function updateHud() {
-  const target = state.tasksList ? state.tasksList.length : levels[state.levelIndex].tasks.length;
+  const requiredTasks = state.tasksList ? requiredTasksForCurrentLevel() : levels[state.levelIndex].tasks;
+  const target = requiredTasks.length;
+  const completed = requiredTasks.filter((task) => task.done).length;
   levelEl.textContent = dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`;
   heartsEl.textContent = state.hearts;
   timeEl.textContent = Math.max(0, Math.ceil(state.time));
   if (difficultyEl) difficultyEl.textContent = difficultyLabel();
   if (pointsEl) pointsEl.textContent = `${state.runPoints} / 总分 ${totalPoints}`;
-  tasksEl.textContent = `${state.tasks}/${target}`;
+  tasksEl.textContent = `${completed}/${target}`;
   bagEl.textContent = state.inventory.length ? needLabels(state.inventory.slice(0, 3)) : "\u7a7a";
 }
 
@@ -2273,8 +2305,8 @@ function update(dt) {
   checkCollectibles();
   checkTasks(dt);
 
-  const target = state.tasksList.length;
-  if (state.tasks >= target) {
+  const requiredTasks = requiredTasksForCurrentLevel();
+  if (requiredTasks.length > 0 && requiredTasks.every((task) => task.done)) {
     state.running = false;
     stopMusic();
     const settlement = settleLevelRun(true);
@@ -2534,7 +2566,7 @@ function updateMistSwampMechanisms(dt) {
   if (!isMistSwampLevel()) return;
   const now = performance.now();
   if (state.mistPermanentClear) state.mistOpacity = Math.max(0.06, state.mistOpacity - dt * 0.45);
-  else if (state.mistClearUntil > now) state.mistOpacity = Math.max(0.08, state.mistOpacity - dt * 0.45);
+  else if (hasActiveMistLamp()) state.mistOpacity = Math.max(0.08, state.mistOpacity - dt * 0.45);
   else state.mistOpacity = Math.min(0.32, state.mistOpacity + dt * 0.035);
 
   const trailTask = state.tasksList.find((task) => task.kind === "firefly_trail" && !task.done);
@@ -2542,7 +2574,11 @@ function updateMistSwampMechanisms(dt) {
     for (const point of state.fireflyTrail.filter((entry) => entry.decoy && !entry.faded)) {
       if (distance(state.player, point) < 36) {
         point.faded = true;
-        messageEl.textContent = "这不是正确路线，再观察一下吧。";
+        if (selectedDifficulty !== "easy") {
+          state.fireflyTrailIndex = Math.max(0, state.fireflyTrailIndex - 1);
+          state.mistOpacity = Math.min(0.42, state.mistOpacity + 0.08);
+        }
+        messageEl.textContent = "这不是正确路线，再观察一下吧。这是一小段假光，找温暖的金色光点。";
       }
     }
     const correct = state.fireflyTrail.filter((entry) => !entry.decoy);
@@ -2570,19 +2606,31 @@ function updateMistSwampMechanisms(dt) {
   state.nearbyMudBubble = null;
   if (mudBoss?.phase === 1) {
     const lamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
-    if (lamps.length === 3 && lamps.every((task) => task.done)) {
+    if (lamps.length === 3 && lamps.every((task) => isMistLampActive(task, now))) {
       mudBoss.phase = 2;
-      state.mudBubbles.forEach((bubble) => { bubble.active = true; });
+      activateNextMudBubbleWave();
       messageEl.textContent = "黑雾变淡了，泥浆怪露出了泥浆泡泡！";
     }
   } else if (mudBoss?.phase === 2) {
     for (const bubble of state.mudBubbles) {
       bubble.phase += dt * (selectedDifficulty === "crazy" ? 1.8 : 1.1);
-      if (!bubble.done && distance(state.player, bubble) < bubble.r + 48) state.nearbyMudBubble = bubble;
+      if (bubble.active && !bubble.done && distance(state.player, bubble) < bubble.r + 48) state.nearbyMudBubble = bubble;
     }
     if (state.mudBubbles.every((bubble) => bubble.done)) {
       mudBoss.phase = 3;
       messageEl.textContent = "第二步完成：带着萤火虫灯笼靠近泥浆核心。";
+    } else if (!state.mudBubbles.some((bubble) => bubble.active && !bubble.done)) {
+      activateNextMudBubbleWave();
+    }
+  } else if (mudBoss?.phase === 3) {
+    const nearBoss = distance(state.player, mudBoss) < 86;
+    if (nearBoss && state.inventory.includes("fireflyLantern")) {
+      state.lanternCharge = Math.min(state.lanternChargeRequired, state.lanternCharge + dt);
+      mudBoss.chargeReady = state.lanternCharge >= state.lanternChargeRequired;
+      if (!mudBoss.chargeReady) messageEl.textContent = `萤火虫灯笼充能中：${Math.ceil(state.lanternChargeRequired - state.lanternCharge)}秒`;
+      else messageEl.textContent = "灯笼充满光啦，按 E 开始最终答题。";
+    } else if (!mudBoss.chargeReady) {
+      state.lanternCharge = Math.max(0, state.lanternCharge - dt * 0.5);
     }
   }
 
@@ -2591,6 +2639,14 @@ function updateMistSwampMechanisms(dt) {
       state.slowUntil = now + 160;
     }
   }
+}
+
+function activateNextMudBubbleWave() {
+  if (!isMistSwampLevel()) return;
+  const waveSize = MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY[selectedDifficulty] || 1;
+  state.mudBubbles.filter((bubble) => !bubble.done && !bubble.active).slice(0, waveSize).forEach((bubble) => {
+    bubble.active = true;
+  });
 }
 
 function updateTrafficLights(dt) {
@@ -3230,6 +3286,11 @@ function finishDialogueDelivery() {
   const dialogue = state?.activeDialogue;
   const task = dialogue?.task;
   if (!task || (task.kind !== "delivery" && task.kind !== "sort_basket") || task.done || missingNeeds(task.need).length) return;
+  if (!canTalkToMistSwampTask(task)) {
+    messageEl.textContent = "雾又浓起来了，先重新点亮一盏雾灯吧。";
+    closeDialogue();
+    return;
+  }
   if (task.animal === "owlPrincipal" && !canUseEscortCart()) {
     messageEl.textContent = "\u5148\u8ba9\u5c0f\u63a8\u8f66\u8ddf\u7740\u4f60\u51fa\u53d1\u3002";
     closeDialogue();
@@ -3261,6 +3322,7 @@ function talkToNearbyTask() {
   if (isMistSwampLevel() && state.nearbyMudBubble) {
     const bubble = state.nearbyMudBubble;
     bubble.broken = true;
+    bubble.active = false;
     completeTask(bubble, bubble.x, bubble.y);
     burst(bubble.x, bubble.y, "#a6d66f", 18);
     messageEl.textContent = "泥浆泡泡清除啦！";
@@ -3316,13 +3378,19 @@ function talkToNearbyTask() {
     messageEl.textContent = taskNearHint(state.nearbyTask);
     return;
   }
-  if (state.nearbyTask) openDialogue(state.nearbyTask);
+  if (state.nearbyTask) {
+    if (!canTalkToMistSwampTask(state.nearbyTask)) {
+      messageEl.textContent = "雾又浓起来了，先重新点亮一盏雾灯吧。";
+      return;
+    }
+    openDialogue(state.nearbyTask);
+  }
 }
 
 function interactMistSwampTask(task) {
   if (!task) return false;
   if (task.kind === "mist_lamp") {
-    if (task.done && (state.mistPermanentClear || state.mistClearUntil > performance.now())) {
+    if (task.done && isMistLampActive(task)) {
       messageEl.textContent = "雾灯还亮着，不需要重复放入灯芯。";
       return true;
     }
@@ -3337,8 +3405,9 @@ function interactMistSwampTask(task) {
     }
     task.lit = true;
     const clearTime = MIST_CLEAR_TIME_BY_DIFFICULTY[selectedDifficulty];
+    task.litUntil = clearTime === null ? null : performance.now() + clearTime;
     if (clearTime === null) state.mistPermanentClear = true;
-    else state.mistClearUntil = performance.now() + clearTime;
+    else state.mistClearUntil = Math.max(state.mistClearUntil, task.litUntil);
     messageEl.textContent = "雾灯亮起来啦！";
     return true;
   }
@@ -3347,11 +3416,19 @@ function interactMistSwampTask(task) {
       messageEl.textContent = "蘑菇灯已经亮啦！";
       return true;
     }
+    if (selectedDifficulty === "easy") {
+      task.lit = true;
+      completeTask(task, task.x, task.y);
+      const litCount = state.tasksList.filter((entry) => entry.kind === "mushroom_lamp" && entry.lit).length;
+      messageEl.textContent = litCount >= 2 ? "两盏蘑菇灯亮啦！可以继续去修桥。" : "再点亮一盏蘑菇灯就完成小挑战啦。";
+      return true;
+    }
     const expected = state.mushroomSequence[state.mushroomStep];
     if (task.color !== expected) {
       state.mushroomStep = 0;
       state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => { entry.lit = false; });
-      messageEl.textContent = "再看一看萤火虫提示哦。黄 → 蓝 → 紫 → 绿";
+      const hint = state.mushroomSequence.map((color) => ({ yellow: "黄", blue: "蓝", purple: "紫", green: "绿" })[color]).join(" → ");
+      messageEl.textContent = `再看一看萤火虫提示哦。${hint}`;
       state.priorityMessage = messageEl.textContent;
       state.priorityMessageUntil = performance.now() + (selectedDifficulty === "crazy" ? 900 : 1800);
       return true;
@@ -3359,7 +3436,8 @@ function interactMistSwampTask(task) {
     task.lit = true;
     state.mushroomStep += 1;
     if (state.mushroomStep === state.mushroomSequence.length) {
-      state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => {
+      const sequenceColors = new Set(state.mushroomSequence);
+      state.tasksList.filter((entry) => entry.kind === "mushroom_lamp" && sequenceColors.has(entry.color)).forEach((entry) => {
         if (!entry.done) completeTask(entry, entry.x, entry.y);
       });
       messageEl.textContent = "蘑菇灯都亮啦！";
@@ -3386,6 +3464,20 @@ function interactMistSwampTask(task) {
     return true;
   }
   if (task.kind === "mist_bubble") {
+    if (isMistSwampMistCoreLevel()) {
+      const lamps = state.tasksList.filter((entry) => entry.kind === "mist_lamp");
+      if (!lamps.every((entry) => entry.done)) {
+        messageEl.textContent = "先点亮三盏大雾灯，泡泡才会显出真正顺序。";
+        return true;
+      }
+      const bubbles = state.tasksList.filter((entry) => entry.kind === "mist_bubble");
+      if (bubbles[state.mistCoreBubbleIndex] !== task) {
+        state.mistOpacity = Math.min(0.42, state.mistOpacity + 0.05);
+        messageEl.textContent = "这个泡泡还没亮，先找带金色光环的泡泡。";
+        return true;
+      }
+      state.mistCoreBubbleIndex += 1;
+    }
     completeTask(task, task.x, task.y);
     messageEl.textContent = "黑雾泡泡变成亮晶晶的水汽啦！";
     return true;
@@ -3409,6 +3501,10 @@ function interactMistSwampTask(task) {
     if (!state.inventory.includes("fireflyLantern")) {
       state.inventory.push("fireflyLantern");
       state.temporaryMistItems.push("fireflyLantern");
+    }
+    if (!task.chargeReady) {
+      messageEl.textContent = `靠近泥浆核心，让灯笼持续充能 ${state.lanternChargeRequired} 秒。`;
+      return true;
     }
     openQuiz(task);
     return true;
@@ -3456,6 +3552,15 @@ function answerQuiz(task, index) {
     if (isMistSwampLevel() && task.kind === "mud_boss") {
       messageEl.textContent = "泥浆怪安静下来了，它原来是在守护沼泽。";
     }
+    return;
+  }
+  if (isMistSwampLevel() && task.kind === "mud_boss") {
+    state.wrongAnswers += 1;
+    state.lanternCharge = 0;
+    task.chargeReady = false;
+    closeQuiz();
+    messageEl.textContent = "再想一想吧。泥浆怪没有生气，重新给灯笼充能就能再试。";
+    updateHud();
     return;
   }
   state.wrongAnswers += 1;
@@ -4209,6 +4314,9 @@ const ART_PACK_PROP_KEYS = {
   deepRune: "deepRune",
   pearlCrown: "pearlCrown",
   moonPearlBadge: "moonPearl",
+  lightSpore: "lightSpore",
+  fireflyLantern: "fireflyLantern",
+  mistBadge: "mistBadge",
   branchPile: "roadBranchPile",
   leafPile: "leafPile",
   roadStone: "roadStonePile",
@@ -4257,6 +4365,7 @@ const ART_PACK_NPC_KEYS = {
   littleFrog: "littleFrog",
   ruru: "ruru",
   mudMonster: "mudMonster",
+  mistSpirit: "mistSpirit",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -4272,6 +4381,7 @@ const ART_PACK_SCENE_PROP_KEYS = {
   roadStone: "roadStonePile",
   directionSign: "directionSign",
   correctExit: "safeFlag",
+  bigMistLamp: "bigMistLamp",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -4351,6 +4461,10 @@ const ART_PACK_ITEM_BOUNDS = {
   roadStonePile: { x: -42, y: -34, w: 84, h: 68 },
   directionSign: { x: -54, y: -70, w: 108, h: 120 },
   safeFlag: { x: -36, y: -56, w: 72, h: 92 },
+  lightSpore: { x: -27, y: -29, w: 54, h: 54 },
+  fireflyLantern: { x: -28, y: -38, w: 56, h: 72 },
+  mistBadge: { x: -28, y: -30, w: 56, h: 56 },
+  bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -4395,6 +4509,7 @@ const ART_PACK_NPC_BOUNDS = {
   littleFrog: { x: -44, y: -70, w: 88, h: 88 },
   ruru: { x: -44, y: -74, w: 88, h: 96 },
   mudMonster: { x: -78, y: -112, w: 156, h: 156 },
+  mistSpirit: { x: -48, y: -82, w: 96, h: 104 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
@@ -4824,6 +4939,21 @@ function drawTasks() {
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
     drawAnimal(task.animal);
+    if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
+      ctx.globalAlpha = 0.72;
+      ctx.strokeStyle = "#ffe26a";
+      ctx.lineWidth = 5;
+      circleStroke(0, -8, task.animal === "bigMistLamp" ? 42 : 30);
+    }
+    if (isMistSwampMistCoreLevel() && task.kind === "mist_bubble" && !task.done) {
+      const bubbles = state.tasksList.filter((entry) => entry.kind === "mist_bubble");
+      if (bubbles[state.mistCoreBubbleIndex] === task) {
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = "#ffe26a";
+        ctx.lineWidth = 4;
+        circleStroke(0, 0, 34);
+      }
+    }
     if ((task.kind === "action" || task.kind === "road_clear") && !task.done) {
       drawTaskProgress(task.kind === "road_clear" ? task.progress * 1.65 : task.progress);
     }
@@ -4835,14 +4965,15 @@ function drawTasks() {
 function drawFireflyTrail() {
   if (!isMistSwampLevel()) return;
   const correct = state.fireflyTrail.filter((entry) => !entry.decoy);
-  state.fireflyTrail.forEach((point, index) => {
+  const pulse = 0.78 + Math.sin(performance.now() / 260) * 0.18;
+  state.fireflyTrail.forEach((point) => {
     if (point.faded) return;
     const active = !point.decoy && correct[state.fireflyTrailIndex] === point;
     ctx.save();
-    ctx.globalAlpha = point.decoy ? 0.55 : 0.85;
-    ctx.fillStyle = active ? "rgba(255, 236, 112, 0.35)" : "rgba(202, 235, 132, 0.22)";
-    circle(point.x, point.y, active ? 18 : 12);
-    ctx.fillStyle = point.decoy ? "#bdd391" : "#ffe26a";
+    ctx.globalAlpha = point.decoy ? 0.48 : pulse;
+    ctx.fillStyle = active ? "rgba(255, 226, 106, 0.42)" : point.decoy ? "rgba(132, 211, 163, 0.2)" : "rgba(255, 226, 106, 0.22)";
+    circle(point.x, point.y, active ? 20 : 12);
+    ctx.fillStyle = point.decoy ? "#84d3a3" : "#ffe26a";
     circle(point.x, point.y, active ? 6 : 4);
     ctx.restore();
   });
@@ -4853,7 +4984,7 @@ function drawMudBubbles() {
   const mudBoss = state.tasksList.find((task) => task.kind === "mud_boss");
   if (mudBoss?.phase < 2) return;
   for (const bubble of state.mudBubbles) {
-    if (bubble.broken) continue;
+    if (bubble.broken || !bubble.active) continue;
     const bob = Math.sin(bubble.phase) * 5;
     ctx.save();
     ctx.translate(bubble.x, bubble.y + bob);
@@ -5011,7 +5142,9 @@ function drawAnimal(kind) {
   else if (kind === "correctExit") drawMiniPropFallback({ type: "correctExit", width: 74, height: 56, label: "出口" });
   else if (kind === "mushroomLamp") drawMushroomLamp();
   else if (kind === "bigMistLamp") drawBigMistLamp();
-  else if (kind === "darkMistBubble") drawDarkMistBubble();
+  else if (kind === "darkMistBubble") {
+    if (!drawEffectArtPackImage("darkMistBubble", -34, -34, 68, 68)) drawDarkMistBubble();
+  }
   else if (kind === "brokenBridge") drawMiniPropFallback({ type: "brokenBridge", width: 96, height: 58, label: "木桥" });
   else if (kind === "math") drawQuizStandArt("math", "#ffd75e", quizDisplay("math")?.sign || "\u7b97\u9898");
   else if (kind === "logic") drawQuizStandArt("logic", "#fff2a8", quizDisplay("logic")?.sign || "\u89c4\u5f8b");
