@@ -104,11 +104,11 @@ const backgroundSources = {
   windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
   escortForestPath: "./assets/bg/escort_forest_path.png",
   acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
-  mistSwampEntrance: "./assets/v2/v2-bg-swamp-boss.png",
-  fireflyTrailPath: "./assets/v2/v2-bg-wetland.png",
-  sleepingWoodenBridge: "./assets/v2/v2-bg-pond.png",
-  mistCoreClearing: "./assets/v2/v2-bg-swamp-boss.png",
-  mudMonsterLair: "./assets/v2/v2-bg-swamp-boss.png",
+  mistSwampEntrance: "./assets/bg/mist_swamp_entrance.png",
+  fireflyTrailPath: "./assets/bg/firefly_trail_path.png",
+  sleepingWoodenBridge: "./assets/bg/sleeping_wooden_bridge.png",
+  mistCoreClearing: "./assets/bg/mist_core_clearing.png",
+  mudMonsterLair: "./assets/bg/mud_monster_lair.png",
 };
 
 const backgroundSourceCandidates = {
@@ -138,11 +138,11 @@ const backgroundSourceCandidates = {
   windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
   escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
   acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
-  mistSwampEntrance: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
-  fireflyTrailPath: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
-  sleepingWoodenBridge: ["./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
-  mistCoreClearing: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
-  mudMonsterLair: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
+  mistSwampEntrance: ["./assets/bg/mist_swamp_entrance.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  fireflyTrailPath: ["./assets/bg/firefly_trail_path.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  sleepingWoodenBridge: ["./assets/bg/sleeping_wooden_bridge.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
+  mistCoreClearing: ["./assets/bg/mist_core_clearing.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
+  mudMonsterLair: ["./assets/bg/mud_monster_lair.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
 };
 
 const backgrounds = {};
@@ -4253,6 +4253,10 @@ const ART_PACK_NPC_KEYS = {
   octopus: "octopusDoctor",
   seahorseGuard: "seahorseGuard",
   lanternFish: "lanternFish",
+  fireflyGuide: "fireflyGuide",
+  littleFrog: "littleFrog",
+  ruru: "ruru",
+  mudMonster: "mudMonster",
 };
 
 const ART_PACK_SCENE_PROP_KEYS = {
@@ -4387,6 +4391,10 @@ const ART_PACK_NPC_BOUNDS = {
   seahorseGuard: { x: -44, y: -76, w: 88, h: 88 },
   lanternFish: { x: -44, y: -76, w: 88, h: 88 },
   nessie: { x: -70, y: -100, w: 140, h: 140 },
+  fireflyGuide: { x: -44, y: -76, w: 88, h: 96 },
+  littleFrog: { x: -44, y: -70, w: 88, h: 88 },
+  ruru: { x: -44, y: -74, w: 88, h: 96 },
+  mudMonster: { x: -78, y: -112, w: 156, h: 156 },
 };
 
 function drawArtPackImage(category, key, x, y, w, h) {
