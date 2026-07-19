@@ -464,6 +464,68 @@ assert.deepEqual(Array.from(fiveLevelCompletion.completionResults, (result) => p
   { name: "沼泽泥浆怪", clear: true, settled: true, panel: true, pending: [] },
 ]);
 
+for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
+  const bossRuntime = loadGameRuntime();
+  vm.runInContext(mistQuizSource, bossRuntime, { filename: "mist-swamp-quiz-bank.js" });
+  const bossCompletion = vm.runInContext(`
+    selectedDifficulty = "${difficulty}";
+    performance.now = () => 100;
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沼泽泥浆怪"));
+    state.inventory.push("lightSpore", "lightSpore", "lightSpore");
+    var difficultyLamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
+    difficultyLamps.forEach((task) => interactMistSwampTask(task));
+    var lampsActiveTogether = difficultyLamps.every((task) => isMistLampActive(task));
+    updateMistSwampMechanisms(0.016);
+    var difficultyBoss = state.tasksList.find((task) => task.kind === "mud_boss");
+    var phaseTwoReached = difficultyBoss.phase === 2;
+    var initialWaveSize = state.mudBubbles.filter((bubble) => bubble.active && !bubble.done).length;
+    state.running = true;
+    while (difficultyBoss.phase === 2) {
+      var difficultyBubble = state.mudBubbles.find((bubble) => bubble.active && !bubble.done);
+      state.player.x = difficultyBubble.x;
+      state.player.y = difficultyBubble.y;
+      updateMistSwampMechanisms(0.016);
+      talkToNearbyTask();
+      updateMistSwampMechanisms(0.016);
+    }
+    state.player.x = difficultyBoss.x;
+    state.player.y = difficultyBoss.y;
+    updateMistSwampMechanisms(${chargeSeconds - 0.05});
+    var chargeBlockedEarly = difficultyBoss.chargeReady !== true;
+    updateMistSwampMechanisms(0.06);
+    var chargedForRequiredTime = difficultyBoss.chargeReady === true && state.lanternChargeRequired === ${chargeSeconds};
+    interactMistSwampTask(difficultyBoss);
+    answerQuiz(difficultyBoss, difficultyBoss.quiz.answer);
+    scoreSummaryPanel.hidden = true;
+    state.running = true;
+    update(0);
+    ({
+      lampsActiveTogether,
+      phaseTwoReached,
+      bubbleCount: state.mudBubbles.length,
+      initialWaveSize,
+      chargeBlockedEarly,
+      chargedForRequiredTime,
+      bossDone: difficultyBoss.done,
+      levelClear: state.levelClear,
+      settled: state.levelSettled,
+      panel: !scoreSummaryPanel.hidden,
+    });
+  `, bossRuntime);
+  assert.deepEqual(plain(bossCompletion), {
+    lampsActiveTogether: true,
+    phaseTwoReached: true,
+    bubbleCount: 4,
+    initialWaveSize: 2,
+    chargeBlockedEarly: true,
+    chargedForRequiredTime: true,
+    bossDone: true,
+    levelClear: true,
+    settled: true,
+    panel: true,
+  }, `${difficulty} full boss completion`);
+}
+
 const legacyTaskKindCounts = Array.from(levels)
   .filter((level) => level.world !== "mist_swamp")
   .flatMap((level) => Array.from(level.tasks, (task) => task.kind))
