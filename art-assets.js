@@ -69,6 +69,10 @@
     quizSignLanguage: "assets/props/quiz_sign_language.png?v=quiz-signs-20260713",
     quizSignEnglish: "assets/props/quiz_sign_english.png?v=quiz-signs-20260713",
     quizSignRiddle: "assets/props/quiz_sign_riddle.png?v=quiz-signs-20260713",
+    bigMistLamp: "assets/props/big_mist_lamp.png",
+    lightSpore: "assets/items/light_spore.png",
+    fireflyLantern: "assets/items/firefly_lantern.png",
+    mistBadge: "assets/items/mist_badge.png",
   };
 
   const registry = {
@@ -77,7 +81,7 @@
       coco: "./assets/npc/coco_squirrel.png",
       nono: "./assets/npc/nono_hedgehog.png",
       dodo: "./assets/asset-pack-01/npc/dodo.png",
-      ruru: "./assets/asset-pack-01/npc/ruru.png",
+      ruru: "./assets/npc/ruru_raccoon.png",
       deer: "./assets/asset-pack-01/npc/deer.png",
       ant: "./assets/asset-pack-01/npc/ant.png",
       butterfly: "./assets/asset-pack-01/npc/butterfly.png",
@@ -93,6 +97,10 @@
       clownfishTwins: "./assets/npc/clownfish_twins.png",
       jellyfishLady: "./assets/npc/jellyfish_lady.png",
       nessieBoss: "./assets/npc/nessie_boss.png",
+      fireflyGuide: "./assets/npc/firefly_guide.png",
+      littleFrog: "./assets/npc/little_frog.png",
+      mudMonster: "./assets/npc/mud_monster.png",
+      mistSpirit: "./assets/npc/mist_spirit.png",
       seaTurtle: "./assets/npc/sea_turtle.png",
       octopusDoctor: "./assets/npc/octopus_doctor.png",
       seahorseGuard: "./assets/npc/seahorse_guard.png",
@@ -173,6 +181,10 @@
       quizSignLanguage: window.ART_ASSETS.props.quizSignLanguage,
       quizSignEnglish: window.ART_ASSETS.props.quizSignEnglish,
       quizSignRiddle: window.ART_ASSETS.props.quizSignRiddle,
+      bigMistLamp: window.ART_ASSETS.props.bigMistLamp,
+      lightSpore: window.ART_ASSETS.props.lightSpore,
+      fireflyLantern: window.ART_ASSETS.props.fireflyLantern,
+      mistBadge: window.ART_ASSETS.props.mistBadge,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
@@ -188,6 +200,7 @@
     effects: {
       darkBubble: "./assets/effects/dark_bubble.png",
       moonlightCurrent: "./assets/effects/moonlight_current.png",
+      darkMistBubble: "./assets/effects/dark_mist_bubble.png",
     },
   };
 

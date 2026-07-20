@@ -28,6 +28,7 @@ assert.ok(game.includes("temporaryMistItems"));
 assert.ok(game.includes("mistGuardianBadge"));
 assert.ok(game.includes("fireflyLantern"));
 assert.ok(game.includes("雾灯还亮着，不需要重复放入灯芯。"));
-assert.match(game, /task\.done && \(state\.mistPermanentClear \|\| state\.mistClearUntil > performance\.now\(\)\)/);
+assert.match(game, /task\.done && isMistLampActive\(task\)/);
+assert.match(game, /task\.litUntil = clearTime === null \? null : performance\.now\(\) \+ clearTime/);
 assert.match(game, /if \(!task\.done\) \{[\s\S]*?consumeNeeds\(\[need\]\)[\s\S]*?completeTask\(task, task\.x, task\.y\)/);
 assert.match(game, /function drawMudBubbles\(\)[\s\S]*?mudBoss\?\.phase < 2/);
