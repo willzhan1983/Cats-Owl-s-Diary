@@ -4034,7 +4034,8 @@ function drawMiniPropFallback(prop) {
 
 function drawObstacles() {
   for (const obstacle of state.obstacles) {
-    const artKey = ART_PACK_OBSTACLE_KEYS[obstacle.type];
+    const mistOnlyObstacle = obstacle.type === "softMud";
+    const artKey = mistOnlyObstacle && !isMistSwampLevel() ? null : ART_PACK_OBSTACLE_KEYS[obstacle.type];
     if (artKey && drawObstacleArtPackImage(obstacle, artKey)) continue;
     if (obstacle.type === "pond") drawPond(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "bush") drawBush(obstacle.x, obstacle.y, obstacle.r);
@@ -4045,6 +4046,7 @@ function drawObstacles() {
     else if (obstacle.type === "moonPillar") drawMoonPillar(obstacle);
     else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
     else if (obstacle.type === "appleTree") drawAppleTree(obstacle);
+    else if (obstacle.type === "softMud" && isMistSwampLevel()) drawGroundPuddle({ ...obstacle, r: obstacle.r * 0.9 });
   }
 }
 
@@ -4333,6 +4335,7 @@ const ART_PACK_OBSTACLE_KEYS = {
   moonPillar: "moonPillar",
   pearlSwitch: "pearlSwitch",
   whirlpool: "whirlpool",
+  softMud: "softMud",
 };
 
 const ART_PACK_NPC_KEYS = {
@@ -4382,6 +4385,14 @@ const ART_PACK_SCENE_PROP_KEYS = {
   directionSign: "directionSign",
   correctExit: "safeFlag",
   bigMistLamp: "bigMistLamp",
+  brokenBridge: "brokenBridge",
+};
+
+const MIST_SWAMP_MUSHROOM_ART_KEYS = {
+  yellow: "mushroomLampYellow",
+  blue: "mushroomLampBlue",
+  purple: "mushroomLampPurple",
+  green: "mushroomLampGreen",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -4465,6 +4476,11 @@ const ART_PACK_ITEM_BOUNDS = {
   fireflyLantern: { x: -28, y: -38, w: 56, h: 72 },
   mistBadge: { x: -28, y: -30, w: 56, h: 56 },
   bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
+  brokenBridge: { x: -78, y: -55, w: 156, h: 110 },
+  mushroomLampYellow: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampBlue: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampPurple: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampGreen: { x: -38, y: -60, w: 76, h: 76 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -4477,6 +4493,7 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   moonPillar: (r) => ({ x: -r * 1.35, y: -r * 1.85, w: r * 2.7, h: r * 2.7 }),
   pearlSwitch: (r) => ({ x: -r * 1.25, y: -r * 1.25, w: r * 2.5, h: r * 2.5 }),
   whirlpool: (r) => ({ x: -r * 1.15, y: -r * 1.15, w: r * 2.3, h: r * 2.3 }),
+  softMud: (r) => ({ x: -r * 1.6, y: -r * 0.82, w: r * 3.2, h: r * 1.64 }),
 };
 
 const ART_PACK_NPC_BOUNDS = {
@@ -4938,7 +4955,9 @@ function drawTasks() {
     ctx.scale(idleScale, idleScale);
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
-    drawAnimal(task.animal);
+    if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
+    else drawAnimal(task.animal);
+    drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
       ctx.globalAlpha = 0.72;
       ctx.strokeStyle = "#ffe26a";
@@ -5163,6 +5182,22 @@ function drawMushroomLamp() {
   ctx.arc(0, -5, 24, Math.PI, 0);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawMistSwampMushroomLamp(task) {
+  const key = MIST_SWAMP_MUSHROOM_ART_KEYS[task.color];
+  const bounds = ART_PACK_ITEM_BOUNDS[key];
+  if (!key || !bounds || !drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) drawMushroomLamp();
+}
+
+function drawMudBossCore(task) {
+  if (!isMistSwampLevel() || task.kind !== "mud_boss" || task.phase < 3 || task.done) return;
+  const pulse = 0.82 + Math.sin(performance.now() / 260) * 0.08;
+  ctx.save();
+  ctx.translate(0, -22);
+  ctx.scale(pulse, pulse);
+  drawMoonItem("mudCore");
+  ctx.restore();
 }
 
 function drawBigMistLamp() {

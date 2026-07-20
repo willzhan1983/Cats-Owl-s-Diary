@@ -73,6 +73,11 @@
     lightSpore: "assets/items/light_spore.png",
     fireflyLantern: "assets/items/firefly_lantern.png",
     mistBadge: "assets/items/mist_badge.png",
+    brokenBridge: "assets/props/broken_bridge.png",
+    mushroomLampYellow: "assets/props/mushroom_lamp_yellow.png",
+    mushroomLampBlue: "assets/props/mushroom_lamp_blue.png",
+    mushroomLampPurple: "assets/props/mushroom_lamp_purple.png",
+    mushroomLampGreen: "assets/props/mushroom_lamp_green.png",
   };
 
   const registry = {
@@ -185,6 +190,11 @@
       lightSpore: window.ART_ASSETS.props.lightSpore,
       fireflyLantern: window.ART_ASSETS.props.fireflyLantern,
       mistBadge: window.ART_ASSETS.props.mistBadge,
+      brokenBridge: window.ART_ASSETS.props.brokenBridge,
+      mushroomLampYellow: window.ART_ASSETS.props.mushroomLampYellow,
+      mushroomLampBlue: window.ART_ASSETS.props.mushroomLampBlue,
+      mushroomLampPurple: window.ART_ASSETS.props.mushroomLampPurple,
+      mushroomLampGreen: window.ART_ASSETS.props.mushroomLampGreen,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
@@ -196,6 +206,7 @@
       pearlSwitch: "./assets/props/pearl_switch.png",
       whirlpool: "./assets/effects/whirlpool.png",
       appleTree: "./assets/props/apple_tree.png?v=apple-game-ready-v2-20260713",
+      softMud: "./assets/obstacles/soft_mud.png",
     },
     effects: {
       darkBubble: "./assets/effects/dark_bubble.png",

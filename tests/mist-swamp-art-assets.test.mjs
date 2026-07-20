@@ -131,3 +131,20 @@ test("final Mist Swamp replacement art uses transparent PNG files", () => {
   }
 });
 
+test("final Mist Swamp props are registered with guarded render paths", () => {
+  for (const [key, path] of [
+    ["brokenBridge", "assets/props/broken_bridge.png"],
+    ["mushroomLampYellow", "assets/props/mushroom_lamp_yellow.png"],
+    ["mushroomLampBlue", "assets/props/mushroom_lamp_blue.png"],
+    ["mushroomLampPurple", "assets/props/mushroom_lamp_purple.png"],
+    ["mushroomLampGreen", "assets/props/mushroom_lamp_green.png"],
+  ]) {
+    assert.match(artAssets, new RegExp(`${key}: ["']${path}["']`));
+  }
+  assert.match(artAssets, /softMud: ["']\.\/assets\/obstacles\/soft_mud\.png["']/);
+  assert.match(game, /const MIST_SWAMP_MUSHROOM_ART_KEYS = \{/);
+  assert.match(game, /isMistSwampLevel\(\) && task\.kind === "mushroom_lamp"/);
+  assert.match(game, /softMud: "softMud"/);
+  assert.match(game, /else if \(obstacle\.type === "softMud" && isMistSwampLevel\(\)\) drawGroundPuddle/);
+  assert.match(game, /function drawMudBossCore\(task\)/);
+});
