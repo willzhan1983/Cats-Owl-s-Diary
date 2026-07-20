@@ -73,6 +73,17 @@
     lightSpore: "assets/items/light_spore.png",
     fireflyLantern: "assets/items/firefly_lantern.png",
     mistBadge: "assets/items/mist_badge.png",
+    fireflyCore: "assets/items/firefly_core.png",
+    glowSpore: "assets/items/glow_spore.png",
+    bridgePlank: "assets/items/bridge_plank.png",
+    bridgeKey: "assets/items/bridge_key.png",
+    mistGuardianBadge: "assets/items/mist_guardian_badge.png",
+    mistLamp: "assets/props/mist_lamp.png",
+    brokenBridge: "assets/props/broken_bridge.png",
+    mushroomLampYellow: "assets/props/mushroom_lamp_yellow.png",
+    mushroomLampBlue: "assets/props/mushroom_lamp_blue.png",
+    mushroomLampPurple: "assets/props/mushroom_lamp_purple.png",
+    mushroomLampGreen: "assets/props/mushroom_lamp_green.png",
   };
 
   const registry = {
@@ -99,6 +110,7 @@
       nessieBoss: "./assets/npc/nessie_boss.png",
       fireflyGuide: "./assets/npc/firefly_guide.png",
       littleFrog: "./assets/npc/little_frog.png",
+      swampSnail: "./assets/npc/swamp_snail.png",
       mudMonster: "./assets/npc/mud_monster.png",
       mistSpirit: "./assets/npc/mist_spirit.png",
       seaTurtle: "./assets/npc/sea_turtle.png",
@@ -185,6 +197,17 @@
       lightSpore: window.ART_ASSETS.props.lightSpore,
       fireflyLantern: window.ART_ASSETS.props.fireflyLantern,
       mistBadge: window.ART_ASSETS.props.mistBadge,
+      fireflyCore: window.ART_ASSETS.props.fireflyCore,
+      glowSpore: window.ART_ASSETS.props.glowSpore,
+      bridgePlank: window.ART_ASSETS.props.bridgePlank,
+      bridgeKey: window.ART_ASSETS.props.bridgeKey,
+      mistGuardianBadge: window.ART_ASSETS.props.mistGuardianBadge,
+      mistLamp: window.ART_ASSETS.props.mistLamp,
+      brokenBridge: window.ART_ASSETS.props.brokenBridge,
+      mushroomLampYellow: window.ART_ASSETS.props.mushroomLampYellow,
+      mushroomLampBlue: window.ART_ASSETS.props.mushroomLampBlue,
+      mushroomLampPurple: window.ART_ASSETS.props.mushroomLampPurple,
+      mushroomLampGreen: window.ART_ASSETS.props.mushroomLampGreen,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
@@ -196,11 +219,14 @@
       pearlSwitch: "./assets/props/pearl_switch.png",
       whirlpool: "./assets/effects/whirlpool.png",
       appleTree: "./assets/props/apple_tree.png?v=apple-game-ready-v2-20260713",
+      softMud: "./assets/obstacles/soft_mud.png",
     },
     effects: {
       darkBubble: "./assets/effects/dark_bubble.png",
       moonlightCurrent: "./assets/effects/moonlight_current.png",
       darkMistBubble: "./assets/effects/dark_mist_bubble.png",
+      mudBubble: "./assets/effects/mud_bubble.png",
+      mudCore: "./assets/effects/mud_core.png",
     },
   };
 

@@ -49,5 +49,17 @@ assert.ok(
   "统一随机逻辑应在所有附加题库加载后安装"
 );
 
+for (const script of ["game.js", "mist-swamp-quiz-bank.js", "grade-quiz.js", "art-assets.js"]) {
+  assert.ok(
+    index.includes(`./${script}?v=mist-swamp-final-20260720c`),
+    `${script} should use the current Mist Swamp cache version`,
+  );
+}
+
 const game = readFileSync(new URL("../game.js", import.meta.url), "utf8");
-assert.match(game, /randomQuiz\(task\.quizKey, level\.id \|\| level\.bg \|\| level\.name\)/, "出题时应传入当前地图标识");
+assert.match(
+  game,
+  /const quizScope = task\.mistSwampShared && level\.world === "mist_swamp" \? level\.world : level\.id \|\| level\.bg \|\| level\.name;/,
+  "迷雾沼泽共享题应按章节轮换，其他题目仍按当前地图隔离",
+);
+assert.match(game, /randomQuiz\(task\.quizKey, quizScope\)/, "出题时应传入计算后的题目范围");

@@ -1359,6 +1359,9 @@ const levels = [
       { x: 210, y: 360 }, { x: 340, y: 275 }, { x: 480, y: 325 }, { x: 620, y: 235 }, { x: 760, y: 300 },
       { x: 500, y: 390, decoy: true }, { x: 590, y: 405, decoy: true },
     ],
+    npcDecorations: [
+      { kind: "swampSnail", x: 840, y: 180, scale: 0.82, label: "沼泽蜗牛" },
+    ],
     puddles: [],
     obstacles: [{ type: "softMud", x: 520, y: 255, r: 38 }],
   },
@@ -1375,10 +1378,10 @@ const levels = [
       item(690, 170, "bridgePlank", "木桥板"),
     ],
     tasks: [
-      mushroomLampTask(250, 170, "yellow", "黄色蘑菇灯"),
-      mushroomLampTask(410, 160, "blue", "蓝色蘑菇灯"),
-      mushroomLampTask(570, 170, "purple", "紫色蘑菇灯"),
-      mushroomLampTask(730, 160, "green", "绿色蘑菇灯"),
+      mushroomLampTask(300, 150, "yellow", "黄色蘑菇灯"),
+      mushroomLampTask(450, 150, "blue", "蓝色蘑菇灯"),
+      mushroomLampTask(600, 150, "purple", "紫色蘑菇灯"),
+      mushroomLampTask(800, 150, "green", "绿色蘑菇灯"),
       { x: 550, y: 280, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
       escortNpcTask(680, 340, "小青蛙", "littleFrog", "mistBridgeExit"),
     ],
@@ -1397,9 +1400,9 @@ const levels = [
     start: { x: 120, y: 390 },
     message: "收集光之孢子，帮助迷雾精灵恢复清醒。",
     collectibles: [
-      item(250, 180, "lightSpore", "光之孢子"),
-      item(470, 350, "lightSpore", "光之孢子"),
-      item(710, 180, "lightSpore", "光之孢子"),
+      item(180, 390, "lightSpore", "光之孢子"),
+      item(480, 420, "lightSpore", "光之孢子"),
+      item(820, 390, "lightSpore", "光之孢子"),
     ],
     tasks: [
       mistLampTask(250, 170, "大雾灯一", "lightSpore", "bigMistLamp"),
@@ -1421,9 +1424,9 @@ const levels = [
     start: { x: 120, y: 390 },
     message: "用光和知识帮助沼泽守护者。",
     collectibles: [
-      item(220, 180, "lightSpore", "光之孢子"),
-      item(380, 350, "lightSpore", "光之孢子"),
-      item(560, 170, "lightSpore", "光之孢子"),
+      item(190, 390, "lightSpore", "光之孢子"),
+      item(450, 410, "lightSpore", "光之孢子"),
+      item(690, 390, "lightSpore", "光之孢子"),
     ],
     tasks: [
       mistLampTask(250, 170, "大雾灯一", "lightSpore", "bigMistLamp"),
@@ -1745,7 +1748,8 @@ function prepareTask(entry, level, index) {
   task.taskType = task.taskType || taskSystemType(task.kind);
   task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
   task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
-  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, level.id || level.bg || level.name);
+  const quizScope = task.mistSwampShared && level.world === "mist_swamp" ? level.world : level.id || level.bg || level.name;
+  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, quizScope);
   return task;
 }
 
@@ -4034,7 +4038,8 @@ function drawMiniPropFallback(prop) {
 
 function drawObstacles() {
   for (const obstacle of state.obstacles) {
-    const artKey = ART_PACK_OBSTACLE_KEYS[obstacle.type];
+    const mistOnlyObstacle = obstacle.type === "softMud";
+    const artKey = mistOnlyObstacle && !isMistSwampLevel() ? null : ART_PACK_OBSTACLE_KEYS[obstacle.type];
     if (artKey && drawObstacleArtPackImage(obstacle, artKey)) continue;
     if (obstacle.type === "pond") drawPond(obstacle.x, obstacle.y, obstacle.r);
     else if (obstacle.type === "bush") drawBush(obstacle.x, obstacle.y, obstacle.r);
@@ -4045,6 +4050,7 @@ function drawObstacles() {
     else if (obstacle.type === "moonPillar") drawMoonPillar(obstacle);
     else if (obstacle.type === "pearlSwitch") drawPearlSwitch(obstacle);
     else if (obstacle.type === "appleTree") drawAppleTree(obstacle);
+    else if (obstacle.type === "softMud" && isMistSwampLevel()) drawGroundPuddle({ ...obstacle, r: obstacle.r * 0.9 });
   }
 }
 
@@ -4317,6 +4323,11 @@ const ART_PACK_PROP_KEYS = {
   lightSpore: "lightSpore",
   fireflyLantern: "fireflyLantern",
   mistBadge: "mistBadge",
+  fireflyCore: "fireflyCore",
+  glowSpore: "glowSpore",
+  bridgePlank: "bridgePlank",
+  bridgeKey: "bridgeKey",
+  mistGuardianBadge: "mistGuardianBadge",
   branchPile: "roadBranchPile",
   leafPile: "leafPile",
   roadStone: "roadStonePile",
@@ -4333,6 +4344,7 @@ const ART_PACK_OBSTACLE_KEYS = {
   moonPillar: "moonPillar",
   pearlSwitch: "pearlSwitch",
   whirlpool: "whirlpool",
+  softMud: "softMud",
 };
 
 const ART_PACK_NPC_KEYS = {
@@ -4363,6 +4375,7 @@ const ART_PACK_NPC_KEYS = {
   lanternFish: "lanternFish",
   fireflyGuide: "fireflyGuide",
   littleFrog: "littleFrog",
+  swampSnail: "swampSnail",
   ruru: "ruru",
   mudMonster: "mudMonster",
   mistSpirit: "mistSpirit",
@@ -4382,6 +4395,15 @@ const ART_PACK_SCENE_PROP_KEYS = {
   directionSign: "directionSign",
   correctExit: "safeFlag",
   bigMistLamp: "bigMistLamp",
+  mistLamp: "mistLamp",
+  brokenBridge: "brokenBridge",
+};
+
+const MIST_SWAMP_MUSHROOM_ART_KEYS = {
+  yellow: "mushroomLampYellow",
+  blue: "mushroomLampBlue",
+  purple: "mushroomLampPurple",
+  green: "mushroomLampGreen",
 };
 
 const NPC_VISUAL_OFFSETS = {
@@ -4464,7 +4486,18 @@ const ART_PACK_ITEM_BOUNDS = {
   lightSpore: { x: -27, y: -29, w: 54, h: 54 },
   fireflyLantern: { x: -28, y: -38, w: 56, h: 72 },
   mistBadge: { x: -28, y: -30, w: 56, h: 56 },
+  fireflyCore: { x: -25, y: -31, w: 50, h: 62 },
+  glowSpore: { x: -27, y: -27, w: 54, h: 54 },
+  bridgePlank: { x: -34, y: -16, w: 68, h: 32 },
+  bridgeKey: { x: -28, y: -32, w: 56, h: 64 },
+  mistGuardianBadge: { x: -30, y: -32, w: 60, h: 60 },
   bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
+  mistLamp: { x: -32, y: -58, w: 64, h: 88 },
+  brokenBridge: { x: -78, y: -55, w: 156, h: 110 },
+  mushroomLampYellow: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampBlue: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampPurple: { x: -38, y: -60, w: 76, h: 76 },
+  mushroomLampGreen: { x: -38, y: -60, w: 76, h: 76 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -4477,6 +4510,7 @@ const ART_PACK_OBSTACLE_BOUNDS = {
   moonPillar: (r) => ({ x: -r * 1.35, y: -r * 1.85, w: r * 2.7, h: r * 2.7 }),
   pearlSwitch: (r) => ({ x: -r * 1.25, y: -r * 1.25, w: r * 2.5, h: r * 2.5 }),
   whirlpool: (r) => ({ x: -r * 1.15, y: -r * 1.15, w: r * 2.3, h: r * 2.3 }),
+  softMud: (r) => ({ x: -r * 1.6, y: -r * 0.82, w: r * 3.2, h: r * 1.64 }),
 };
 
 const ART_PACK_NPC_BOUNDS = {
@@ -4507,6 +4541,7 @@ const ART_PACK_NPC_BOUNDS = {
   nessie: { x: -70, y: -100, w: 140, h: 140 },
   fireflyGuide: { x: -44, y: -76, w: 88, h: 96 },
   littleFrog: { x: -44, y: -70, w: 88, h: 88 },
+  swampSnail: { x: -48, y: -70, w: 96, h: 88 },
   ruru: { x: -44, y: -74, w: 88, h: 96 },
   mudMonster: { x: -78, y: -112, w: 156, h: 156 },
   mistSpirit: { x: -48, y: -82, w: 96, h: 104 },
@@ -4938,7 +4973,13 @@ function drawTasks() {
     ctx.scale(idleScale, idleScale);
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
-    drawAnimal(task.animal);
+    if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
+    else if (isMistSwampLevel() && task.kind === "mist_lamp" && task.animal !== "bigMistLamp") {
+      const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
+      if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
+    }
+    else drawAnimal(task.animal);
+    drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
       ctx.globalAlpha = 0.72;
       ctx.strokeStyle = "#ffe26a";
@@ -4988,11 +5029,13 @@ function drawMudBubbles() {
     const bob = Math.sin(bubble.phase) * 5;
     ctx.save();
     ctx.translate(bubble.x, bubble.y + bob);
-    ctx.fillStyle = "rgba(92, 112, 57, 0.78)";
-    circle(0, 0, bubble.r);
-    ctx.strokeStyle = "rgba(218, 239, 151, 0.8)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    if (!drawEffectArtPackImage("mudBubble", -bubble.r * 1.35, -bubble.r * 1.35, bubble.r * 2.7, bubble.r * 2.7)) {
+      ctx.fillStyle = "rgba(92, 112, 57, 0.78)";
+      circle(0, 0, bubble.r);
+      ctx.strokeStyle = "rgba(218, 239, 151, 0.8)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 }
@@ -5163,6 +5206,22 @@ function drawMushroomLamp() {
   ctx.arc(0, -5, 24, Math.PI, 0);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawMistSwampMushroomLamp(task) {
+  const key = MIST_SWAMP_MUSHROOM_ART_KEYS[task.color];
+  const bounds = ART_PACK_ITEM_BOUNDS[key];
+  if (!key || !bounds || !drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) drawMushroomLamp();
+}
+
+function drawMudBossCore(task) {
+  if (!isMistSwampLevel() || task.kind !== "mud_boss" || task.phase < 3 || task.done) return;
+  const pulse = 0.82 + Math.sin(performance.now() / 260) * 0.08;
+  ctx.save();
+  ctx.translate(0, -22);
+  ctx.scale(pulse, pulse);
+  if (!drawEffectArtPackImage("mudCore", -36, -36, 72, 72)) drawMoonItem("mudCore");
+  ctx.restore();
 }
 
 function drawBigMistLamp() {

@@ -137,9 +137,10 @@
   function refreshCurrentQuizTasks() {
     if (typeof state === "undefined" || !state) return;
     const level = typeof levels === "undefined" ? null : levels[state.levelIndex];
-    const scope = level?.id || level?.bg || level?.name;
+    const levelScope = level?.id || level?.bg || level?.name;
     state.tasksList?.forEach((task) => {
-      if (task.kind === "quiz" && task.quizKey) task.quiz = randomQuiz(task.quizKey, scope);
+      const quizScope = task.mistSwampShared && level?.world === "mist_swamp" ? level.world : levelScope;
+      if (task.kind === "quiz" && task.quizKey) task.quiz = randomQuiz(task.quizKey, quizScope);
     });
   }
 

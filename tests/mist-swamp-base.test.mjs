@@ -33,7 +33,7 @@ for (const key of ["fireflyCore", "glowSpore", "bridgePlank", "bridgeKey", "ligh
 
 for (const file of ["mist-swamp-map-entry.js", "mist-swamp-quiz-bank.js"]) {
   assert.ok(existsSync(new URL(`../${file}`, import.meta.url)), `${file} should exist`);
-  assert.ok(index.includes(`<script src="./${file}"></script>`), `${file} should be loaded`);
+  assert.match(index, new RegExp(`<script src="\\./${file}(?:\\?[^\"]+)?"></script>`), `${file} should be loaded`);
 }
 
 const quiz = readFileSync(new URL("../mist-swamp-quiz-bank.js", import.meta.url), "utf8");
