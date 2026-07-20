@@ -104,6 +104,7 @@
       nessieBoss: "./assets/npc/nessie_boss.png",
       fireflyGuide: "./assets/npc/firefly_guide.png",
       littleFrog: "./assets/npc/little_frog.png",
+      swampSnail: "./assets/npc/swamp_snail.png",
       mudMonster: "./assets/npc/mud_monster.png",
       mistSpirit: "./assets/npc/mist_spirit.png",
       seaTurtle: "./assets/npc/sea_turtle.png",

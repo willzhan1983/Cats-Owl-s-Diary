@@ -103,6 +103,33 @@ assert.deepEqual(
   Array.from(fireflyLevel.tasks).filter((task) => task.animal === "fireflyGuide").map((task) => task.kind),
   ["firefly_trail"]
 );
+assert.deepEqual(
+  plain(fireflyLevel.npcDecorations),
+  [{ kind: "swampSnail", x: 840, y: 180, scale: 0.82, label: "沼泽蜗牛" }]
+);
+
+const sleepingBridgeLevel = mistLevels.find((level) => level.name === "沉睡木桥");
+assert.deepEqual(
+  plain(sleepingBridgeLevel.tasks.filter((task) => task.kind === "mushroom_lamp").map(({ x, y, color }) => ({ x, y, color }))),
+  [
+    { x: 300, y: 150, color: "yellow" },
+    { x: 450, y: 150, color: "blue" },
+    { x: 600, y: 150, color: "purple" },
+    { x: 800, y: 150, color: "green" },
+  ]
+);
+
+for (const [name, expected] of [
+  ["迷雾核心", [{ x: 180, y: 390 }, { x: 480, y: 420 }, { x: 820, y: 390 }]],
+  ["沼泽泥浆怪", [{ x: 190, y: 390 }, { x: 450, y: 410 }, { x: 690, y: 390 }]],
+]) {
+  const level = mistLevels.find((entry) => entry.name === name);
+  assert.deepEqual(
+    plain(level.collectibles.filter((entry) => entry.type === "lightSpore").map(({ x, y }) => ({ x, y }))),
+    expected,
+    `${name} lightSpore placement`
+  );
+}
 
 for (const level of levels.filter((entry) => entry.world !== "mist_swamp")) {
   assert.equal(level.tasks.some((task) => advancedKinds.has(task.kind)), false, `${level.name} should not use Mist Swamp task kinds`);

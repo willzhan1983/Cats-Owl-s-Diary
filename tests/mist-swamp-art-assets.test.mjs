@@ -86,12 +86,20 @@ test("remaining Mist Swamp characters are registered transparent PNG files", () 
     ["ruru", "assets/npc/ruru_raccoon.png"],
     ["fireflyGuide", "assets/npc/firefly_guide.png"],
     ["littleFrog", "assets/npc/little_frog.png"],
+    ["swampSnail", "assets/npc/swamp_snail.png"],
     ["mistSpirit", "assets/npc/mist_spirit.png"],
     ["mudMonster", "assets/npc/mud_monster.png"],
   ]) {
     assert.equal(existsSync(new URL(path, root)), true, `${path} should exist`);
     assert.match(artAssets, new RegExp(`${key}: ["']\\./${path}["']`));
     assert.deepEqual(pngInfo(path), { width: 768, height: 768, colorType: 6 });
+    const { width, height, pixels } = readRgbaPng(path);
+    const alphaAt = (x, y) => pixels[(y * width + x) * 4 + 3];
+    assert.deepEqual(
+      [alphaAt(0, 0), alphaAt(width - 1, 0), alphaAt(0, height - 1), alphaAt(width - 1, height - 1)],
+      [0, 0, 0, 0],
+      `${path} corners must be transparent`,
+    );
   }
 });
 
