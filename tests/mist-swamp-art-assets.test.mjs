@@ -139,6 +139,30 @@ test("final Mist Swamp replacement art uses transparent PNG files", () => {
   }
 });
 
+test("final Mist Swamp item and effect replacements use transparent PNG files", () => {
+  for (const path of [
+    "assets/items/firefly_core.png",
+    "assets/items/glow_spore.png",
+    "assets/items/bridge_plank.png",
+    "assets/items/bridge_key.png",
+    "assets/props/mist_lamp.png",
+    "assets/effects/mud_bubble.png",
+    "assets/effects/mud_core.png",
+    "assets/items/mist_guardian_badge.png",
+  ]) {
+    const { width, height, pixels } = readRgbaPng(path);
+    assert.equal(width, 512, `${path} width`);
+    assert.equal(height, 512, `${path} height`);
+    const alphaAt = (x, y) => pixels[(y * width + x) * 4 + 3];
+    assert.deepEqual(
+      [alphaAt(0, 0), alphaAt(width - 1, 0), alphaAt(0, height - 1), alphaAt(width - 1, height - 1)],
+      [0, 0, 0, 0],
+      `${path} corners must be transparent`,
+    );
+    assert.ok(Array.from({ length: width * height }, (_, index) => pixels[index * 4 + 3]).some(Boolean), `${path} must contain visible pixels`);
+  }
+});
+
 test("final Mist Swamp props are registered with guarded render paths", () => {
   for (const [key, path] of [
     ["brokenBridge", "assets/props/broken_bridge.png"],
