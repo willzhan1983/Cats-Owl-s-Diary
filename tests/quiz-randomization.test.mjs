@@ -50,4 +50,9 @@ assert.ok(
 );
 
 const game = readFileSync(new URL("../game.js", import.meta.url), "utf8");
-assert.match(game, /randomQuiz\(task\.quizKey, level\.id \|\| level\.bg \|\| level\.name\)/, "出题时应传入当前地图标识");
+assert.match(
+  game,
+  /const quizScope = task\.mistSwampShared && level\.world === "mist_swamp" \? level\.world : level\.id \|\| level\.bg \|\| level\.name;/,
+  "迷雾沼泽共享题应按章节轮换，其他题目仍按当前地图隔离",
+);
+assert.match(game, /randomQuiz\(task\.quizKey, quizScope\)/, "出题时应传入计算后的题目范围");

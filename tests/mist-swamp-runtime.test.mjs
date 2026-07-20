@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const source = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const mistQuizSource = readFileSync(new URL("../mist-swamp-quiz-bank.js", import.meta.url), "utf8");
+const gradeQuizSource = readFileSync(new URL("../grade-quiz.js", import.meta.url), "utf8");
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 function loadGameRuntime() {
@@ -139,6 +140,31 @@ const bossOwners = Array.from(levels)
   .filter((level) => level.tasks.some((task) => task.kind === "mud_boss"))
   .map((level) => level.name);
 assert.deepEqual(bossOwners, ["沼泽泥浆怪"]);
+
+const quizRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, quizRuntime, { filename: "mist-swamp-quiz-bank.js" });
+vm.runInContext(gradeQuizSource, quizRuntime, { filename: "grade-quiz.js" });
+for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+  const chapterQuestions = vm.runInContext(`
+    selectedDifficulty = "${difficulty}";
+    levels
+      .map((level, index) => ({ level, index }))
+      .filter(({ level }) => level.world === "mist_swamp" && level.name !== "沼泽泥浆怪")
+      .map(({ index }) => {
+        resetGame(index);
+        return state.tasksList.find((task) => task.mistSwampShared).quiz.question;
+      });
+  `, quizRuntime);
+  assert.equal(new Set(chapterQuestions).size, 4, `${difficulty} should not repeat a Mist Swamp chapter question`);
+}
+
+for (const difficulty of ["normal", "hard", "crazy"]) {
+  const bossQuestions = vm.runInContext(`
+    selectedDifficulty = "${difficulty}";
+    Array.from({ length: 3 }, () => randomQuiz("mistSwampBoss", "mudMonsterLair").question);
+  `, quizRuntime);
+  assert.equal(new Set(bossQuestions).size, 3, `${difficulty} should rotate the final Boss question`);
+}
 
 const normalBossTasks = vm.runInContext(`
   selectedDifficulty = "normal";

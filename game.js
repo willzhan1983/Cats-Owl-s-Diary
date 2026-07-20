@@ -1748,7 +1748,8 @@ function prepareTask(entry, level, index) {
   task.taskType = task.taskType || taskSystemType(task.kind);
   task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
   task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
-  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, level.id || level.bg || level.name);
+  const quizScope = task.mistSwampShared && level.world === "mist_swamp" ? level.world : level.id || level.bg || level.name;
+  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, quizScope);
   return task;
 }
 
