@@ -4323,6 +4323,11 @@ const ART_PACK_PROP_KEYS = {
   lightSpore: "lightSpore",
   fireflyLantern: "fireflyLantern",
   mistBadge: "mistBadge",
+  fireflyCore: "fireflyCore",
+  glowSpore: "glowSpore",
+  bridgePlank: "bridgePlank",
+  bridgeKey: "bridgeKey",
+  mistGuardianBadge: "mistGuardianBadge",
   branchPile: "roadBranchPile",
   leafPile: "leafPile",
   roadStone: "roadStonePile",
@@ -4390,6 +4395,7 @@ const ART_PACK_SCENE_PROP_KEYS = {
   directionSign: "directionSign",
   correctExit: "safeFlag",
   bigMistLamp: "bigMistLamp",
+  mistLamp: "mistLamp",
   brokenBridge: "brokenBridge",
 };
 
@@ -4480,7 +4486,13 @@ const ART_PACK_ITEM_BOUNDS = {
   lightSpore: { x: -27, y: -29, w: 54, h: 54 },
   fireflyLantern: { x: -28, y: -38, w: 56, h: 72 },
   mistBadge: { x: -28, y: -30, w: 56, h: 56 },
+  fireflyCore: { x: -25, y: -31, w: 50, h: 62 },
+  glowSpore: { x: -27, y: -27, w: 54, h: 54 },
+  bridgePlank: { x: -34, y: -16, w: 68, h: 32 },
+  bridgeKey: { x: -28, y: -32, w: 56, h: 64 },
+  mistGuardianBadge: { x: -30, y: -32, w: 60, h: 60 },
   bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
+  mistLamp: { x: -32, y: -58, w: 64, h: 88 },
   brokenBridge: { x: -78, y: -55, w: 156, h: 110 },
   mushroomLampYellow: { x: -38, y: -60, w: 76, h: 76 },
   mushroomLampBlue: { x: -38, y: -60, w: 76, h: 76 },
@@ -4962,6 +4974,10 @@ function drawTasks() {
     ctx.globalAlpha = task.done ? 0.58 : 1;
     drawSpeech(task);
     if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
+    else if (isMistSwampLevel() && task.kind === "mist_lamp" && task.animal !== "bigMistLamp") {
+      const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
+      if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
+    }
     else drawAnimal(task.animal);
     drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
@@ -5013,11 +5029,13 @@ function drawMudBubbles() {
     const bob = Math.sin(bubble.phase) * 5;
     ctx.save();
     ctx.translate(bubble.x, bubble.y + bob);
-    ctx.fillStyle = "rgba(92, 112, 57, 0.78)";
-    circle(0, 0, bubble.r);
-    ctx.strokeStyle = "rgba(218, 239, 151, 0.8)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    if (!drawEffectArtPackImage("mudBubble", -bubble.r * 1.35, -bubble.r * 1.35, bubble.r * 2.7, bubble.r * 2.7)) {
+      ctx.fillStyle = "rgba(92, 112, 57, 0.78)";
+      circle(0, 0, bubble.r);
+      ctx.strokeStyle = "rgba(218, 239, 151, 0.8)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
     ctx.restore();
   }
 }
@@ -5202,7 +5220,7 @@ function drawMudBossCore(task) {
   ctx.save();
   ctx.translate(0, -22);
   ctx.scale(pulse, pulse);
-  drawMoonItem("mudCore");
+  if (!drawEffectArtPackImage("mudCore", -36, -36, 72, 72)) drawMoonItem("mudCore");
   ctx.restore();
 }
 

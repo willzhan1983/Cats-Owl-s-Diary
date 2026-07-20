@@ -180,3 +180,21 @@ test("final Mist Swamp props are registered with guarded render paths", () => {
   assert.match(game, /else if \(obstacle\.type === "softMud" && isMistSwampLevel\(\)\) drawGroundPuddle/);
   assert.match(game, /function drawMudBossCore\(task\)/);
 });
+
+test("remaining Mist Swamp art is registered behind Mist Swamp render guards", () => {
+  for (const [key, path] of [
+    ["fireflyCore", "assets/items/firefly_core.png"],
+    ["glowSpore", "assets/items/glow_spore.png"],
+    ["bridgePlank", "assets/items/bridge_plank.png"],
+    ["bridgeKey", "assets/items/bridge_key.png"],
+    ["mistGuardianBadge", "assets/items/mist_guardian_badge.png"],
+    ["mistLamp", "assets/props/mist_lamp.png"],
+  ]) {
+    assert.match(artAssets, new RegExp(`${key}: ["']${path}["']`));
+  }
+  assert.match(artAssets, /mudBubble: ["']\.\/assets\/effects\/mud_bubble\.png["']/);
+  assert.match(artAssets, /mudCore: ["']\.\/assets\/effects\/mud_core\.png["']/);
+  assert.match(game, /isMistSwampLevel\(\) && task\.kind === "mist_lamp" && task\.animal !== "bigMistLamp"/);
+  assert.match(game, /drawEffectArtPackImage\("mudBubble"/);
+  assert.match(game, /drawEffectArtPackImage\("mudCore"/);
+});
