@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { existsSync, readFileSync } from "node:fs";
+import { inflateSync } from "node:zlib";
 
 const root = new URL("../", import.meta.url);
 const game = readFileSync(new URL("game.js", root), "utf8");
@@ -14,6 +15,56 @@ function pngInfo(path) {
     height: bytes.readUInt32BE(20),
     colorType: bytes[25],
   };
+}
+
+function readRgbaPng(path) {
+  const png = readFileSync(new URL(path, root));
+  assert.equal(png.toString("hex", 0, 8), "89504e470d0a1a0a", `${path} must be PNG`);
+  let offset = 8;
+  let width;
+  let height;
+  let colorType;
+  const idat = [];
+  while (offset < png.length) {
+    const length = png.readUInt32BE(offset);
+    const type = png.toString("ascii", offset + 4, offset + 8);
+    const data = png.subarray(offset + 8, offset + 8 + length);
+    if (type === "IHDR") {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      assert.equal(data[8], 8, `${path} must use 8-bit channels`);
+      colorType = data[9];
+    }
+    if (type === "IDAT") idat.push(data);
+    offset += length + 12;
+  }
+  assert.equal(colorType, 6, `${path} must be RGBA`);
+  const packed = inflateSync(Buffer.concat(idat));
+  const stride = width * 4;
+  const pixels = Buffer.alloc(stride * height);
+  let input = 0;
+  for (let y = 0; y < height; y += 1) {
+    const filter = packed[input++];
+    for (let x = 0; x < stride; x += 1) {
+      const raw = packed[input++];
+      const left = x >= 4 ? pixels[y * stride + x - 4] : 0;
+      const up = y > 0 ? pixels[(y - 1) * stride + x] : 0;
+      const upperLeft = y > 0 && x >= 4 ? pixels[(y - 1) * stride + x - 4] : 0;
+      let value = raw;
+      if (filter === 1) value += left;
+      else if (filter === 2) value += up;
+      else if (filter === 3) value += Math.floor((left + up) / 2);
+      else if (filter === 4) {
+        const p = left + up - upperLeft;
+        const pa = Math.abs(p - left);
+        const pb = Math.abs(p - up);
+        const pc = Math.abs(p - upperLeft);
+        value += pa <= pb && pa <= pc ? left : pb <= pc ? up : upperLeft;
+      } else assert.equal(filter, 0, `${path} uses an unsupported PNG filter`);
+      pixels[y * stride + x] = value & 255;
+    }
+  }
+  return { width, height, pixels };
 }
 
 test("remaining Mist Swamp backgrounds use dedicated 1672x941 PNG files", () => {
@@ -57,3 +108,26 @@ test("Mist Swamp items, props, and effects are registered transparent PNG files"
     assert.deepEqual(pngInfo(path), { width: 512, height: 512, colorType: 6 });
   }
 });
+
+test("final Mist Swamp replacement art uses transparent PNG files", () => {
+  for (const path of [
+    "assets/props/broken_bridge.png",
+    "assets/obstacles/soft_mud.png",
+    "assets/props/mushroom_lamp_yellow.png",
+    "assets/props/mushroom_lamp_blue.png",
+    "assets/props/mushroom_lamp_purple.png",
+    "assets/props/mushroom_lamp_green.png",
+  ]) {
+    const { width, height, pixels } = readRgbaPng(path);
+    assert.equal(width, 512, `${path} width`);
+    assert.equal(height, 512, `${path} height`);
+    const alphaAt = (x, y) => pixels[(y * width + x) * 4 + 3];
+    assert.deepEqual(
+      [alphaAt(0, 0), alphaAt(width - 1, 0), alphaAt(0, height - 1), alphaAt(width - 1, height - 1)],
+      [0, 0, 0, 0],
+      `${path} corners must be transparent`,
+    );
+    assert.ok(Array.from({ length: width * height }, (_, index) => pixels[index * 4 + 3]).some(Boolean), `${path} must contain visible pixels`);
+  }
+});
+
