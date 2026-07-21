@@ -265,6 +265,41 @@ for (const layout of [bridgeLayouts.hard, bridgeLayouts.crazy]) {
   }
 }
 
+const repeatedBridgeLayouts = vm.runInContext(`
+  (() => {
+    const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    const originalRandom = Math.random;
+    const readLayout = () => state.tasksList
+      .filter((task) => task.kind === "mushroom_lamp")
+      .map(({ color, x, y }) => ({ color, x, y }));
+    const layouts = {};
+
+    for (const [difficulty, randomValues] of Object.entries({ hard: [0, 0.999], crazy: [0, 0.999] })) {
+      layouts[difficulty] = randomValues.map((value) => {
+        Math.random = () => value;
+        selectedDifficulty = difficulty;
+        resetGame(bridgeLevelIndex);
+        return readLayout();
+      });
+    }
+    Math.random = originalRandom;
+    return { layouts, slots: SLEEPING_BRIDGE_LAMP_SLOTS };
+  })();
+`, runtime);
+
+for (const [difficulty, layouts] of Object.entries(repeatedBridgeLayouts.layouts)) {
+  assert.equal(layouts.length, 2, `${difficulty} should reset twice`);
+  assert.notDeepEqual(plain(layouts[0]), plain(layouts[1]), `${difficulty} resets should produce different lamp layouts`);
+  for (const layout of layouts) {
+    const points = plain(layout);
+    assert.equal(new Set(points.map(({ x, y }) => `${x},${y}`)).size, 4, `${difficulty} layout should use four unique slots`);
+    assert.deepEqual(points.map(({ color }) => color), ["yellow", "blue", "purple", "green"], `${difficulty} layout color order`);
+    for (const point of points) {
+      assert.ok(repeatedBridgeLayouts.slots.some((slot) => slot.x === point.x && slot.y === point.y), `${difficulty} lamp should use a safe slot`);
+    }
+  }
+}
+
 const reservedBridgeAreas = [
   { x: 570, y: 300, distance: 120, label: "bridge repair" },
   { x: 230, y: 180, distance: 80, label: "plank one" },
@@ -642,6 +677,50 @@ assert.deepEqual(Array.from(fiveLevelCompletion.completionResults, (result) => p
   { name: "沉睡木桥", clear: true, settled: true, panel: true, pending: [] },
   { name: "迷雾核心", clear: true, settled: true, panel: true, pending: [] },
   { name: "沼泽泥浆怪", clear: true, settled: true, panel: true, pending: [] },
+]);
+
+const sleepingBridgeCompletionRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, sleepingBridgeCompletionRuntime, { filename: "mist-swamp-quiz-bank.js" });
+const sleepingBridgeDifficultyCompletion = vm.runInContext(`
+  (() => {
+    const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    return ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+      selectedDifficulty = difficulty;
+      resetGame(bridgeLevelIndex);
+
+      state.mushroomSequence.forEach((color) => {
+        interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color));
+      });
+      const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+      state.inventory.push(...bridge.need);
+      interactMistSwampTask(bridge);
+
+      const frog = state.tasksList.find((task) => task.animal === "littleFrog");
+      frog.following = true;
+      state.player.x = 884;
+      state.player.y = 200;
+      frog.x = 830;
+      frog.y = 210;
+      updateEscortNpcs(0.016);
+
+      scoreSummaryPanel.hidden = true;
+      state.running = true;
+      update(0);
+      return {
+        difficulty,
+        pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name),
+        levelClear: state.levelClear,
+        levelSettled: state.levelSettled,
+        normalScorePanelOpen: !scoreSummaryPanel.hidden,
+      };
+    });
+  })();
+`, sleepingBridgeCompletionRuntime);
+assert.deepEqual(plain(sleepingBridgeDifficultyCompletion), [
+  { difficulty: "easy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "normal", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "hard", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "crazy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
 ]);
 
 for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
