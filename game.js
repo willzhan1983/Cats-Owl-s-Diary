@@ -1707,7 +1707,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
-  messageEl.textContent = level.message;
+  messageEl.textContent = isMistSwampSleepingBridgeLevel() && ["hard", "crazy"].includes(selectedDifficulty)
+    ? "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。"
+    : level.message;
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
 }
 
@@ -1727,6 +1729,10 @@ function placeSleepingBridgeMushroomLamps() {
     task.x = slots[index].x;
     task.y = slots[index].y;
   });
+}
+
+function sleepingBridgeNearbyPriority(task) {
+  return isMistSwampSleepingBridgeLevel() && task.kind === "mushroom_lamp" && !task.done ? 1 : 0;
 }
 
 function prepareSleepingBridgeLevel() {
@@ -2896,12 +2902,15 @@ function checkTasks(dt) {
   const p = state.player;
   state.nearbyTask = null;
   let nearestDistance = Infinity;
+  let nearestPriority = -1;
   for (const task of state.tasksList) {
     if (isMistSwampLevel() && task.kind === "mud_bubble" && (!task.active || task.done)) continue;
     const near = distance(p, task) < 58;
     if (near) {
       const dist = distance(p, task);
-      if (dist < nearestDistance) {
+      const priority = sleepingBridgeNearbyPriority(task);
+      if (priority > nearestPriority || (priority === nearestPriority && dist < nearestDistance)) {
+        nearestPriority = priority;
         nearestDistance = dist;
         state.nearbyTask = task;
       }

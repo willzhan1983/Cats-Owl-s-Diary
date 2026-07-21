@@ -282,6 +282,48 @@ for (const slot of bridgeLayouts.slots) {
   }
 }
 
+const bridgeInteractionPriority = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "hard";
+    const originalBridgeRandom = Math.random;
+    Math.random = () => 0.999;
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+    const greenLamp = state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === "green");
+    const completedFrog = state.tasksList.find((task) => task.kind === "escort_npc");
+    completedFrog.done = true;
+    completedFrog.x = greenLamp.x;
+    completedFrog.y = greenLamp.y + 1;
+    state.player.x = greenLamp.x;
+    state.player.y = greenLamp.y + 2;
+    checkTasks(0.016);
+    const result = { nearbyKind: state.nearbyTask.kind, nearbyColor: state.nearbyTask.color, instruction: messageEl.textContent };
+    Math.random = originalBridgeRandom;
+    return result;
+  })();
+`, runtime);
+assert.deepEqual(plain(bridgeInteractionPriority), {
+  nearbyKind: "mushroom_lamp",
+  nearbyColor: "green",
+  instruction: "按 E 互动",
+});
+
+const bridgeStartMessages = vm.runInContext(`
+  (() => {
+    const bridgeStartLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    const result = {};
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      selectedDifficulty = difficulty;
+      resetGame(bridgeStartLevelIndex);
+      result[difficulty] = messageEl.textContent;
+    }
+    return result;
+  })();
+`, runtime);
+assert.equal(bridgeStartMessages.easy, "找齐木桥板，修好木桥，再带小青蛙去出口。");
+assert.equal(bridgeStartMessages.normal, "找齐木桥板，修好木桥，再带小青蛙去出口。");
+assert.equal(bridgeStartMessages.hard, "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。");
+assert.equal(bridgeStartMessages.crazy, "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。");
+
 const wrongMushroomFeedback = vm.runInContext(`
   selectedDifficulty = "hard";
   resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
