@@ -119,6 +119,19 @@ assert.deepEqual(
     { x: 800, y: 150, color: "green" },
   ]
 );
+assert.deepEqual(
+  plain(sleepingBridgeLevel.tasks.find((task) => task.kind === "broken_bridge")),
+  {
+    x: 570,
+    y: 300,
+    name: "沉睡木桥",
+    animal: "brokenBridge",
+    need: ["bridgePlank", "bridgePlank", "bridgePlank"],
+    kind: "broken_bridge",
+    done: false,
+    progress: 0,
+  }
+);
 
 for (const [name, expected] of [
   ["迷雾核心", [{ x: 180, y: 390 }, { x: 480, y: 420 }, { x: 820, y: 390 }]],
@@ -196,6 +209,155 @@ const trailCompletesAfterItems = vm.runInContext(`
   state.tasksList.find((task) => task.kind === "firefly_trail").done;
 `, runtime);
 assert.equal(trailCompletesAfterItems, true);
+
+const bridgeLayouts = vm.runInContext(`
+  const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+  const originalRandom = Math.random;
+  const readLayout = () => state.tasksList
+    .filter((task) => task.kind === "mushroom_lamp")
+    .map(({ color, x, y }) => ({ color, x, y }));
+
+  selectedDifficulty = "easy";
+  resetGame(bridgeLevelIndex);
+  const easy = readLayout();
+
+  selectedDifficulty = "normal";
+  resetGame(bridgeLevelIndex);
+  const normal = readLayout();
+
+  Math.random = () => 0;
+  selectedDifficulty = "hard";
+  resetGame(bridgeLevelIndex);
+  const hard = readLayout();
+
+  Math.random = () => 0.999;
+  selectedDifficulty = "crazy";
+  resetGame(bridgeLevelIndex);
+  const crazy = readLayout();
+  Math.random = originalRandom;
+
+  ({ easy, normal, hard, crazy, slots: SLEEPING_BRIDGE_LAMP_SLOTS });
+`, runtime);
+
+const fixedLampLayout = [
+  { color: "yellow", x: 300, y: 150 },
+  { color: "blue", x: 450, y: 150 },
+  { color: "purple", x: 600, y: 150 },
+  { color: "green", x: 800, y: 150 },
+];
+assert.deepEqual(plain(bridgeLayouts.easy), fixedLampLayout);
+assert.deepEqual(plain(bridgeLayouts.normal), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.hard), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.crazy), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.hard), plain(bridgeLayouts.crazy));
+
+for (const layout of [bridgeLayouts.hard, bridgeLayouts.crazy]) {
+  const points = plain(layout);
+  assert.equal(new Set(points.map(({ x, y }) => `${x},${y}`)).size, 4);
+  assert.deepEqual(points.map(({ color }) => color), ["yellow", "blue", "purple", "green"]);
+  for (const point of points) {
+    assert.ok(bridgeLayouts.slots.some((slot) => slot.x === point.x && slot.y === point.y));
+  }
+  for (let left = 0; left < points.length; left += 1) {
+    for (let right = left + 1; right < points.length; right += 1) {
+      assert.ok(Math.hypot(points[left].x - points[right].x, points[left].y - points[right].y) >= 110);
+    }
+  }
+}
+
+const repeatedBridgeLayouts = vm.runInContext(`
+  (() => {
+    const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    const originalRandom = Math.random;
+    const readLayout = () => state.tasksList
+      .filter((task) => task.kind === "mushroom_lamp")
+      .map(({ color, x, y }) => ({ color, x, y }));
+    const layouts = {};
+
+    for (const [difficulty, randomValues] of Object.entries({ hard: [0, 0.999], crazy: [0, 0.999] })) {
+      layouts[difficulty] = randomValues.map((value) => {
+        Math.random = () => value;
+        selectedDifficulty = difficulty;
+        resetGame(bridgeLevelIndex);
+        return readLayout();
+      });
+    }
+    Math.random = originalRandom;
+    return { layouts, slots: SLEEPING_BRIDGE_LAMP_SLOTS };
+  })();
+`, runtime);
+
+for (const [difficulty, layouts] of Object.entries(repeatedBridgeLayouts.layouts)) {
+  assert.equal(layouts.length, 2, `${difficulty} should reset twice`);
+  assert.notDeepEqual(plain(layouts[0]), plain(layouts[1]), `${difficulty} resets should produce different lamp layouts`);
+  for (const layout of layouts) {
+    const points = plain(layout);
+    assert.equal(new Set(points.map(({ x, y }) => `${x},${y}`)).size, 4, `${difficulty} layout should use four unique slots`);
+    assert.deepEqual(points.map(({ color }) => color), ["yellow", "blue", "purple", "green"], `${difficulty} layout color order`);
+    for (const point of points) {
+      assert.ok(repeatedBridgeLayouts.slots.some((slot) => slot.x === point.x && slot.y === point.y), `${difficulty} lamp should use a safe slot`);
+    }
+  }
+}
+
+const reservedBridgeAreas = [
+  { x: 570, y: 300, distance: 120, label: "bridge repair" },
+  { x: 230, y: 180, distance: 80, label: "plank one" },
+  { x: 440, y: 350, distance: 80, label: "plank two" },
+  { x: 690, y: 170, distance: 80, label: "plank three" },
+  { x: 680, y: 340, distance: 120, label: "frog start" },
+  { x: 830, y: 210, distance: 116, label: "exit interaction" },
+];
+for (const slot of bridgeLayouts.slots) {
+  for (const reserved of reservedBridgeAreas) {
+    assert.ok(
+      Math.hypot(slot.x - reserved.x, slot.y - reserved.y) >= reserved.distance,
+      `${slot.x},${slot.y} should avoid ${reserved.label}`
+    );
+  }
+}
+
+const bridgeInteractionPriority = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "hard";
+    const originalBridgeRandom = Math.random;
+    Math.random = () => 0.999;
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+    const greenLamp = state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === "green");
+    const completedFrog = state.tasksList.find((task) => task.kind === "escort_npc");
+    completedFrog.done = true;
+    completedFrog.x = greenLamp.x;
+    completedFrog.y = greenLamp.y + 1;
+    state.player.x = greenLamp.x;
+    state.player.y = greenLamp.y + 2;
+    checkTasks(0.016);
+    const result = { nearbyKind: state.nearbyTask.kind, nearbyColor: state.nearbyTask.color, instruction: messageEl.textContent };
+    Math.random = originalBridgeRandom;
+    return result;
+  })();
+`, runtime);
+assert.deepEqual(plain(bridgeInteractionPriority), {
+  nearbyKind: "mushroom_lamp",
+  nearbyColor: "green",
+  instruction: "按 E 互动",
+});
+
+const bridgeStartMessages = vm.runInContext(`
+  (() => {
+    const bridgeStartLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    const result = {};
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      selectedDifficulty = difficulty;
+      resetGame(bridgeStartLevelIndex);
+      result[difficulty] = messageEl.textContent;
+    }
+    return result;
+  })();
+`, runtime);
+assert.equal(bridgeStartMessages.easy, "找齐木桥板，修好木桥，再带小青蛙去出口。");
+assert.equal(bridgeStartMessages.normal, "找齐木桥板，修好木桥，再带小青蛙去出口。");
+assert.equal(bridgeStartMessages.hard, "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。");
+assert.equal(bridgeStartMessages.crazy, "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。");
 
 const wrongMushroomFeedback = vm.runInContext(`
   selectedDifficulty = "hard";
@@ -515,6 +677,50 @@ assert.deepEqual(Array.from(fiveLevelCompletion.completionResults, (result) => p
   { name: "沉睡木桥", clear: true, settled: true, panel: true, pending: [] },
   { name: "迷雾核心", clear: true, settled: true, panel: true, pending: [] },
   { name: "沼泽泥浆怪", clear: true, settled: true, panel: true, pending: [] },
+]);
+
+const sleepingBridgeCompletionRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, sleepingBridgeCompletionRuntime, { filename: "mist-swamp-quiz-bank.js" });
+const sleepingBridgeDifficultyCompletion = vm.runInContext(`
+  (() => {
+    const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+    return ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+      selectedDifficulty = difficulty;
+      resetGame(bridgeLevelIndex);
+
+      state.mushroomSequence.forEach((color) => {
+        interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color));
+      });
+      const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+      state.inventory.push(...bridge.need);
+      interactMistSwampTask(bridge);
+
+      const frog = state.tasksList.find((task) => task.animal === "littleFrog");
+      frog.following = true;
+      state.player.x = 884;
+      state.player.y = 200;
+      frog.x = 830;
+      frog.y = 210;
+      updateEscortNpcs(0.016);
+
+      scoreSummaryPanel.hidden = true;
+      state.running = true;
+      update(0);
+      return {
+        difficulty,
+        pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name),
+        levelClear: state.levelClear,
+        levelSettled: state.levelSettled,
+        normalScorePanelOpen: !scoreSummaryPanel.hidden,
+      };
+    });
+  })();
+`, sleepingBridgeCompletionRuntime);
+assert.deepEqual(plain(sleepingBridgeDifficultyCompletion), [
+  { difficulty: "easy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "normal", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "hard", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "crazy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
 ]);
 
 for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {

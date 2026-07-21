@@ -6,6 +6,8 @@ const map = readFileSync(new URL("../world-map.js", import.meta.url), "utf8");
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const names = ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"];
 
+assert.match(index, /game\.js\?v=mist-swamp-bridge-layout-20260721/);
+
 function levelBlock(name) {
   const start = game.indexOf(`name: "${name}"`);
   const next = game.indexOf("\n  },\n  {", start);
