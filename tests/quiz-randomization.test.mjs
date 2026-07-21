@@ -49,7 +49,12 @@ assert.ok(
   "统一随机逻辑应在所有附加题库加载后安装"
 );
 
-for (const script of ["game.js", "mist-swamp-quiz-bank.js", "grade-quiz.js", "art-assets.js"]) {
+assert.ok(
+  index.includes("./game.js?v=mist-swamp-bridge-layout-20260721"),
+  "game.js should use the current Mist Swamp cache version",
+);
+
+for (const script of ["mist-swamp-quiz-bank.js", "grade-quiz.js", "art-assets.js"]) {
   assert.ok(
     index.includes(`./${script}?v=mist-swamp-final-20260720c`),
     `${script} should use the current Mist Swamp cache version`,
