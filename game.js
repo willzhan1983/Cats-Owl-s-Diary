@@ -59,6 +59,15 @@ const BRIDGE_PLANK_COUNT_BY_DIFFICULTY = { easy: 2, normal: 2, hard: 3, crazy: 3
 const MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
 const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy: 2 };
 const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
+const SLEEPING_BRIDGE_REPAIR_ANCHOR = Object.freeze({ x: 570, y: 300 });
+const SLEEPING_BRIDGE_LAMP_SLOTS = Object.freeze([
+  Object.freeze({ x: 120, y: 115 }),
+  Object.freeze({ x: 280, y: 105 }),
+  Object.freeze({ x: 440, y: 115 }),
+  Object.freeze({ x: 600, y: 100 }),
+  Object.freeze({ x: 760, y: 95 }),
+  Object.freeze({ x: 900, y: 110 }),
+]);
 
 const text = {
   start: "\u5f00\u59cb",
@@ -1382,7 +1391,7 @@ const levels = [
       mushroomLampTask(450, 150, "blue", "蓝色蘑菇灯"),
       mushroomLampTask(600, 150, "purple", "紫色蘑菇灯"),
       mushroomLampTask(800, 150, "green", "绿色蘑菇灯"),
-      { x: 550, y: 280, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
+      { x: SLEEPING_BRIDGE_REPAIR_ANCHOR.x, y: SLEEPING_BRIDGE_REPAIR_ANCHOR.y, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
       escortNpcTask(680, 340, "小青蛙", "littleFrog", "mistBridgeExit"),
     ],
     mushroomSequence: ["yellow", "blue", "purple", "green"],
@@ -1702,6 +1711,24 @@ function resetGame(levelIndex = 0, keepHearts = false) {
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
 }
 
+function randomSleepingBridgeLampSlots() {
+  const slots = SLEEPING_BRIDGE_LAMP_SLOTS.map((slot) => ({ ...slot }));
+  for (let index = slots.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [slots[index], slots[swapIndex]] = [slots[swapIndex], slots[index]];
+  }
+  return slots.slice(0, 4);
+}
+
+function placeSleepingBridgeMushroomLamps() {
+  if (!isMistSwampSleepingBridgeLevel() || !["hard", "crazy"].includes(selectedDifficulty)) return;
+  const slots = randomSleepingBridgeLampSlots();
+  state.tasksList.filter((task) => task.kind === "mushroom_lamp").forEach((task, index) => {
+    task.x = slots[index].x;
+    task.y = slots[index].y;
+  });
+}
+
 function prepareSleepingBridgeLevel() {
   if (!isMistSwampSleepingBridgeLevel()) return;
   const plankCount = BRIDGE_PLANK_COUNT_BY_DIFFICULTY[selectedDifficulty] || 2;
@@ -1713,6 +1740,7 @@ function prepareSleepingBridgeLevel() {
   state.tasksList.filter((task) => task.kind === "mushroom_lamp").forEach((task) => {
     task.optional = mushroomsOptional;
   });
+  placeSleepingBridgeMushroomLamps();
   state.tasksList.filter((task) => task.mistSwampShared).forEach((task) => {
     if (task.done) return;
     task.done = true;

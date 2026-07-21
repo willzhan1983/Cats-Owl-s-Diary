@@ -119,6 +119,19 @@ assert.deepEqual(
     { x: 800, y: 150, color: "green" },
   ]
 );
+assert.deepEqual(
+  plain(sleepingBridgeLevel.tasks.find((task) => task.kind === "broken_bridge")),
+  {
+    x: 570,
+    y: 300,
+    name: "沉睡木桥",
+    animal: "brokenBridge",
+    need: ["bridgePlank", "bridgePlank", "bridgePlank"],
+    kind: "broken_bridge",
+    done: false,
+    progress: 0,
+  }
+);
 
 for (const [name, expected] of [
   ["迷雾核心", [{ x: 180, y: 390 }, { x: 480, y: 420 }, { x: 820, y: 390 }]],
@@ -196,6 +209,78 @@ const trailCompletesAfterItems = vm.runInContext(`
   state.tasksList.find((task) => task.kind === "firefly_trail").done;
 `, runtime);
 assert.equal(trailCompletesAfterItems, true);
+
+const bridgeLayouts = vm.runInContext(`
+  const bridgeLevelIndex = levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥");
+  const originalRandom = Math.random;
+  const readLayout = () => state.tasksList
+    .filter((task) => task.kind === "mushroom_lamp")
+    .map(({ color, x, y }) => ({ color, x, y }));
+
+  selectedDifficulty = "easy";
+  resetGame(bridgeLevelIndex);
+  const easy = readLayout();
+
+  selectedDifficulty = "normal";
+  resetGame(bridgeLevelIndex);
+  const normal = readLayout();
+
+  Math.random = () => 0;
+  selectedDifficulty = "hard";
+  resetGame(bridgeLevelIndex);
+  const hard = readLayout();
+
+  Math.random = () => 0.999;
+  selectedDifficulty = "crazy";
+  resetGame(bridgeLevelIndex);
+  const crazy = readLayout();
+  Math.random = originalRandom;
+
+  ({ easy, normal, hard, crazy, slots: SLEEPING_BRIDGE_LAMP_SLOTS });
+`, runtime);
+
+const fixedLampLayout = [
+  { color: "yellow", x: 300, y: 150 },
+  { color: "blue", x: 450, y: 150 },
+  { color: "purple", x: 600, y: 150 },
+  { color: "green", x: 800, y: 150 },
+];
+assert.deepEqual(plain(bridgeLayouts.easy), fixedLampLayout);
+assert.deepEqual(plain(bridgeLayouts.normal), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.hard), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.crazy), fixedLampLayout);
+assert.notDeepEqual(plain(bridgeLayouts.hard), plain(bridgeLayouts.crazy));
+
+for (const layout of [bridgeLayouts.hard, bridgeLayouts.crazy]) {
+  const points = plain(layout);
+  assert.equal(new Set(points.map(({ x, y }) => `${x},${y}`)).size, 4);
+  assert.deepEqual(points.map(({ color }) => color), ["yellow", "blue", "purple", "green"]);
+  for (const point of points) {
+    assert.ok(bridgeLayouts.slots.some((slot) => slot.x === point.x && slot.y === point.y));
+  }
+  for (let left = 0; left < points.length; left += 1) {
+    for (let right = left + 1; right < points.length; right += 1) {
+      assert.ok(Math.hypot(points[left].x - points[right].x, points[left].y - points[right].y) >= 110);
+    }
+  }
+}
+
+const reservedBridgeAreas = [
+  { x: 570, y: 300, distance: 120, label: "bridge repair" },
+  { x: 230, y: 180, distance: 80, label: "plank one" },
+  { x: 440, y: 350, distance: 80, label: "plank two" },
+  { x: 690, y: 170, distance: 80, label: "plank three" },
+  { x: 680, y: 340, distance: 120, label: "frog start" },
+  { x: 830, y: 210, distance: 116, label: "exit interaction" },
+];
+for (const slot of bridgeLayouts.slots) {
+  for (const reserved of reservedBridgeAreas) {
+    assert.ok(
+      Math.hypot(slot.x - reserved.x, slot.y - reserved.y) >= reserved.distance,
+      `${slot.x},${slot.y} should avoid ${reserved.label}`
+    );
+  }
+}
 
 const wrongMushroomFeedback = vm.runInContext(`
   selectedDifficulty = "hard";
