@@ -378,10 +378,10 @@ const sleepingBridgeLevel = mistLevels.find((level) => level.name === "沉睡木
 assert.deepEqual(
   plain(sleepingBridgeLevel.tasks.filter((task) => task.kind === "mushroom_lamp").map(({ x, y, color }) => ({ x, y, color }))),
   [
-    { x: 300, y: 150, color: "yellow" },
-    { x: 450, y: 150, color: "blue" },
-    { x: 600, y: 150, color: "purple" },
-    { x: 800, y: 150, color: "green" },
+    { x: 420, y: 100, color: "yellow" },
+    { x: 540, y: 75, color: "blue" },
+    { x: 660, y: 75, color: "purple" },
+    { x: 780, y: 75, color: "green" },
   ]
 );
 assert.deepEqual(
@@ -506,10 +506,10 @@ const bridgeLayouts = vm.runInContext(`
 `, runtime);
 
 const fixedLampLayout = [
-  { color: "yellow", x: 300, y: 150 },
-  { color: "blue", x: 450, y: 150 },
-  { color: "purple", x: 600, y: 150 },
-  { color: "green", x: 800, y: 150 },
+  { color: "yellow", x: 420, y: 100 },
+  { color: "blue", x: 540, y: 75 },
+  { color: "purple", x: 660, y: 75 },
+  { color: "green", x: 780, y: 75 },
 ];
 assert.deepEqual(plain(bridgeLayouts.easy), fixedLampLayout);
 assert.deepEqual(plain(bridgeLayouts.normal), fixedLampLayout);
@@ -575,6 +575,7 @@ const reservedBridgeAreas = [
   { x: 830, y: 210, distance: 116, label: "exit interaction" },
 ];
 for (const slot of bridgeLayouts.slots) {
+  assert.ok(slot.x >= 420, `${slot.x},${slot.y} should stay clear of the quest card`);
   for (const reserved of reservedBridgeAreas) {
     assert.ok(
       Math.hypot(slot.x - reserved.x, slot.y - reserved.y) >= reserved.distance,
@@ -636,6 +637,29 @@ const wrongMushroomFeedback = vm.runInContext(`
 assert.equal(wrongMushroomFeedback.step, 0);
 assert.match(wrongMushroomFeedback.priorityMessage, /^再看一看萤火虫提示哦。/);
 assert.ok(wrongMushroomFeedback.priorityMessageUntil > 0);
+
+const correctMushroomFeedback = vm.runInContext(`
+  selectedDifficulty = "normal";
+  resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+  acceptMistQuest();
+  const yellowLamp = state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === "yellow");
+  interactMistSwampTask(yellowLamp);
+  ({ lit: yellowLamp.lit, step: state.mushroomStep, message: messageEl.textContent });
+`, runtime);
+assert.deepEqual(plain(correctMushroomFeedback), {
+  lit: true,
+  step: 1,
+  message: "黄色蘑菇灯亮啦！下一盏：蓝色蘑菇灯。",
+});
+
+const mushroomLampRenderAlpha = vm.runInContext(`
+  ({
+    litDone: taskRenderAlpha({ kind: "mushroom_lamp", lit: true, done: true }),
+    ordinaryDone: taskRenderAlpha({ kind: "delivery", done: true }),
+    unfinished: taskRenderAlpha({ kind: "mushroom_lamp", lit: false, done: false }),
+  });
+`, runtime);
+assert.deepEqual(plain(mushroomLampRenderAlpha), { litDone: 1, ordinaryDone: 0.58, unfinished: 1 });
 
 for (const [difficulty, plankCount] of Object.entries({ easy: 2, normal: 2, hard: 3, crazy: 3 })) {
   const bridgeSetup = vm.runInContext(`

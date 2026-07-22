@@ -50,7 +50,7 @@ assert.ok(
 );
 
 assert.ok(
-  index.includes("./game.js?v=mist-swamp-quest-guidance-20260722"),
+  index.includes("./game.js?v=sleeping-bridge-lamps-20260722"),
   "game.js should use the current Mist Swamp cache version",
 );
 

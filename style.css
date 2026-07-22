@@ -354,6 +354,10 @@ canvas {
   box-shadow: 0 10px 24px rgba(20, 47, 45, 0.24);
 }
 
+.mist-quest-card.is-sleeping-bridge {
+  width: min(240px, 38vw);
+}
+
 .mist-quest-card[hidden] { display: none; }
 .mist-quest-heading { display: flex; justify-content: space-between; gap: 8px; }
 .mist-quest-heading span { color: #ffe26a; font-weight: 900; }
@@ -875,6 +879,10 @@ button {
     overflow: auto;
     padding: 9px;
     font-size: 12px;
+  }
+
+  .mist-quest-card.is-sleeping-bridge {
+    width: min(220px, 38vw);
   }
 
   .quiz-options {
