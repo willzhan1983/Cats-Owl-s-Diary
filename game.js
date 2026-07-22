@@ -1591,11 +1591,16 @@ function mistQuestObjectiveRows() {
     { label: "点亮雾灯", current: completedMistTaskCount("mist_lamp"), target: 2 },
     { label: "雾与光答题", current: state.tasksList.some((task) => task.mistSwampShared && task.done) ? 1 : 0, target: 1 },
   ];
-  if (level.name === "萤火虫小径") return [
-    { label: "跟随真正光点", current: state.fireflyTrailIndex, target: state.fireflyTrail.filter((point) => !point.decoy).length },
-    { label: "收集发光孢子", current: collectedMistItemCount("glowSpore"), target: 4 },
-    { label: "找到木桥钥匙", current: collectedMistItemCount("bridgeKey"), target: 1 },
-  ];
+  if (level.name === "萤火虫小径") {
+    const trail = state.tasksList.find((task) => task.kind === "firefly_trail");
+    const quiz = state.tasksList.find((task) => task.mistSwampShared);
+    if (trail?.done && quiz) return [{ label: `完成${quiz.name}`, current: quiz.done ? 1 : 0, target: 1 }];
+    return [
+      { label: "跟随真正光点", current: state.fireflyTrailIndex, target: state.fireflyTrail.filter((point) => !point.decoy).length },
+      { label: "收集发光孢子", current: collectedMistItemCount("glowSpore"), target: 4 },
+      { label: "找到木桥钥匙", current: collectedMistItemCount("bridgeKey"), target: 1 },
+    ];
+  }
   if (level.name === "沉睡木桥") {
     const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
     const rows = [
@@ -1617,7 +1622,12 @@ function mistQuestObjectiveRows() {
     if (litLamps < 3) return [{ label: "点亮大雾灯", current: litLamps, target: 3 }];
     const clearedBubbles = completedMistTaskCount("mist_bubble");
     if (clearedBubbles < 3) return [{ label: "清除黑雾泡泡", current: clearedBubbles, target: 3 }];
-    return [{ label: "安抚迷雾精灵", current: mistQuestNpcTask().done ? 1 : 0, target: 1 }];
+    const core = mistQuestNpcTask();
+    if (!core.done) return [{ label: "安抚迷雾精灵", current: 0, target: 1 }];
+    const quiz = state.tasksList.find((task) => task.mistSwampShared);
+    return quiz
+      ? [{ label: `完成${quiz.name}`, current: quiz.done ? 1 : 0, target: 1 }]
+      : [{ label: "安抚迷雾精灵", current: 1, target: 1 }];
   }
   const boss = mistQuestNpcTask();
   if (boss.phase === 1) return [{ label: "同时点亮大雾灯", current: state.tasksList.filter((task) => task.kind === "mist_lamp" && isMistLampActive(task)).length, target: 3 }];
@@ -3838,6 +3848,10 @@ function interactMistSwampTask(task) {
     return true;
   }
   if (task.kind === "mist_core") {
+    if (task.done) {
+      messageEl.textContent = "迷雾精灵已经恢复清醒啦！";
+      return true;
+    }
     const prerequisites = state.tasksList.filter((entry) => entry.kind === "mist_lamp" || entry.kind === "mist_bubble");
     if (!prerequisites.every((entry) => entry.done)) {
       messageEl.textContent = "先点亮大雾灯并清除黑雾泡泡。";

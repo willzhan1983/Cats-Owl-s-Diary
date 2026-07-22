@@ -754,6 +754,38 @@ assert.equal(bridgeQuestHudRows.normal.some((label) => label.startsWith("蘑菇�
 assert.ok(bridgeQuestHudRows.hard.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
 assert.ok(bridgeQuestHudRows.crazy.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
 
+const requiredQuizGuidanceRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, requiredQuizGuidanceRuntime, { filename: "mist-swamp-quiz-bank.js" });
+
+const fireflyTrailQuizGuidance = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "萤火虫小径"));
+    acceptMistQuest();
+    for (const collectible of state.collectibles) {
+      state.player.x = collectible.x;
+      state.player.y = collectible.y;
+      checkCollectibles();
+    }
+    state.fireflyTrailIndex = state.fireflyTrail.filter((point) => !point.decoy).length;
+    updateMistSwampMechanisms(0.016);
+    const quiz = state.tasksList.find((task) => task.mistSwampShared);
+    const beforeQuiz = {
+      rows: mistQuestObjectiveRows().map((row) => row.label),
+      hint: mistQuestNextHint(),
+      status: state.mistQuest.status,
+      ready: updateMistQuestReadiness(),
+      quizDone: quiz.done,
+    };
+    answerQuiz(quiz, quiz.quiz.answer);
+    const readyAfterQuiz = updateMistQuestReadiness();
+    return {
+      beforeQuiz,
+      readyAfterQuiz,
+      finalStatus: state.mistQuest.status,
+    };
+  })();
+`, requiredQuizGuidanceRuntime);
 const mistCoreQuestHudPhases = vm.runInContext(`
   (() => {
     selectedDifficulty = "normal";
@@ -770,15 +802,74 @@ const mistCoreQuestHudPhases = vm.runInContext(`
     phases.push(mistQuestObjectiveRows().map((row) => row.label));
     state.tasksList.filter((task) => task.kind === "mist_bubble").forEach((task) => interactMistSwampTask(task));
     phases.push(mistQuestObjectiveRows().map((row) => row.label));
-    return phases;
+    const core = mistQuestNpcTask();
+    state.hearts = 4;
+    state.time = 50;
+    const tasksBeforeCore = state.tasks;
+    interactMistSwampTask(core);
+    phases.push(mistQuestObjectiveRows().map((row) => row.label));
+    const beforeQuiz = {
+      hint: mistQuestNextHint(),
+      status: state.mistQuest.status,
+      ready: updateMistQuestReadiness(),
+    };
+    const afterFirstCoreInteraction = {
+      done: core.done,
+      hearts: state.hearts,
+      time: state.time,
+      tasks: state.tasks,
+      badges: state.inventory.filter((item) => item === "mistBadge").length,
+    };
+    interactMistSwampTask(core);
+    const afterRepeatedCoreInteraction = {
+      done: core.done,
+      hearts: state.hearts,
+      time: state.time,
+      tasks: state.tasks,
+      badges: state.inventory.filter((item) => item === "mistBadge").length,
+    };
+    const quiz = state.tasksList.find((task) => task.mistSwampShared);
+    answerQuiz(quiz, quiz.quiz.answer);
+    const readyAfterQuiz = updateMistQuestReadiness();
+    return { phases, tasksBeforeCore, beforeQuiz, afterFirstCoreInteraction, afterRepeatedCoreInteraction, readyAfterQuiz, finalStatus: state.mistQuest.status };
   })();
-`, runtime);
-assert.deepEqual(plain(mistCoreQuestHudPhases), [
+`, requiredQuizGuidanceRuntime);
+assert.deepEqual(plain(mistCoreQuestHudPhases.afterFirstCoreInteraction), {
+  done: true,
+  hearts: 7,
+  time: 55,
+  tasks: mistCoreQuestHudPhases.tasksBeforeCore + 1,
+  badges: 1,
+});
+assert.deepEqual(
+  plain(mistCoreQuestHudPhases.afterRepeatedCoreInteraction),
+  plain(mistCoreQuestHudPhases.afterFirstCoreInteraction)
+);
+assert.deepEqual(plain(fireflyTrailQuizGuidance), {
+  beforeQuiz: {
+    rows: ["完成萤火虫观察题"],
+    hint: "下一步：完成萤火虫观察题（0/1）",
+    status: "active",
+    ready: false,
+    quizDone: false,
+  },
+  readyAfterQuiz: true,
+  finalStatus: "ready",
+});
+assert.deepEqual(plain(mistCoreQuestHudPhases.phases), [
   ["收集光之孢子"],
   ["点亮大雾灯"],
   ["清除黑雾泡泡"],
   ["安抚迷雾精灵"],
+  ["完成迷雾核心题"],
 ]);
+assert.deepEqual(plain(mistCoreQuestHudPhases.beforeQuiz), {
+  hint: "下一步：完成迷雾核心题（0/1）",
+  status: "active",
+  ready: false,
+});
+assert.equal(mistCoreQuestHudPhases.readyAfterQuiz, true);
+assert.equal(mistCoreQuestHudPhases.finalStatus, "ready");
 
 const frogEscort = vm.runInContext(`
   selectedDifficulty = "normal";
