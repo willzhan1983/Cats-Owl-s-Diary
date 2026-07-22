@@ -606,7 +606,7 @@ const bridgeInteractionPriority = vm.runInContext(`
 assert.deepEqual(plain(bridgeInteractionPriority), {
   nearbyKind: "mushroom_lamp",
   nearbyColor: "green",
-  instruction: "按 E 和小青蛙对话（查看任务）。",
+  instruction: "按 E 点亮绿色蘑菇灯。",
 });
 
 const bridgeStartMessages = vm.runInContext(`
@@ -753,6 +753,38 @@ assert.equal(bridgeQuestHudRows.easy.some((label) => label.startsWith("蘑菇灯
 assert.equal(bridgeQuestHudRows.normal.some((label) => label.startsWith("蘑菇灯顺序")), false);
 assert.ok(bridgeQuestHudRows.hard.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
 assert.ok(bridgeQuestHudRows.crazy.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
+
+const chargedBossQuestGuidance = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沼泽泥浆怪"));
+    acceptMistQuest();
+    const boss = mistQuestNpcTask();
+    boss.phase = 3;
+    boss.chargeReady = true;
+    state.tasksList.filter((task) => task.kind === "mist_lamp" || task.kind === "mud_bubble").forEach((task) => { task.done = true; });
+    state.lanternCharge = state.lanternChargeRequired;
+    const beforeQuiz = {
+      rows: mistQuestObjectiveRows(),
+      hint: mistQuestNextHint(),
+      ready: updateMistQuestReadiness(),
+      status: state.mistQuest.status,
+    };
+    boss.done = true;
+    const readyAfterQuiz = updateMistQuestReadiness();
+    return { beforeQuiz, readyAfterQuiz, finalStatus: state.mistQuest.status };
+  })();
+`, runtime);
+assert.deepEqual(plain(chargedBossQuestGuidance), {
+  beforeQuiz: {
+    rows: [{ label: "按 E 开始最终答题", current: 0, target: 1 }],
+    hint: "下一步：按 E 开始最终答题（0/1）",
+    ready: false,
+    status: "active",
+  },
+  readyAfterQuiz: true,
+  finalStatus: "ready",
+});
 
 const requiredQuizGuidanceRuntime = loadGameRuntime();
 vm.runInContext(mistQuizSource, requiredQuizGuidanceRuntime, { filename: "mist-swamp-quiz-bank.js" });

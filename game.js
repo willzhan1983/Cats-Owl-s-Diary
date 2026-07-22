@@ -1632,7 +1632,8 @@ function mistQuestObjectiveRows() {
   const boss = mistQuestNpcTask();
   if (boss.phase === 1) return [{ label: "同时点亮大雾灯", current: state.tasksList.filter((task) => task.kind === "mist_lamp" && isMistLampActive(task)).length, target: 3 }];
   if (boss.phase === 2) return [{ label: "清除泥浆泡泡", current: state.mudBubbles.filter((bubble) => bubble.done).length, target: state.mudBubbles.length }];
-  return [{ label: "灯笼充能与答题", current: boss.done ? 1 : Math.min(state.lanternCharge, state.lanternChargeRequired), target: boss.done ? 1 : state.lanternChargeRequired }];
+  if (state.lanternCharge < state.lanternChargeRequired) return [{ label: "萤火虫灯笼充能", current: state.lanternCharge, target: state.lanternChargeRequired }];
+  return [{ label: "按 E 开始最终答题", current: boss.done ? 1 : 0, target: 1 }];
 }
 
 function mistQuestNextHint() {
@@ -3155,7 +3156,7 @@ function checkTasks(dt) {
       }
     }
     const activeQuestMechanic = state.mistQuest?.status === "active" && ["mist_core", "mud_boss"].includes(task.kind);
-    if (near && isMistQuestNpc(task) && !activeQuestMechanic) {
+    if (near && state.nearbyTask === task && isMistQuestNpc(task) && !activeQuestMechanic) {
       const marker = state.mistQuest.status === "locked" ? "接任务" : state.mistQuest.status === "ready" ? "交任务" : "查看任务";
       messageEl.textContent = `按 E 和${task.name}对话（${marker}）。`;
       continue;
@@ -3251,7 +3252,9 @@ function checkTasks(dt) {
       completeTask(task, task.x, task.y);
     }
   }
-  if (state.nearbyTask?.done && state.nearbyTask.kind === "direction_sign") {
+  if (isMistSwampSleepingBridgeLevel() && state.mistQuest?.status === "active" && state.nearbyTask?.kind === "mushroom_lamp" && !state.nearbyTask.done) {
+    messageEl.textContent = mistQuestInteractionHint(state.nearbyTask);
+  } else if (state.nearbyTask?.done && state.nearbyTask.kind === "direction_sign") {
     messageEl.textContent = state.nearbyTask.directions?.join("  ") || "→ 橡果镇";
   } else if (state.nearbyTask?.done && state.nearbyTask.kind === "road_clear") {
     messageEl.textContent = "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
