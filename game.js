@@ -1334,6 +1334,14 @@ const levels = [
     time: 90,
     start: { x: 120, y: 390 },
     message: "跟随温柔的光，点亮迷雾沼泽入口。",
+    mistQuest: {
+      npcAnimal: "ruru",
+      introLines: ["旧路被迷雾挡住啦。", "请收集萤火虫灯芯，点亮两盏雾灯，再回来告诉我。"],
+      activeHint: "收集萤火虫灯芯，点亮入口的两盏雾灯。",
+      readyHint: "入口的雾已经散开，回去告诉 Ruru。",
+      completeLines: ["太棒啦，前面的旧路重新亮起来了！"],
+      objectiveLabels: ["收集萤火虫灯芯", "点亮雾灯", "雾与光答题"],
+    },
     collectibles: [
       item(250, 190, "fireflyCore", "萤火虫灯芯"),
       item(470, 330, "fireflyCore", "萤火虫灯芯"),
@@ -1354,6 +1362,14 @@ const levels = [
     time: 95,
     start: { x: 110, y: 390 },
     message: "收集发光孢子，找到木桥钥匙。",
+    mistQuest: {
+      npcAnimal: "fireflyGuide",
+      introLines: ["跟紧温暖的金色光点。", "收集四个发光孢子，并找到木桥钥匙。"],
+      activeHint: "跟随真正的萤火虫路线，找齐发光孢子和木桥钥匙。",
+      readyHint: "小径已经走通，回到萤火虫向导身边。",
+      completeLines: ["你已经学会辨认真正的萤火虫路线啦！"],
+      objectiveLabels: ["跟随真正光点", "收集发光孢子", "找到木桥钥匙"],
+    },
     collectibles: [
       item(250, 330, "glowSpore", "发光孢子"),
       item(390, 210, "glowSpore", "发光孢子"),
@@ -1381,6 +1397,14 @@ const levels = [
     time: 100,
     start: { x: 120, y: 400 },
     message: "找齐木桥板，修好木桥，再带小青蛙去出口。",
+    mistQuest: {
+      npcAnimal: "littleFrog",
+      introLines: ["木桥坏掉啦，我不敢过去。", "请找齐木桥板、修好桥，再带我去出口。"],
+      activeHint: "找木桥板、修好木桥，再护送小青蛙到出口。",
+      readyHint: "小青蛙已经安全到达，和它说说话吧。",
+      completeLines: ["谢谢你修好木桥，还安全地带我过来了！"],
+      objectiveLabels: ["收集木桥板", "修复木桥", "蘑菇灯顺序", "护送小青蛙"],
+    },
     collectibles: [
       item(230, 180, "bridgePlank", "木桥板"),
       item(440, 350, "bridgePlank", "木桥板"),
@@ -1408,6 +1432,14 @@ const levels = [
     time: 110,
     start: { x: 120, y: 390 },
     message: "收集光之孢子，帮助迷雾精灵恢复清醒。",
+    mistQuest: {
+      npcAnimal: "mistSpirit",
+      introLines: ["迷雾核心被黑雾泡泡围住了。", "请收集光之孢子，点亮大雾灯，让这里重新发光。"],
+      activeHint: "点亮大雾灯，依次清除黑雾泡泡，再安抚迷雾精灵。",
+      readyHint: "迷雾精灵恢复清醒了，回去和它说话。",
+      completeLines: ["谢谢你，沼泽重新亮起来了！"],
+      objectiveLabels: ["收集光之孢子", "点亮大雾灯", "清除黑雾泡泡", "安抚迷雾精灵"],
+    },
     collectibles: [
       item(180, 390, "lightSpore", "光之孢子"),
       item(480, 420, "lightSpore", "光之孢子"),
@@ -1432,6 +1464,14 @@ const levels = [
     time: 120,
     start: { x: 120, y: 390 },
     message: "用光和知识帮助沼泽守护者。",
+    mistQuest: {
+      npcAnimal: "mudMonster",
+      introLines: ["沼泽守护者被黑雾和泥浆困住了。", "先点亮三盏大雾灯，我们一起帮助它恢复清醒。"],
+      activeHint: "按当前阶段完成点灯、清泡泡和灯笼充能。",
+      readyHint: "守护者恢复平静了，去听听它想说什么。",
+      completeLines: ["谢谢你！我会继续守护这片沼泽。"],
+      objectiveLabels: ["同时点亮大雾灯", "清除泥浆泡泡", "灯笼充能与答题"],
+    },
     collectibles: [
       item(190, 390, "lightSpore", "光之孢子"),
       item(450, 410, "lightSpore", "光之孢子"),
@@ -1501,6 +1541,41 @@ function isMistSwampSleepingBridgeLevel() {
 function isMistSwampMistCoreLevel() {
   const level = levels[state.levelIndex];
   return level?.world === "mist_swamp" && level.name === "迷雾核心";
+}
+
+function createMistQuestState(level, tasks) {
+  if (level?.world !== "mist_swamp" || !level.mistQuest) return null;
+  const npcTask = tasks.find((task) => task.animal === level.mistQuest.npcAnimal);
+  return {
+    status: "locked",
+    npcTaskId: npcTask?.id || null,
+    readyAt: 0,
+    lastProgressAt: performance.now(),
+    progressSignature: "",
+    pendingReward: null,
+  };
+}
+
+function mistQuestNpcTask() {
+  if (!isMistSwampLevel() || !state.mistQuest) return null;
+  return state.tasksList.find((task) => task.id === state.mistQuest.npcTaskId) || null;
+}
+
+function isMistQuestNpc(task) {
+  return !!task && !!state?.mistQuest && task.id === state.mistQuest.npcTaskId;
+}
+
+function mistQuestAllowsProgress() {
+  return !state?.mistQuest || state.mistQuest.status === "active";
+}
+
+function acceptMistQuest() {
+  if (!state?.mistQuest || state.mistQuest.status !== "locked") return false;
+  state.mistQuest.status = "active";
+  state.mistQuest.lastProgressAt = performance.now();
+  messageEl.textContent = levels[state.levelIndex].mistQuest.activeHint;
+  updateHud();
+  return true;
 }
 
 function isMistLampActive(task, now = performance.now()) {
@@ -1669,6 +1744,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     projectiles: [],
     activeQuiz: null,
     activeDialogue: null,
+    mistQuest: null,
     nearbyTask: null,
     nearbyMudBubble: null,
     nearbyAppleTree: null,
@@ -1704,6 +1780,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     floaters: [],
     leaves: makeLeaves(levelIndex),
   };
+  state.mistQuest = createMistQuestState(level, state.tasksList);
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
@@ -2607,6 +2684,8 @@ function updateMistSwampMechanisms(dt) {
   else if (hasActiveMistLamp()) state.mistOpacity = Math.max(0.08, state.mistOpacity - dt * 0.45);
   else state.mistOpacity = Math.min(0.32, state.mistOpacity + dt * 0.035);
 
+  if (!mistQuestAllowsProgress()) return;
+
   const trailTask = state.tasksList.find((task) => task.kind === "firefly_trail" && !task.done);
   if (trailTask) {
     for (const point of state.fireflyTrail.filter((entry) => entry.decoy && !entry.faded)) {
@@ -2914,6 +2993,15 @@ function checkTasks(dt) {
         nearestDistance = dist;
         state.nearbyTask = task;
       }
+    }
+    if (near && isMistQuestNpc(task)) {
+      const marker = state.mistQuest.status === "locked" ? "接任务" : state.mistQuest.status === "ready" ? "交任务" : "查看任务";
+      messageEl.textContent = `按 E 和${task.name}对话（${marker}）。`;
+      continue;
+    }
+    if (near && !mistQuestAllowsProgress()) {
+      messageEl.textContent = `先去找${mistQuestNpcTask()?.name || "任务伙伴"}接任务。`;
+      continue;
     }
     if (task.done) continue;
     if (!near) {
@@ -3430,6 +3518,10 @@ function talkToNearbyTask() {
 
 function interactMistSwampTask(task) {
   if (!task) return false;
+  if (!mistQuestAllowsProgress()) {
+    messageEl.textContent = `先去找${mistQuestNpcTask()?.name || "任务伙伴"}接任务。`;
+    return true;
+  }
   if (task.kind === "mist_lamp") {
     if (task.done && isMistLampActive(task)) {
       messageEl.textContent = "雾灯还亮着，不需要重复放入灯芯。";
