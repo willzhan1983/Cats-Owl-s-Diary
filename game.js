@@ -1637,6 +1637,7 @@ function mistQuestInteractionHint(task) {
   if (task.kind === "mushroom_lamp") return `按 E 点亮${task.name}。`;
   if (task.kind === "broken_bridge") return missingNeeds(task.need).length ? `还需要 ${missingNeeds(task.need).length} 块木桥板。` : "按 E 修复木桥。";
   if (task.kind === "mist_bubble") return "按 E 清除带金色光环的黑雾泡泡。";
+  if (task.kind === "mud_bubble") return "按 E 清除泥浆泡泡。";
   if (task.kind === "mist_core") return "按 E 安抚迷雾精灵。";
   if (task.kind === "mud_boss") return task.phase === 3 ? "保持靠近泥浆核心，充满灯笼后按 E 答题。" : task.speech;
   if (task.kind === "firefly_trail") return "沿着温暖的金色光点前进。";

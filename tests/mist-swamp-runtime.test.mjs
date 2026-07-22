@@ -1095,3 +1095,13 @@ assert.deepEqual(legacyTaskKindCounts, {
 for (const id of ["fireflyGuide", "littleFrog", "swampSnail", "mistSpirit", "ruru", "mudMonster"]) {
   assert.equal(typeof runtime.CATS_OWLS_GAME_DATA.NPC_REGISTRY[id].renderer, "function", `${id} renderer should be callable`);
 }
+
+const mudBubbleHint = vm.runInContext(`
+  selectedDifficulty = "normal";
+  resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沼泽泥浆怪"));
+  acceptMistQuest();
+  const bubble = state.tasksList.find((task) => task.kind === "mud_bubble");
+  bubble.active = true;
+  mistQuestInteractionHint(bubble);
+`, runtime);
+assert.equal(mudBubbleHint, "按 E 清除泥浆泡泡。");
