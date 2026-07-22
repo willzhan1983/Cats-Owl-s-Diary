@@ -68,6 +68,18 @@
         <div class="canvas-wrap">
           <canvas id="gameCanvas" width="960" height="540"></canvas>
           <div id="message" class="message">帮 Mimi / 詹涞儿 和 Owlly / 姚头鹰 完成森林学校任务。</div>
+          <aside id="mistQuestCard" class="mist-quest-card" aria-live="polite" hidden>
+            <div class="mist-quest-heading">
+              <strong id="mistQuestNpc"></strong>
+              <span id="mistQuestStage"></span>
+            </div>
+            <div id="mistQuestObjectives" class="mist-quest-objectives"></div>
+            <p id="mistQuestNext"></p>
+            <div class="mist-quest-actions">
+              <button id="mistQuestHelpBtn" type="button">查看下一步</button>
+              <button id="mistQuestFallbackBtn" type="button" hidden>直接完成任务</button>
+            </div>
+          </aside>
           <div id="quizPanel" class="quiz-panel" hidden>
             <div class="quiz-box">
               <h2 id="quizTitle">森林课堂</h2>

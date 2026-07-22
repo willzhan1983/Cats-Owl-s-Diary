@@ -638,6 +638,53 @@ assert.equal(stableBridgeRepair.tasksAfterRepair, 1);
 assert.equal(stableBridgeRepair.tasksAfterRepeat, 1);
 assert.match(stableBridgeRepair.message, /已经修好/);
 
+const questGuidance = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "hard";
+    resetGame(levels.findIndex((level) => level.name === "沉睡木桥"));
+    const locked = mistQuestNextHint();
+    acceptMistQuest();
+    const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+    const activeRows = mistQuestObjectiveRows();
+    state.inventory.push(...bridge.need);
+    const repairHint = mistQuestInteractionHint(bridge);
+    interactMistSwampTask(bridge);
+    const afterBridge = mistQuestNextHint();
+    const frog = mistQuestNpcTask();
+    frog.done = true;
+    frog.x = 830;
+    frog.y = 210;
+    state.tasksList.filter((task) => task.kind === "mushroom_lamp").forEach((task) => { task.done = true; });
+    updateMistQuestReadiness();
+    state.mistQuest.readyAt = performance.now() - 10001;
+    scoreSummaryPanel.hidden = true;
+    renderMistQuestHud();
+    const readyHint = mistQuestNextHint();
+    const fallbackVisible = !mistQuestFallbackBtn.hidden;
+    const fallbackCompleted = turnInMistQuestFallback();
+    return {
+      locked,
+      activeLabels: activeRows.map((row) => row.label),
+      repairHint,
+      afterBridge,
+      ready: readyHint,
+      fallbackVisible,
+      fallbackCompleted,
+      fallbackStatus: state.mistQuest.status,
+      frogPosition: { x: frog.x, y: frog.y },
+    };
+  })();
+`, runtime);
+assert.equal(questGuidance.locked, "去找小青蛙，按 E 接受任务。");
+assert.deepEqual(plain(questGuidance.activeLabels), ["收集木桥板", "修复木桥", "蘑菇灯顺序", "护送小青蛙"]);
+assert.equal(questGuidance.repairHint, "按 E 修复木桥。");
+assert.match(questGuidance.afterBridge, /蘑菇灯|小青蛙/);
+assert.match(questGuidance.ready, /小青蛙已经安全到达.*按 E 完成任务/);
+assert.equal(questGuidance.fallbackVisible, true);
+assert.equal(questGuidance.fallbackCompleted, true);
+assert.equal(questGuidance.fallbackStatus, "settled");
+assert.deepEqual(plain(questGuidance.frogPosition), { x: 830, y: 210 });
+
 const frogEscort = vm.runInContext(`
   selectedDifficulty = "normal";
   resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));

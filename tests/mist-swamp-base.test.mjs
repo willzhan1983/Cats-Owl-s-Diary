@@ -62,3 +62,10 @@ assert.match(game, /function mudBossTask\([\s\S]*?reward: "mistGuardianBadge"/);
 const completeTask = game.slice(game.indexOf("function completeTask("), game.indexOf("function sortBasketCompleteMessage("));
 assert.match(game, /function grantTaskReward\([\s\S]*?state\.inventory\.push\(task\.reward\)/);
 assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.mistQuest\.pendingReward = task\.reward[\s\S]*?grantTaskReward\(task, x, y\)/);
+
+for (const id of ["mistQuestCard", "mistQuestNpc", "mistQuestStage", "mistQuestObjectives", "mistQuestNext", "mistQuestHelpBtn", "mistQuestFallbackBtn"]) {
+  assert.match(index, new RegExp(`id=["']${id}["']`), `${id} should exist`);
+}
+assert.match(game, /function drawMistQuestMarker\(task\)/);
+assert.match(game, /function drawMistQuestTrail\(\)/);
+assert.match(game, /if \(!isMistSwampLevel\(\)\) return;/);

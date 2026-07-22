@@ -18,6 +18,13 @@ const recordsBtn = document.getElementById("recordsBtn");
 const homeRecordsBtn = document.getElementById("homeRecordsBtn");
 const soundBtn = document.getElementById("soundBtn");
 const attackBtn = document.getElementById("attackBtn");
+const mistQuestCard = document.getElementById("mistQuestCard");
+const mistQuestNpc = document.getElementById("mistQuestNpc");
+const mistQuestStage = document.getElementById("mistQuestStage");
+const mistQuestObjectives = document.getElementById("mistQuestObjectives");
+const mistQuestNext = document.getElementById("mistQuestNext");
+const mistQuestHelpBtn = document.getElementById("mistQuestHelpBtn");
+const mistQuestFallbackBtn = document.getElementById("mistQuestFallbackBtn");
 const quizPanel = document.getElementById("quizPanel");
 const quizTitle = document.getElementById("quizTitle");
 const quizQuestion = document.getElementById("quizQuestion");
@@ -1565,6 +1572,117 @@ function isMistQuestNpc(task) {
   return !!task && !!state?.mistQuest && task.id === state.mistQuest.npcTaskId;
 }
 
+function collectedMistItemCount(type) {
+  if (!isMistSwampLevel()) return 0;
+  return state.collectibles.filter((entry) => entry.type === type && entry.taken).length;
+}
+
+function completedMistTaskCount(kind) {
+  if (!isMistSwampLevel()) return 0;
+  return state.tasksList.filter((task) => task.kind === kind && task.done).length;
+}
+
+function mistQuestObjectiveRows() {
+  if (!isMistSwampLevel() || !state?.mistQuest) return [];
+  const level = levels[state.levelIndex];
+  if (level.name === "迷雾沼泽入口") return [
+    { label: "收集萤火虫灯芯", current: collectedMistItemCount("fireflyCore"), target: 3 },
+    { label: "点亮雾灯", current: completedMistTaskCount("mist_lamp"), target: 2 },
+    { label: "雾与光答题", current: state.tasksList.some((task) => task.mistSwampShared && task.done) ? 1 : 0, target: 1 },
+  ];
+  if (level.name === "萤火虫小径") return [
+    { label: "跟随真正光点", current: state.fireflyTrailIndex, target: state.fireflyTrail.filter((point) => !point.decoy).length },
+    { label: "收集发光孢子", current: collectedMistItemCount("glowSpore"), target: 4 },
+    { label: "找到木桥钥匙", current: collectedMistItemCount("bridgeKey"), target: 1 },
+  ];
+  if (level.name === "沉睡木桥") {
+    const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+    const rows = [
+      { label: "收集木桥板", current: bridge.done ? bridge.need.length : collectedMistItemCount("bridgePlank"), target: bridge.need.length },
+      { label: "修复木桥", current: bridge.done ? 1 : 0, target: 1 },
+    ];
+    if (["hard", "crazy"].includes(selectedDifficulty)) rows.push({
+      label: "蘑菇灯顺序",
+      current: completedMistTaskCount("mushroom_lamp"),
+      target: state.mushroomSequence.length,
+    });
+    rows.push({ label: "护送小青蛙", current: mistQuestNpcTask().done ? 1 : 0, target: 1 });
+    return rows;
+  }
+  if (level.name === "迷雾核心") return [
+    { label: "收集光之孢子", current: collectedMistItemCount("lightSpore"), target: 3 },
+    { label: "点亮大雾灯", current: completedMistTaskCount("mist_lamp"), target: 3 },
+    { label: "清除黑雾泡泡", current: completedMistTaskCount("mist_bubble"), target: 3 },
+    { label: "安抚迷雾精灵", current: mistQuestNpcTask().done ? 1 : 0, target: 1 },
+  ];
+  const boss = mistQuestNpcTask();
+  if (boss.phase === 1) return [{ label: "同时点亮大雾灯", current: state.tasksList.filter((task) => task.kind === "mist_lamp" && isMistLampActive(task)).length, target: 3 }];
+  if (boss.phase === 2) return [{ label: "清除泥浆泡泡", current: state.mudBubbles.filter((bubble) => bubble.done).length, target: state.mudBubbles.length }];
+  return [{ label: "灯笼充能与答题", current: boss.done ? 1 : Math.min(state.lanternCharge, state.lanternChargeRequired), target: boss.done ? 1 : state.lanternChargeRequired }];
+}
+
+function mistQuestNextHint() {
+  if (!isMistSwampLevel() || !state?.mistQuest) return "";
+  const npc = mistQuestNpcTask();
+  if (state.mistQuest.status === "locked") return `去找${npc.name}，按 E 接受任务。`;
+  if (state.mistQuest.status === "ready") return `${levels[state.levelIndex].mistQuest.readyHint} 按 E 完成任务。`;
+  if (state.mistQuest.status === "settled") return "任务已经完成。";
+  const row = mistQuestObjectiveRows().find((entry) => entry.current < entry.target);
+  return row ? `下一步：${row.label}（${Math.floor(row.current)}/${row.target}）` : levels[state.levelIndex].mistQuest.readyHint;
+}
+
+function mistQuestInteractionHint(task) {
+  if (!isMistSwampLevel()) return taskNearHint(task);
+  if (task.kind === "mist_lamp") return `按 E 点亮${task.name}。`;
+  if (task.kind === "mushroom_lamp") return `按 E 点亮${task.name}。`;
+  if (task.kind === "broken_bridge") return missingNeeds(task.need).length ? `还需要 ${missingNeeds(task.need).length} 块木桥板。` : "按 E 修复木桥。";
+  if (task.kind === "mist_bubble") return "按 E 清除带金色光环的黑雾泡泡。";
+  if (task.kind === "mist_core") return "按 E 安抚迷雾精灵。";
+  if (task.kind === "mud_boss") return task.phase === 3 ? "保持靠近泥浆核心，充满灯笼后按 E 答题。" : task.speech;
+  if (task.kind === "firefly_trail") return "沿着温暖的金色光点前进。";
+  return taskNearHint(task);
+}
+
+function canUseMistQuestFallback() {
+  return isMistSwampLevel() && state?.mistQuest?.status === "ready" && performance.now() - state.mistQuest.readyAt >= 10000;
+}
+
+function turnInMistQuestFallback() {
+  return canUseMistQuestFallback() ? turnInMistQuest() : false;
+}
+
+function renderMistQuestHud() {
+  if (!mistQuestCard) return;
+  if (!state || !isMistSwampLevel() || !state.mistQuest || state.mistQuest.status === "settled" || state.activeQuiz || state.activeDialogue || !scoreSummaryPanel.hidden) {
+    mistQuestCard.hidden = true;
+    return;
+  }
+  mistQuestCard.hidden = false;
+  mistQuestNpc.textContent = mistQuestNpcTask()?.name || "迷雾沼泽任务";
+  mistQuestStage.textContent = { locked: "等待接取", active: "进行中", ready: "可以交付" }[state.mistQuest.status];
+  mistQuestObjectives.replaceChildren();
+  for (const row of mistQuestObjectiveRows().slice(0, 3)) {
+    const line = document.createElement("div");
+    line.textContent = `${row.current >= row.target ? "✓" : "○"} ${row.label} ${Math.floor(row.current)}/${row.target}`;
+    mistQuestObjectives.appendChild(line);
+  }
+  mistQuestNext.textContent = mistQuestNextHint();
+  mistQuestHelpBtn.hidden = selectedDifficulty !== "easy";
+  mistQuestFallbackBtn.hidden = !canUseMistQuestFallback();
+}
+
+function updateMistQuestGuidance() {
+  if (!isMistSwampLevel() || !state?.mistQuest || state.mistQuest.status !== "active") return;
+  const signature = JSON.stringify(mistQuestObjectiveRows().map(({ current, target }) => [current, target]));
+  if (signature !== state.mistQuest.progressSignature) {
+    state.mistQuest.progressSignature = signature;
+    state.mistQuest.lastProgressAt = performance.now();
+  } else if (performance.now() - state.mistQuest.lastProgressAt >= 8000) {
+    messageEl.textContent = mistQuestNextHint();
+    state.mistQuest.lastProgressAt = performance.now();
+  }
+}
+
 function mistQuestAllowsProgress() {
   return !state?.mistQuest || state.mistQuest.status === "active";
 }
@@ -2137,6 +2255,7 @@ function showScoreSummaryPanel(settlement, options = {}) {
   if (scoreContinueBtn) scoreContinueBtn.hidden = failed;
   if (scoreRetryBtn) scoreRetryBtn.textContent = failed ? "重试本关" : "再玩一次";
   scoreSummaryPanel.hidden = false;
+  renderMistQuestHud();
 }
 
 function closeScoreSummaryPanel() {
@@ -2400,6 +2519,7 @@ function updateHud() {
   if (pointsEl) pointsEl.textContent = `${state.runPoints} / 总分 ${totalPoints}`;
   tasksEl.textContent = `${completed}/${target}`;
   bagEl.textContent = state.inventory.length ? needLabels(state.inventory.slice(0, 3)) : "\u7a7a";
+  renderMistQuestHud();
 }
 
 function pressed(dir) {
@@ -2442,6 +2562,7 @@ function update(dt) {
   checkObstacles();
   checkCollectibles();
   checkTasks(dt);
+  updateMistQuestGuidance();
   updateMistQuestReadiness();
 
   const requiredTasks = requiredTasksForCurrentLevel();
@@ -3054,10 +3175,7 @@ function checkTasks(dt) {
     }
 
     if (isMistSwampLevel() && ["mist_lamp", "mushroom_lamp", "broken_bridge", "mist_bubble", "mud_bubble", "mist_core", "mud_boss", "firefly_trail"].includes(task.kind)) {
-      if (task.kind === "firefly_trail") messageEl.textContent = "跟着萤火虫走吧！";
-      else if (task.kind === "mud_bubble") messageEl.textContent = "按 E 清除泥浆泡泡。";
-      else if (task.kind === "mud_boss") messageEl.textContent = task.phase === 3 ? "带着萤火虫灯笼，按 E 净化泥浆核心。" : task.speech;
-      else messageEl.textContent = "按 E 互动";
+      messageEl.textContent = mistQuestInteractionHint(task);
       continue;
     }
 
@@ -3422,6 +3540,7 @@ function openDialogue(task) {
   keys.clear();
   touchDirs.clear();
   renderDialogue();
+  renderMistQuestHud();
 }
 
 function renderDialogue() {
@@ -3475,6 +3594,7 @@ function nextDialogueLine() {
 function closeDialogue() {
   if (dialoguePanel) dialoguePanel.hidden = true;
   if (state) state.activeDialogue = null;
+  renderMistQuestHud();
 }
 
 function turnInMistQuest(task = mistQuestNpcTask()) {
@@ -3771,6 +3891,7 @@ function openQuiz(task) {
     quizOptions.appendChild(button);
   });
   quizPanel.hidden = false;
+  renderMistQuestHud();
 }
 
 function answerQuiz(task, index) {
@@ -3807,6 +3928,7 @@ function closeQuiz() {
   if (quizPanel) quizPanel.hidden = true;
   if (quizOptions) quizOptions.innerHTML = "";
   if (state) state.activeQuiz = null;
+  renderMistQuestHud();
 }
 
 function updateParticles(dt) {
@@ -3857,6 +3979,7 @@ function draw() {
   drawTasks();
   drawMudBubbles();
   drawMistFog();
+  drawMistQuestTrail();
   drawHazards();
   drawProjectiles();
   drawPlayer();
@@ -5205,6 +5328,7 @@ function drawTasks() {
       if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
     }
     else drawAnimal(task.animal);
+    drawMistQuestMarker(task);
     drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
       ctx.globalAlpha = 0.72;
@@ -5227,6 +5351,41 @@ function drawTasks() {
     if (task.kind === "boss" && !task.done) drawBossProgress(task.progress);
     ctx.restore();
   }
+}
+
+function drawMistQuestMarker(task) {
+  if (!isMistSwampLevel()) return;
+  if (!isMistQuestNpc(task) || !state.mistQuest) return;
+  const marker = { locked: "!", active: "…", ready: "?", settled: "✓" }[state.mistQuest.status];
+  const color = { locked: "#ffd94a", active: "#d7dde3", ready: "#ffbd3d", settled: "#83b83d" }[state.mistQuest.status];
+  ctx.save();
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = "rgba(255,247,223,0.94)";
+  circle(0, -86, 15);
+  ctx.fillStyle = color;
+  ctx.font = "900 20px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(marker, 0, -79);
+  ctx.restore();
+}
+
+function drawMistQuestTrail() {
+  if (!isMistSwampLevel()) return;
+  if (!state.mistQuest || !["locked", "ready"].includes(state.mistQuest.status)) return;
+  const npc = mistQuestNpcTask();
+  if (!npc) return;
+  const dx = npc.x - state.player.x;
+  const dy = npc.y - state.player.y;
+  const distanceToNpc = Math.hypot(dx, dy);
+  const steps = Math.min(8, Math.max(2, Math.floor(distanceToNpc / 70)));
+  ctx.save();
+  for (let index = 1; index <= steps; index += 1) {
+    const ratio = index / (steps + 1);
+    ctx.globalAlpha = 0.35 + ratio * 0.45;
+    ctx.fillStyle = "#ffe26a";
+    circle(state.player.x + dx * ratio, state.player.y + dy * ratio, 3 + ratio * 2);
+  }
+  ctx.restore();
 }
 
 function drawFireflyTrail() {
@@ -7448,6 +7607,8 @@ dialogueCloseBtn?.addEventListener("click", closeDialogue);
 dialogueNextBtn?.addEventListener("click", nextDialogueLine);
 dialogueGiveBtn?.addEventListener("click", finishDialogueDelivery);
 dialogueQuizBtn?.addEventListener("click", startDialogueQuiz);
+mistQuestHelpBtn?.addEventListener("click", () => { messageEl.textContent = mistQuestNextHint(); });
+mistQuestFallbackBtn?.addEventListener("click", turnInMistQuestFallback);
 storybookCloseBtn?.addEventListener("click", () => closeStorybookPage(false));
 storybookStartBtn?.addEventListener("click", () => closeStorybookPage(true));
 

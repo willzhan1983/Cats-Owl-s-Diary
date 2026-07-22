@@ -340,6 +340,28 @@ canvas {
   pointer-events: none;
 }
 
+.mist-quest-card {
+  position: absolute;
+  z-index: 6;
+  top: 14px;
+  left: 14px;
+  width: min(300px, calc(100% - 28px));
+  padding: 12px;
+  border: 2px solid rgba(255, 217, 74, 0.62);
+  border-radius: 10px;
+  background: rgba(34, 66, 62, 0.9);
+  color: #fff7df;
+  box-shadow: 0 10px 24px rgba(20, 47, 45, 0.24);
+}
+
+.mist-quest-card[hidden] { display: none; }
+.mist-quest-heading { display: flex; justify-content: space-between; gap: 8px; }
+.mist-quest-heading span { color: #ffe26a; font-weight: 900; }
+.mist-quest-objectives { display: grid; gap: 3px; margin-top: 8px; font-size: 13px; }
+.mist-quest-card p { margin: 8px 0; color: #fff1a8; font-weight: 800; }
+.mist-quest-actions { display: flex; gap: 8px; }
+.mist-quest-actions button { min-height: 34px; padding: 6px 10px; border-radius: 8px; font-weight: 900; }
+
 .quiz-panel {
   position: absolute;
   inset: 0;
@@ -842,6 +864,16 @@ button {
 
   .message {
     bottom: 8px;
+    font-size: 12px;
+  }
+
+  .mist-quest-card {
+    top: 8px;
+    left: 8px;
+    width: min(270px, 72vw);
+    max-height: 42dvh;
+    overflow: auto;
+    padding: 9px;
     font-size: 12px;
   }
 
