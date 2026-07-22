@@ -6,7 +6,7 @@ const map = readFileSync(new URL("../world-map.js", import.meta.url), "utf8");
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const names = ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"];
 
-assert.match(index, /game\.js\?v=mist-swamp-bridge-layout-20260721/);
+assert.match(index, /game\.js\?v=mist-swamp-quest-guidance-20260722/);
 
 function levelBlock(name) {
   const start = game.indexOf(`name: "${name}"`);
@@ -60,4 +60,12 @@ assert.match(mudMonster, /mudBossTask\(780, 230\)/);
 assert.match(game, /function mudBossTask\([\s\S]*?reward: "mistGuardianBadge"/);
 
 const completeTask = game.slice(game.indexOf("function completeTask("), game.indexOf("function sortBasketCompleteMessage("));
-assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.inventory\.push\(task\.reward\)/);
+assert.match(game, /function grantTaskReward\([\s\S]*?state\.inventory\.push\(task\.reward\)/);
+assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.mistQuest\.pendingReward = task\.reward[\s\S]*?grantTaskReward\(task, x, y\)/);
+
+for (const id of ["mistQuestCard", "mistQuestNpc", "mistQuestStage", "mistQuestObjectives", "mistQuestNext", "mistQuestHelpBtn", "mistQuestFallbackBtn"]) {
+  assert.match(index, new RegExp(`id=["']${id}["']`), `${id} should exist`);
+}
+assert.match(game, /function drawMistQuestMarker\(task\)/);
+assert.match(game, /function drawMistQuestTrail\(\)/);
+assert.match(game, /if \(!isMistSwampLevel\(\)\) return;/);
