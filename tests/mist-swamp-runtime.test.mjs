@@ -866,18 +866,18 @@ const fiveLevelCompletion = vm.runInContext(`
   selectedDifficulty = "normal";
   var completionResults = [];
   var settleCurrentMistLevel = () => {
-    scoreSummaryPanel.hidden = true;
-    state.running = true;
-    update(0);
+    updateMistQuestReadiness();
+    const readyBeforeTurnIn = state.mistQuest.status === "ready" && scoreSummaryPanel.hidden;
     turnInMistQuest(mistQuestNpcTask());
     closeDialogue();
     state.running = true;
     update(0);
-    completionResults.push({ name: levels[state.levelIndex].name, clear: state.levelClear, settled: state.levelSettled, panel: !scoreSummaryPanel.hidden, pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name) });
+    completionResults.push({ name: levels[state.levelIndex].name, readyBeforeTurnIn, questStatus: state.mistQuest.status, levelClear: state.levelClear, levelSettled: state.levelSettled, normalScorePanelOpen: !scoreSummaryPanel.hidden, pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name) });
   };
 
   resetGame(levels.findIndex((level) => level.name === "迷雾沼泽入口"));
   acceptMistQuest();
+  scoreSummaryPanel.hidden = true;
   state.inventory.push("fireflyCore", "fireflyCore", "fireflyCore");
   state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
   var entranceQuiz = state.tasksList.find((task) => task.kind === "quiz");
@@ -886,6 +886,7 @@ const fiveLevelCompletion = vm.runInContext(`
 
   resetGame(levels.findIndex((level) => level.name === "萤火虫小径"));
   acceptMistQuest();
+  scoreSummaryPanel.hidden = true;
   state.inventory.push("glowSpore", "glowSpore", "glowSpore", "glowSpore", "bridgeKey");
   state.fireflyTrailIndex = state.fireflyTrail.filter((point) => !point.decoy).length;
   updateMistSwampMechanisms(0.016);
@@ -896,6 +897,7 @@ const fiveLevelCompletion = vm.runInContext(`
   selectedDifficulty = "hard";
   resetGame(levels.findIndex((level) => level.name === "沉睡木桥"));
   acceptMistQuest();
+  scoreSummaryPanel.hidden = true;
   state.mushroomSequence.forEach((color) => interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color)));
   var fullBridge = state.tasksList.find((task) => task.kind === "broken_bridge");
   state.inventory.push("bridgePlank", "bridgePlank", "bridgePlank");
@@ -912,6 +914,7 @@ const fiveLevelCompletion = vm.runInContext(`
   selectedDifficulty = "normal";
   resetGame(levels.findIndex((level) => level.name === "迷雾核心"));
   acceptMistQuest();
+  scoreSummaryPanel.hidden = true;
   state.inventory.push("lightSpore", "lightSpore", "lightSpore");
   state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
   state.tasksList.filter((task) => task.kind === "mist_bubble").forEach((task) => interactMistSwampTask(task));
@@ -924,6 +927,7 @@ const fiveLevelCompletion = vm.runInContext(`
   performance.now = () => 100;
   resetGame(levels.findIndex((level) => level.name === "沼泽泥浆怪"));
   acceptMistQuest();
+  scoreSummaryPanel.hidden = true;
   state.inventory.push("lightSpore", "lightSpore", "lightSpore");
   state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
   updateMistSwampMechanisms(0.016);
@@ -952,12 +956,19 @@ const fiveLevelCompletion = vm.runInContext(`
 assert.equal(fiveLevelCompletion.wrongOnlyResetCharge, true);
 assert.equal(fiveLevelCompletion.bossReward, true);
 assert.deepEqual(Array.from(fiveLevelCompletion.completionResults, (result) => plain(result)), [
-  { name: "迷雾沼泽入口", clear: true, settled: true, panel: true, pending: [] },
-  { name: "萤火虫小径", clear: true, settled: true, panel: true, pending: [] },
-  { name: "沉睡木桥", clear: true, settled: true, panel: true, pending: [] },
-  { name: "迷雾核心", clear: true, settled: true, panel: true, pending: [] },
-  { name: "沼泽泥浆怪", clear: true, settled: true, panel: true, pending: [] },
+  { name: "迷雾沼泽入口", readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true, pending: [] },
+  { name: "萤火虫小径", readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true, pending: [] },
+  { name: "沉睡木桥", readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true, pending: [] },
+  { name: "迷雾核心", readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true, pending: [] },
+  { name: "沼泽泥浆怪", readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true, pending: [] },
 ]);
+for (const result of fiveLevelCompletion.completionResults) {
+  assert.equal(result.readyBeforeTurnIn, true);
+  assert.equal(result.questStatus, "settled");
+  assert.equal(result.levelClear, true);
+  assert.equal(result.levelSettled, true);
+  assert.equal(result.normalScorePanelOpen, true);
+}
 
 const sleepingBridgeCompletionRuntime = loadGameRuntime();
 vm.runInContext(mistQuizSource, sleepingBridgeCompletionRuntime, { filename: "mist-swamp-quiz-bank.js" });
@@ -968,6 +979,7 @@ const sleepingBridgeDifficultyCompletion = vm.runInContext(`
       selectedDifficulty = difficulty;
       resetGame(bridgeLevelIndex);
       acceptMistQuest();
+      scoreSummaryPanel.hidden = true;
 
       state.mushroomSequence.forEach((color) => {
         interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color));
@@ -984,9 +996,8 @@ const sleepingBridgeDifficultyCompletion = vm.runInContext(`
       frog.y = 210;
       updateEscortNpcs(0.016);
 
-      scoreSummaryPanel.hidden = true;
-      state.running = true;
-      update(0);
+      updateMistQuestReadiness();
+      const readyBeforeTurnIn = state.mistQuest.status === "ready" && scoreSummaryPanel.hidden;
       turnInMistQuest(mistQuestNpcTask());
       closeDialogue();
       state.running = true;
@@ -994,6 +1005,8 @@ const sleepingBridgeDifficultyCompletion = vm.runInContext(`
       return {
         difficulty,
         pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name),
+        readyBeforeTurnIn,
+        questStatus: state.mistQuest.status,
         levelClear: state.levelClear,
         levelSettled: state.levelSettled,
         normalScorePanelOpen: !scoreSummaryPanel.hidden,
@@ -1002,11 +1015,18 @@ const sleepingBridgeDifficultyCompletion = vm.runInContext(`
   })();
 `, sleepingBridgeCompletionRuntime);
 assert.deepEqual(plain(sleepingBridgeDifficultyCompletion), [
-  { difficulty: "easy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
-  { difficulty: "normal", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
-  { difficulty: "hard", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
-  { difficulty: "crazy", pending: [], levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "easy", pending: [], readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "normal", pending: [], readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "hard", pending: [], readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true },
+  { difficulty: "crazy", pending: [], readyBeforeTurnIn: true, questStatus: "settled", levelClear: true, levelSettled: true, normalScorePanelOpen: true },
 ]);
+for (const result of sleepingBridgeDifficultyCompletion) {
+  assert.equal(result.readyBeforeTurnIn, true);
+  assert.equal(result.questStatus, "settled");
+  assert.equal(result.levelClear, true);
+  assert.equal(result.levelSettled, true);
+  assert.equal(result.normalScorePanelOpen, true);
+}
 
 for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
   const bossRuntime = loadGameRuntime();
@@ -1016,6 +1036,7 @@ for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
     performance.now = () => 100;
     resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沼泽泥浆怪"));
     acceptMistQuest();
+    scoreSummaryPanel.hidden = true;
     state.inventory.push("lightSpore", "lightSpore", "lightSpore");
     var difficultyLamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
     difficultyLamps.forEach((task) => interactMistSwampTask(task));
@@ -1041,9 +1062,8 @@ for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
     var chargedForRequiredTime = difficultyBoss.chargeReady === true && state.lanternChargeRequired === ${chargeSeconds};
     interactMistSwampTask(difficultyBoss);
     answerQuiz(difficultyBoss, difficultyBoss.quiz.answer);
-    scoreSummaryPanel.hidden = true;
-    state.running = true;
-    update(0);
+    updateMistQuestReadiness();
+    var readyBeforeTurnIn = state.mistQuest.status === "ready" && scoreSummaryPanel.hidden;
     turnInMistQuest(difficultyBoss);
     closeDialogue();
     state.running = true;
@@ -1056,9 +1076,11 @@ for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
       chargeBlockedEarly,
       chargedForRequiredTime,
       bossDone: difficultyBoss.done,
+      readyBeforeTurnIn,
+      questStatus: state.mistQuest.status,
       levelClear: state.levelClear,
-      settled: state.levelSettled,
-      panel: !scoreSummaryPanel.hidden,
+      levelSettled: state.levelSettled,
+      normalScorePanelOpen: !scoreSummaryPanel.hidden,
     });
   `, bossRuntime);
   assert.deepEqual(plain(bossCompletion), {
@@ -1069,10 +1091,109 @@ for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
     chargeBlockedEarly: true,
     chargedForRequiredTime: true,
     bossDone: true,
+    readyBeforeTurnIn: true,
+    questStatus: "settled",
     levelClear: true,
-    settled: true,
-    panel: true,
+    levelSettled: true,
+    normalScorePanelOpen: true,
   }, `${difficulty} full boss completion`);
+  assert.equal(bossCompletion.readyBeforeTurnIn, true);
+  assert.equal(bossCompletion.questStatus, "settled");
+  assert.equal(bossCompletion.levelClear, true);
+  assert.equal(bossCompletion.levelSettled, true);
+  assert.equal(bossCompletion.normalScorePanelOpen, true);
+}
+
+const matrixRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, matrixRuntime, { filename: "mist-swamp-quiz-bank.js" });
+const questCompletionMatrix = vm.runInContext(`
+  (() => {
+    const results = [];
+    const finishSharedQuiz = () => {
+      const quiz = state.tasksList.find((task) => task.mistSwampShared && !task.done);
+      if (quiz) completeTask(quiz, quiz.x, quiz.y);
+    };
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      for (const levelName of ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"]) {
+        selectedDifficulty = difficulty;
+        resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === levelName));
+        scoreSummaryPanel.hidden = true;
+        const initialStatus = state.mistQuest.status;
+        const npcAnimal = mistQuestNpcTask().animal;
+        acceptMistQuest();
+
+        if (levelName === "迷雾沼泽入口") {
+          state.inventory.push("fireflyCore", "fireflyCore", "fireflyCore");
+          state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
+          finishSharedQuiz();
+        } else if (levelName === "萤火虫小径") {
+          const trail = state.tasksList.find((task) => task.kind === "firefly_trail");
+          state.inventory.push(...trail.need);
+          state.fireflyTrailIndex = state.fireflyTrail.filter((point) => !point.decoy).length;
+          updateMistSwampMechanisms(0);
+          finishSharedQuiz();
+        } else if (levelName === "沉睡木桥") {
+          for (const color of state.mushroomSequence) {
+            interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color));
+          }
+          const bridge = state.tasksList.find((task) => task.kind === "broken_bridge");
+          state.inventory.push(...bridge.need);
+          interactMistSwampTask(bridge);
+          const frog = mistQuestNpcTask();
+          frog.following = true;
+          frog.x = 830;
+          frog.y = 210;
+          completeTask(frog, frog.x, frog.y);
+          finishSharedQuiz();
+        } else if (levelName === "迷雾核心") {
+          state.inventory.push("lightSpore", "lightSpore", "lightSpore");
+          state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
+          state.tasksList.filter((task) => task.kind === "mist_bubble").forEach((task) => interactMistSwampTask(task));
+          finishSharedQuiz();
+          interactMistSwampTask(mistQuestNpcTask());
+        } else {
+          state.inventory.push("lightSpore", "lightSpore", "lightSpore");
+          state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
+          updateMistSwampMechanisms(0);
+          state.mudBubbles.forEach((bubble) => completeTask(bubble, bubble.x, bubble.y));
+          updateMistSwampMechanisms(0);
+          const boss = mistQuestNpcTask();
+          boss.chargeReady = true;
+          completeTask(boss, boss.x, boss.y);
+        }
+
+        updateMistQuestReadiness();
+        const readyBeforeTurnIn = state.mistQuest.status === "ready" && scoreSummaryPanel.hidden;
+        turnInMistQuest(mistQuestNpcTask());
+        closeDialogue();
+        state.running = true;
+        update(0);
+        results.push({
+          difficulty,
+          levelName,
+          initialStatus,
+          npcAnimal,
+          readyBeforeTurnIn,
+          questStatus: state.mistQuest.status,
+          levelClear: state.levelClear,
+          levelSettled: state.levelSettled,
+          panelOpen: !scoreSummaryPanel.hidden,
+        });
+      }
+    }
+    return results;
+  })();
+`, matrixRuntime);
+
+assert.equal(questCompletionMatrix.length, 20);
+for (const result of plain(questCompletionMatrix)) {
+  assert.equal(result.initialStatus, "locked", `${result.difficulty} ${result.levelName} starts locked`);
+  assert.equal(result.npcAnimal, expectedQuestNpcs[result.levelName], `${result.levelName} NPC`);
+  assert.equal(result.readyBeforeTurnIn, true, `${result.difficulty} ${result.levelName} waits for turn-in`);
+  assert.equal(result.questStatus, "settled", `${result.difficulty} ${result.levelName} quest settled`);
+  assert.equal(result.levelClear, true, `${result.difficulty} ${result.levelName} clear`);
+  assert.equal(result.levelSettled, true, `${result.difficulty} ${result.levelName} score settled`);
+  assert.equal(result.panelOpen, true, `${result.difficulty} ${result.levelName} panel open`);
 }
 
 const legacyTaskKindCounts = Array.from(levels)
