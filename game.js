@@ -69,12 +69,12 @@ const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy:
 const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
 const SLEEPING_BRIDGE_REPAIR_ANCHOR = Object.freeze({ x: 570, y: 300 });
 const SLEEPING_BRIDGE_LAMP_SLOTS = Object.freeze([
-  Object.freeze({ x: 120, y: 115 }),
-  Object.freeze({ x: 280, y: 105 }),
-  Object.freeze({ x: 440, y: 115 }),
-  Object.freeze({ x: 600, y: 100 }),
-  Object.freeze({ x: 760, y: 95 }),
-  Object.freeze({ x: 900, y: 110 }),
+  Object.freeze({ x: 420, y: 100 }),
+  Object.freeze({ x: 900, y: 400 }),
+  Object.freeze({ x: 540, y: 75 }),
+  Object.freeze({ x: 900, y: 100 }),
+  Object.freeze({ x: 660, y: 75 }),
+  Object.freeze({ x: 780, y: 75 }),
 ]);
 
 const text = {
@@ -1419,10 +1419,10 @@ const levels = [
       item(690, 170, "bridgePlank", "木桥板"),
     ],
     tasks: [
-      mushroomLampTask(300, 150, "yellow", "黄色蘑菇灯"),
-      mushroomLampTask(450, 150, "blue", "蓝色蘑菇灯"),
-      mushroomLampTask(600, 150, "purple", "紫色蘑菇灯"),
-      mushroomLampTask(800, 150, "green", "绿色蘑菇灯"),
+      mushroomLampTask(420, 100, "yellow", "黄色蘑菇灯"),
+      mushroomLampTask(540, 75, "blue", "蓝色蘑菇灯"),
+      mushroomLampTask(660, 75, "purple", "紫色蘑菇灯"),
+      mushroomLampTask(780, 75, "green", "绿色蘑菇灯"),
       { x: SLEEPING_BRIDGE_REPAIR_ANCHOR.x, y: SLEEPING_BRIDGE_REPAIR_ANCHOR.y, name: "沉睡木桥", animal: "brokenBridge", need: ["bridgePlank", "bridgePlank", "bridgePlank"], kind: "broken_bridge", done: false, progress: 0 },
       escortNpcTask(680, 340, "小青蛙", "littleFrog", "mistBridgeExit"),
     ],
@@ -1669,6 +1669,7 @@ function turnInMistQuestFallback() {
 
 function renderMistQuestHud() {
   if (!mistQuestCard) return;
+  mistQuestCard.classList.toggle("is-sleeping-bridge", !!state && isMistSwampSleepingBridgeLevel());
   if (!state || !isMistSwampLevel() || !state.mistQuest || state.mistQuest.status === "settled" || state.activeQuiz || state.activeDialogue || !scoreSummaryPanel.hidden) {
     mistQuestCard.hidden = true;
     return;
@@ -3811,6 +3812,11 @@ function interactMistSwampTask(task) {
       messageEl.textContent = "蘑菇灯都亮啦！";
       state.priorityMessage = messageEl.textContent;
       state.priorityMessageUntil = performance.now() + 1200;
+    } else {
+      const nextColor = state.mushroomSequence[state.mushroomStep];
+      messageEl.textContent = `${task.name}亮啦！下一盏：${MUSHROOM_COLOR_LABELS[nextColor]}色蘑菇灯。`;
+      state.priorityMessage = messageEl.textContent;
+      state.priorityMessageUntil = performance.now() + 1500;
     }
     return true;
   }
@@ -5327,6 +5333,10 @@ function drawItem(type) {
   else drawMoonItem(type);
 }
 
+function taskRenderAlpha(task) {
+  return task.done && !(task.kind === "mushroom_lamp" && task.lit) ? 0.58 : 1;
+}
+
 function drawTasks() {
   for (const task of state.tasksList) {
     if (task.kind === "road_clear" && task.done) continue;
@@ -5342,7 +5352,7 @@ function drawTasks() {
     if (groundShadow) drawAppleValleyGroundShadow(0, groundShadow.y, groundShadow.width, groundShadow.height);
     ctx.translate(0, idleBob);
     ctx.scale(idleScale, idleScale);
-    ctx.globalAlpha = task.done ? 0.58 : 1;
+    ctx.globalAlpha = taskRenderAlpha(task);
     drawSpeech(task);
     if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
     else if (isMistSwampLevel() && task.kind === "mist_lamp" && task.animal !== "bigMistLamp") {
@@ -5618,7 +5628,30 @@ function drawMushroomLamp() {
 function drawMistSwampMushroomLamp(task) {
   const key = MIST_SWAMP_MUSHROOM_ART_KEYS[task.color];
   const bounds = ART_PACK_ITEM_BOUNDS[key];
+  if (task.lit) {
+    ctx.save();
+    const glow = ctx.createRadialGradient(0, -20, 5, 0, -20, 50);
+    glow.addColorStop(0, "rgba(255, 248, 164, 0.95)");
+    glow.addColorStop(1, "rgba(255, 226, 106, 0)");
+    ctx.fillStyle = glow;
+    circle(0, -20, 50);
+    ctx.restore();
+  }
   if (!key || !bounds || !drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) drawMushroomLamp();
+  if (task.lit) {
+    ctx.save();
+    ctx.fillStyle = "#fff8b0";
+    ctx.strokeStyle = "#6f9d38";
+    ctx.lineWidth = 3;
+    circle(25, -42, 12);
+    ctx.stroke();
+    ctx.fillStyle = "#3f7d2d";
+    ctx.font = "900 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✓", 25, -41);
+    ctx.restore();
+  }
 }
 
 function drawMudBossCore(task) {
