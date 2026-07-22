@@ -3498,6 +3498,10 @@ function talkToNearbyTask() {
     nextDialogueLine();
     return;
   }
+  if (isMistSwampLevel() && state.mistQuest?.status === "locked" && isMistQuestNpc(state.nearbyTask)) {
+    acceptMistQuest();
+    return;
+  }
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
   if (state.nearbyTask?.kind === "direction_sign") {
     repairDirectionSign(state.nearbyTask);

@@ -155,6 +155,21 @@ assert.deepEqual(plain(lockedQuestRuntime), {
   },
 });
 
+const questNpcAcceptsWithNearbyInteraction = vm.runInContext(`
+  (() => {
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "迷雾沼泽入口"));
+    const questNpc = mistQuestNpcTask();
+    state.running = true;
+    state.player.x = questNpc.x;
+    state.player.y = questNpc.y;
+    checkTasks(0.016);
+    talkToNearbyTask();
+    return state.mistQuest.status;
+  })();
+`, runtime);
+
+assert.equal(questNpcAcceptsWithNearbyInteraction, "active");
+
 const nonMistQuestState = vm.runInContext(`
   resetGame(levels.findIndex((level) => level.world !== "mist_swamp"));
   state.mistQuest;
