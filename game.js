@@ -64,6 +64,7 @@ const MIST_CLEAR_TIME_BY_DIFFICULTY = { easy: null, normal: 12000, hard: 8000, c
 const MUD_BUBBLE_COUNT_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
 const BRIDGE_PLANK_COUNT_BY_DIFFICULTY = { easy: 2, normal: 2, hard: 3, crazy: 3 };
 const MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 4 };
+const MUSHROOM_COLOR_LABELS = Object.freeze({ yellow: "黄", blue: "蓝", purple: "紫", green: "绿" });
 const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy: 2 };
 const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
 const SLEEPING_BRIDGE_REPAIR_ANCHOR = Object.freeze({ x: 570, y: 300 });
@@ -1602,19 +1603,22 @@ function mistQuestObjectiveRows() {
       { label: "修复木桥", current: bridge.done ? 1 : 0, target: 1 },
     ];
     if (["hard", "crazy"].includes(selectedDifficulty)) rows.push({
-      label: "蘑菇灯顺序",
+      label: `蘑菇灯顺序：${state.mushroomSequence.map((color) => MUSHROOM_COLOR_LABELS[color]).join(" → ")}`,
       current: completedMistTaskCount("mushroom_lamp"),
       target: state.mushroomSequence.length,
     });
     rows.push({ label: "护送小青蛙", current: mistQuestNpcTask().done ? 1 : 0, target: 1 });
     return rows;
   }
-  if (level.name === "迷雾核心") return [
-    { label: "收集光之孢子", current: collectedMistItemCount("lightSpore"), target: 3 },
-    { label: "点亮大雾灯", current: completedMistTaskCount("mist_lamp"), target: 3 },
-    { label: "清除黑雾泡泡", current: completedMistTaskCount("mist_bubble"), target: 3 },
-    { label: "安抚迷雾精灵", current: mistQuestNpcTask().done ? 1 : 0, target: 1 },
-  ];
+  if (level.name === "迷雾核心") {
+    const collectedSpores = collectedMistItemCount("lightSpore");
+    if (collectedSpores < 3) return [{ label: "收集光之孢子", current: collectedSpores, target: 3 }];
+    const litLamps = completedMistTaskCount("mist_lamp");
+    if (litLamps < 3) return [{ label: "点亮大雾灯", current: litLamps, target: 3 }];
+    const clearedBubbles = completedMistTaskCount("mist_bubble");
+    if (clearedBubbles < 3) return [{ label: "清除黑雾泡泡", current: clearedBubbles, target: 3 }];
+    return [{ label: "安抚迷雾精灵", current: mistQuestNpcTask().done ? 1 : 0, target: 1 }];
+  }
   const boss = mistQuestNpcTask();
   if (boss.phase === 1) return [{ label: "同时点亮大雾灯", current: state.tasksList.filter((task) => task.kind === "mist_lamp" && isMistLampActive(task)).length, target: 3 }];
   if (boss.phase === 2) return [{ label: "清除泥浆泡泡", current: state.mudBubbles.filter((bubble) => bubble.done).length, target: state.mudBubbles.length }];
@@ -3601,7 +3605,7 @@ function closeDialogue() {
 function turnInMistQuest(task = mistQuestNpcTask()) {
   if (!isMistQuestNpc(task) || state.mistQuest.status !== "ready") return false;
   if (task.kind === "delivery" && !task.done) {
-    if (missingNeeds(task.need).length || !canTalkToMistSwampTask(task)) return false;
+    if (missingNeeds(task.need).length) return false;
     consumeNeeds(task.need);
     completeTask(task, task.x, task.y);
   }
@@ -3778,7 +3782,7 @@ function interactMistSwampTask(task) {
     if (task.color !== expected) {
       state.mushroomStep = 0;
       state.tasksList.filter((entry) => entry.kind === "mushroom_lamp").forEach((entry) => { entry.lit = false; });
-      const hint = state.mushroomSequence.map((color) => ({ yellow: "黄", blue: "蓝", purple: "紫", green: "绿" })[color]).join(" → ");
+      const hint = state.mushroomSequence.map((color) => MUSHROOM_COLOR_LABELS[color]).join(" → ");
       messageEl.textContent = `再看一看萤火虫提示哦。${hint}`;
       state.priorityMessage = messageEl.textContent;
       state.priorityMessageUntil = performance.now() + (selectedDifficulty === "crazy" ? 900 : 1800);

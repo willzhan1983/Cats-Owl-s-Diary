@@ -192,7 +192,7 @@ const questTransitions = vm.runInContext(`
       if (levelName === "迷雾沼泽入口") {
         state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => {
           task.lit = true;
-          task.litUntil = null;
+          task.litUntil = performance.now() + MIST_CLEAR_TIME_BY_DIFFICULTY[selectedDifficulty];
         });
       }
       updateMistQuestReadiness();
@@ -221,6 +221,58 @@ for (const transition of plain(questTransitions)) {
   assert.equal(transition.levelSettled, true, `${transition.levelName} should settle normally`);
   assert.equal(transition.panelBefore, true, `${transition.levelName} panel stays closed before turn-in`);
   assert.equal(transition.panelAfter, false, `${transition.levelName} panel opens after turn-in`);
+}
+
+const expiredReadyLampTurnIns = vm.runInContext(`
+  (() => {
+    const results = [];
+    for (const [difficulty, method] of [["normal", "npc"], ["hard", "fallback"]]) {
+      let now = 100;
+      performance.now = () => now;
+      selectedDifficulty = difficulty;
+      resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "迷雾沼泽入口"));
+      scoreSummaryPanel.hidden = true;
+      acceptMistQuest();
+      state.inventory.push("fireflyCore", "fireflyCore", "fireflyCore");
+      const lamps = state.tasksList.filter((task) => task.kind === "mist_lamp");
+      lamps.forEach((task) => interactMistSwampTask(task));
+      const quiz = state.tasksList.find((task) => task.kind === "quiz");
+      answerQuiz(quiz, quiz.quiz.answer);
+      updateMistQuestReadiness();
+      const readyBeforeExpiry = state.mistQuest.status === "ready";
+      const timedLitUntil = lamps.map((task) => task.litUntil);
+      now = Math.max(...timedLitUntil) + 10001;
+      const expired = lamps.every((task) => !isMistLampActive(task));
+      const turnedIn = method === "fallback" ? turnInMistQuestFallback() : turnInMistQuest(mistQuestNpcTask());
+      closeDialogue();
+      state.running = true;
+      update(0);
+      results.push({
+        difficulty,
+        method,
+        readyBeforeExpiry,
+        timedLitUntil,
+        expired,
+        turnedIn,
+        questStatus: state.mistQuest.status,
+        npcDone: mistQuestNpcTask().done,
+        levelSettled: state.levelSettled,
+        panelOpen: !scoreSummaryPanel.hidden,
+      });
+    }
+    return results;
+  })();
+`, questTurnInRuntime);
+
+for (const result of plain(expiredReadyLampTurnIns)) {
+  assert.equal(result.readyBeforeExpiry, true, `${result.method} should reach ready while lamps are active`);
+  assert.ok(result.timedLitUntil.every((value) => Number.isFinite(value)), `${result.method} should use timed lamps`);
+  assert.equal(result.expired, true, `${result.method} lamps should expire after readiness`);
+  assert.equal(result.turnedIn, true, `${result.method} turn-in should preserve the ready prerequisite`);
+  assert.equal(result.questStatus, "settled", `${result.method} quest should settle`);
+  assert.equal(result.npcDone, true, `${result.method} should complete Ruru delivery`);
+  assert.equal(result.levelSettled, true, `${result.method} should settle the level`);
+  assert.equal(result.panelOpen, true, `${result.method} should open the score panel`);
 }
 
 const questRewards = vm.runInContext(`
@@ -676,7 +728,7 @@ const questGuidance = vm.runInContext(`
   })();
 `, runtime);
 assert.equal(questGuidance.locked, "去找小青蛙，按 E 接受任务。");
-assert.deepEqual(plain(questGuidance.activeLabels), ["收集木桥板", "修复木桥", "蘑菇灯顺序", "护送小青蛙"]);
+assert.deepEqual(plain(questGuidance.activeLabels), ["收集木桥板", "修复木桥", "蘑菇灯顺序：黄 → 蓝 → 紫 → 绿", "护送小青蛙"]);
 assert.equal(questGuidance.repairHint, "按 E 修复木桥。");
 assert.match(questGuidance.afterBridge, /蘑菇灯|小青蛙/);
 assert.match(questGuidance.ready, /小青蛙已经安全到达.*按 E 完成任务/);
@@ -684,6 +736,49 @@ assert.equal(questGuidance.fallbackVisible, true);
 assert.equal(questGuidance.fallbackCompleted, true);
 assert.equal(questGuidance.fallbackStatus, "settled");
 assert.deepEqual(plain(questGuidance.frogPosition), { x: 830, y: 210 });
+
+const bridgeQuestHudRows = vm.runInContext(`
+  (() => {
+    const result = {};
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      selectedDifficulty = difficulty;
+      resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+      acceptMistQuest();
+      result[difficulty] = mistQuestObjectiveRows().map((row) => row.label);
+    }
+    return result;
+  })();
+`, runtime);
+assert.equal(bridgeQuestHudRows.easy.some((label) => label.startsWith("蘑菇灯顺序")), false);
+assert.equal(bridgeQuestHudRows.normal.some((label) => label.startsWith("蘑菇灯顺序")), false);
+assert.ok(bridgeQuestHudRows.hard.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
+assert.ok(bridgeQuestHudRows.crazy.includes("蘑菇灯顺序：黄 → 蓝 → 紫 → 绿"));
+
+const mistCoreQuestHudPhases = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "迷雾核心"));
+    acceptMistQuest();
+    const phases = [mistQuestObjectiveRows().map((row) => row.label)];
+    for (const collectible of state.collectibles.filter((entry) => entry.type === "lightSpore")) {
+      state.player.x = collectible.x;
+      state.player.y = collectible.y;
+      checkCollectibles();
+    }
+    phases.push(mistQuestObjectiveRows().map((row) => row.label));
+    state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
+    phases.push(mistQuestObjectiveRows().map((row) => row.label));
+    state.tasksList.filter((task) => task.kind === "mist_bubble").forEach((task) => interactMistSwampTask(task));
+    phases.push(mistQuestObjectiveRows().map((row) => row.label));
+    return phases;
+  })();
+`, runtime);
+assert.deepEqual(plain(mistCoreQuestHudPhases), [
+  ["收集光之孢子"],
+  ["点亮大雾灯"],
+  ["清除黑雾泡泡"],
+  ["安抚迷雾精灵"],
+]);
 
 const frogEscort = vm.runInContext(`
   selectedDifficulty = "normal";
@@ -1111,7 +1206,7 @@ const questCompletionMatrix = vm.runInContext(`
     const results = [];
     const finishSharedQuiz = () => {
       const quiz = state.tasksList.find((task) => task.mistSwampShared && !task.done);
-      if (quiz) completeTask(quiz, quiz.x, quiz.y);
+      if (quiz) answerQuiz(quiz, quiz.quiz.answer);
     };
     for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
       for (const levelName of ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"]) {
@@ -1121,17 +1216,22 @@ const questCompletionMatrix = vm.runInContext(`
         const initialStatus = state.mistQuest.status;
         const npcAnimal = mistQuestNpcTask().animal;
         acceptMistQuest();
+        let mechanismComplete = false;
+        let bossFlow = null;
 
         if (levelName === "迷雾沼泽入口") {
           state.inventory.push("fireflyCore", "fireflyCore", "fireflyCore");
           state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
           finishSharedQuiz();
+          mechanismComplete = state.tasksList.filter((task) => task.kind === "mist_lamp").every((task) => task.done)
+            && state.tasksList.some((task) => task.mistSwampShared && task.done);
         } else if (levelName === "萤火虫小径") {
           const trail = state.tasksList.find((task) => task.kind === "firefly_trail");
           state.inventory.push(...trail.need);
           state.fireflyTrailIndex = state.fireflyTrail.filter((point) => !point.decoy).length;
           updateMistSwampMechanisms(0);
           finishSharedQuiz();
+          mechanismComplete = trail.done && state.tasksList.some((task) => task.mistSwampShared && task.done);
         } else if (levelName === "沉睡木桥") {
           for (const color of state.mushroomSequence) {
             interactMistSwampTask(state.tasksList.find((task) => task.kind === "mushroom_lamp" && task.color === color));
@@ -1140,26 +1240,56 @@ const questCompletionMatrix = vm.runInContext(`
           state.inventory.push(...bridge.need);
           interactMistSwampTask(bridge);
           const frog = mistQuestNpcTask();
-          frog.following = true;
+          state.player.x = frog.x;
+          state.player.y = frog.y;
+          updateMistSwampMechanisms(0.016);
+          const followedThroughEscortHelper = frog.following;
+          state.player.x = 830;
+          state.player.y = 210;
           frog.x = 830;
           frog.y = 210;
-          completeTask(frog, frog.x, frog.y);
+          updateMistSwampMechanisms(0.016);
           finishSharedQuiz();
+          mechanismComplete = followedThroughEscortHelper && frog.done;
         } else if (levelName === "迷雾核心") {
           state.inventory.push("lightSpore", "lightSpore", "lightSpore");
           state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
-          state.tasksList.filter((task) => task.kind === "mist_bubble").forEach((task) => interactMistSwampTask(task));
+          const bubbles = state.tasksList.filter((task) => task.kind === "mist_bubble");
+          const outOfOrderBlocked = interactMistSwampTask(bubbles[1]) && !bubbles[1].done && state.mistCoreBubbleIndex === 0;
+          bubbles.forEach((task) => interactMistSwampTask(task));
           finishSharedQuiz();
-          interactMistSwampTask(mistQuestNpcTask());
+          const core = mistQuestNpcTask();
+          interactMistSwampTask(core);
+          mechanismComplete = outOfOrderBlocked && bubbles.every((task) => task.done)
+            && state.mistCoreBubbleIndex === bubbles.length && core.done;
         } else {
           state.inventory.push("lightSpore", "lightSpore", "lightSpore");
           state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
           updateMistSwampMechanisms(0);
-          state.mudBubbles.forEach((bubble) => completeTask(bubble, bubble.x, bubble.y));
-          updateMistSwampMechanisms(0);
           const boss = mistQuestNpcTask();
-          boss.chargeReady = true;
-          completeTask(boss, boss.x, boss.y);
+          const phaseTwoReached = boss.phase === 2;
+          state.running = true;
+          let bubbleSteps = 0;
+          while (boss.phase === 2 && bubbleSteps <= state.mudBubbles.length) {
+            bubbleSteps += 1;
+            const bubble = state.mudBubbles.find((entry) => entry.active && !entry.done);
+            if (!bubble) break;
+            state.player.x = bubble.x;
+            state.player.y = bubble.y;
+            updateMistSwampMechanisms(0.016);
+            talkToNearbyTask();
+            updateMistSwampMechanisms(0.016);
+          }
+          const bubblesCleared = state.mudBubbles.every((bubble) => bubble.done) && boss.phase === 3;
+          state.player.x = boss.x;
+          state.player.y = boss.y;
+          updateMistSwampMechanisms(state.lanternChargeRequired + 0.01);
+          const charged = boss.chargeReady === true;
+          interactMistSwampTask(boss);
+          const quizOpened = state.activeQuiz === boss;
+          answerQuiz(boss, boss.quiz.answer);
+          bossFlow = { phaseTwoReached, bubblesCleared, charged, quizOpened, bossDone: boss.done };
+          mechanismComplete = Object.values(bossFlow).every(Boolean);
         }
 
         updateMistQuestReadiness();
@@ -1173,6 +1303,8 @@ const questCompletionMatrix = vm.runInContext(`
           levelName,
           initialStatus,
           npcAnimal,
+          mechanismComplete,
+          bossFlow,
           readyBeforeTurnIn,
           questStatus: state.mistQuest.status,
           levelClear: state.levelClear,
@@ -1189,12 +1321,22 @@ assert.equal(questCompletionMatrix.length, 20);
 for (const result of plain(questCompletionMatrix)) {
   assert.equal(result.initialStatus, "locked", `${result.difficulty} ${result.levelName} starts locked`);
   assert.equal(result.npcAnimal, expectedQuestNpcs[result.levelName], `${result.levelName} NPC`);
+  assert.equal(result.mechanismComplete, true, `${result.difficulty} ${result.levelName} should complete through gameplay mechanisms`);
   assert.equal(result.readyBeforeTurnIn, true, `${result.difficulty} ${result.levelName} waits for turn-in`);
   assert.equal(result.questStatus, "settled", `${result.difficulty} ${result.levelName} quest settled`);
   assert.equal(result.levelClear, true, `${result.difficulty} ${result.levelName} clear`);
   assert.equal(result.levelSettled, true, `${result.difficulty} ${result.levelName} score settled`);
   assert.equal(result.panelOpen, true, `${result.difficulty} ${result.levelName} panel open`);
 }
+
+const easyBossMatrixResult = plain(questCompletionMatrix).find((result) => result.difficulty === "easy" && result.levelName === "沼泽泥浆怪");
+assert.deepEqual(easyBossMatrixResult.bossFlow, {
+  phaseTwoReached: true,
+  bubblesCleared: true,
+  charged: true,
+  quizOpened: true,
+  bossDone: true,
+});
 
 const legacyTaskKindCounts = Array.from(levels)
   .filter((level) => level.world !== "mist_swamp")
