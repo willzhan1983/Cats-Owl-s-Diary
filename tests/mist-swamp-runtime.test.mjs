@@ -164,11 +164,132 @@ const questNpcAcceptsWithNearbyInteraction = vm.runInContext(`
     state.player.y = questNpc.y;
     checkTasks(0.016);
     talkToNearbyTask();
-    return state.mistQuest.status;
+    const dialogueOpened = state.activeDialogue?.mode;
+    nextDialogueLine();
+    nextDialogueLine();
+    return { dialogueOpened, status: state.mistQuest.status, mode: state.activeDialogue?.mode };
   })();
 `, runtime);
 
-assert.equal(questNpcAcceptsWithNearbyInteraction, "active");
+assert.deepEqual(plain(questNpcAcceptsWithNearbyInteraction), { dialogueOpened: "quest_intro", status: "active", mode: "quest_active" });
+
+const questTurnInRuntime = loadGameRuntime();
+vm.runInContext(mistQuizSource, questTurnInRuntime, { filename: "mist-swamp-quiz-bank.js" });
+const questTransitions = vm.runInContext(`
+  (() => {
+    const result = [];
+    for (const levelName of ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"]) {
+      selectedDifficulty = "normal";
+      resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === levelName));
+      scoreSummaryPanel.hidden = true;
+      acceptMistQuest();
+      const npc = mistQuestNpcTask();
+      for (const task of requiredTasksForCurrentLevel()) {
+        if (task === npc && task.kind === "delivery") continue;
+        task.done = true;
+      }
+      if (npc.kind === "delivery") state.inventory.push(...npc.need);
+      if (levelName === "迷雾沼泽入口") {
+        state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => {
+          task.lit = true;
+          task.litUntil = null;
+        });
+      }
+      updateMistQuestReadiness();
+      const ready = state.mistQuest.status;
+      const panelBefore = scoreSummaryPanel.hidden;
+      turnInMistQuest(npc);
+      closeDialogue();
+      state.running = true;
+      update(0);
+      result.push({
+        levelName,
+        ready,
+        settled: state.mistQuest.status,
+        levelSettled: state.levelSettled,
+        panelBefore,
+        panelAfter: scoreSummaryPanel.hidden,
+      });
+    }
+    return result;
+  })();
+`, questTurnInRuntime);
+
+for (const transition of plain(questTransitions)) {
+  assert.equal(transition.ready, "ready", `${transition.levelName} should wait for turn-in`);
+  assert.equal(transition.settled, "settled", `${transition.levelName} should turn in`);
+  assert.equal(transition.levelSettled, true, `${transition.levelName} should settle normally`);
+  assert.equal(transition.panelBefore, true, `${transition.levelName} panel stays closed before turn-in`);
+  assert.equal(transition.panelAfter, false, `${transition.levelName} panel opens after turn-in`);
+}
+
+const questRewards = vm.runInContext(`
+  (() => {
+    const result = {};
+    for (const [levelName, reward] of [["迷雾核心", "fireflyLantern"], ["沼泽泥浆怪", "mistGuardianBadge"]]) {
+      resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === levelName));
+      acceptMistQuest();
+      const npc = mistQuestNpcTask();
+      completeTask(npc, npc.x, npc.y);
+      const beforeTurnIn = state.inventory.filter((item) => item === reward).length;
+      state.mistQuest.status = "ready";
+      turnInMistQuest(npc);
+      turnInMistQuest(npc);
+      result[levelName] = {
+        beforeTurnIn,
+        afterTurnIn: state.inventory.filter((item) => item === reward).length,
+      };
+    }
+    return result;
+  })();
+`, questTurnInRuntime);
+assert.deepEqual(plain(questRewards), {
+  "迷雾核心": { beforeTurnIn: 0, afterTurnIn: 1 },
+  "沼泽泥浆怪": { beforeTurnIn: 0, afterTurnIn: 1 },
+});
+
+const dialogueButtons = vm.runInContext(`
+  (() => {
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "迷雾沼泽入口"));
+    const npc = mistQuestNpcTask();
+    openDialogue(npc);
+    state.activeDialogue.index = state.activeDialogue.lines.length - 1;
+    renderDialogue();
+    const acceptLabel = dialogueNextBtn.textContent;
+    nextDialogueLine();
+    state.mistQuest.status = "ready";
+    openDialogue(npc);
+    renderDialogue();
+    return { acceptLabel, giveLabel: dialogueGiveBtn.textContent, giveHidden: dialogueGiveBtn.hidden };
+  })();
+`, questTurnInRuntime);
+assert.deepEqual(plain(dialogueButtons), { acceptLabel: "接受任务", giveLabel: "完成任务", giveHidden: false });
+
+const readyQuestTimeout = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "crazy";
+    resetGame(levels.findIndex((level) => level.world === "mist_swamp" && level.name === "沉睡木桥"));
+    acceptMistQuest();
+    requiredTasksForCurrentLevel().forEach((task) => { task.done = true; });
+    updateMistQuestReadiness();
+    state.time = 0;
+    state.running = true;
+    scoreSummaryPanel.hidden = true;
+    update(0);
+    return {
+      status: state.mistQuest.status,
+      running: state.running,
+      levelSettled: state.levelSettled,
+      panelHidden: scoreSummaryPanel.hidden,
+    };
+  })();
+`, questTurnInRuntime);
+assert.deepEqual(plain(readyQuestTimeout), {
+  status: "ready",
+  running: true,
+  levelSettled: false,
+  panelHidden: true,
+});
 
 const nonMistQuestState = vm.runInContext(`
   resetGame(levels.findIndex((level) => level.world !== "mist_swamp"));
@@ -701,6 +822,10 @@ const fiveLevelCompletion = vm.runInContext(`
     scoreSummaryPanel.hidden = true;
     state.running = true;
     update(0);
+    turnInMistQuest(mistQuestNpcTask());
+    closeDialogue();
+    state.running = true;
+    update(0);
     completionResults.push({ name: levels[state.levelIndex].name, clear: state.levelClear, settled: state.levelSettled, panel: !scoreSummaryPanel.hidden, pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name) });
   };
 
@@ -708,9 +833,6 @@ const fiveLevelCompletion = vm.runInContext(`
   acceptMistQuest();
   state.inventory.push("fireflyCore", "fireflyCore", "fireflyCore");
   state.tasksList.filter((task) => task.kind === "mist_lamp").forEach((task) => interactMistSwampTask(task));
-  var entranceRuru = state.tasksList.find((task) => task.animal === "ruru");
-  consumeNeeds(entranceRuru.need);
-  completeTask(entranceRuru, entranceRuru.x, entranceRuru.y);
   var entranceQuiz = state.tasksList.find((task) => task.kind === "quiz");
   answerQuiz(entranceQuiz, entranceQuiz.quiz.answer);
   settleCurrentMistLevel();
@@ -818,6 +940,10 @@ const sleepingBridgeDifficultyCompletion = vm.runInContext(`
       scoreSummaryPanel.hidden = true;
       state.running = true;
       update(0);
+      turnInMistQuest(mistQuestNpcTask());
+      closeDialogue();
+      state.running = true;
+      update(0);
       return {
         difficulty,
         pending: requiredTasksForCurrentLevel().filter((task) => !task.done).map((task) => task.kind + ":" + task.name),
@@ -869,6 +995,10 @@ for (const [difficulty, chargeSeconds] of [["hard", 2.5], ["crazy", 3]]) {
     interactMistSwampTask(difficultyBoss);
     answerQuiz(difficultyBoss, difficultyBoss.quiz.answer);
     scoreSummaryPanel.hidden = true;
+    state.running = true;
+    update(0);
+    turnInMistQuest(difficultyBoss);
+    closeDialogue();
     state.running = true;
     update(0);
     ({

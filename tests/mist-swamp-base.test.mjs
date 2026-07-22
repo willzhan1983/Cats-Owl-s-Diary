@@ -60,4 +60,5 @@ assert.match(mudMonster, /mudBossTask\(780, 230\)/);
 assert.match(game, /function mudBossTask\([\s\S]*?reward: "mistGuardianBadge"/);
 
 const completeTask = game.slice(game.indexOf("function completeTask("), game.indexOf("function sortBasketCompleteMessage("));
-assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.inventory\.push\(task\.reward\)/);
+assert.match(game, /function grantTaskReward\([\s\S]*?state\.inventory\.push\(task\.reward\)/);
+assert.match(completeTask, /if \(task\.reward\) \{[\s\S]*?state\.mistQuest\.pendingReward = task\.reward[\s\S]*?grantTaskReward\(task, x, y\)/);

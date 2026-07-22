@@ -1578,6 +1578,29 @@ function acceptMistQuest() {
   return true;
 }
 
+function mistQuestGameplayComplete() {
+  if (!state?.mistQuest || state.mistQuest.status !== "active") return false;
+  const npc = mistQuestNpcTask();
+  return requiredTasksForCurrentLevel().every((task) => {
+    if (task !== npc || task.kind !== "delivery") return task.done;
+    return missingNeeds(task.need).length === 0 && canTalkToMistSwampTask(task);
+  });
+}
+
+function updateMistQuestReadiness() {
+  if (!mistQuestGameplayComplete()) return false;
+  state.mistQuest.status = "ready";
+  state.mistQuest.readyAt = performance.now();
+  messageEl.textContent = levels[state.levelIndex].mistQuest.readyHint;
+  updateHud();
+  return true;
+}
+
+function canSettleCurrentLevel(requiredTasks) {
+  if (!requiredTasks.every((task) => task.done)) return false;
+  return !state.mistQuest || state.mistQuest.status === "settled";
+}
+
 function isMistLampActive(task, now = performance.now()) {
   return !!task?.lit && (task.litUntil === null || task.litUntil > now);
 }
@@ -2393,7 +2416,7 @@ function update(dt) {
   state.time -= dt;
   if (state.time <= 0) {
     state.time = 0;
-    if (difficultySettings().stopOnTimeout) {
+    if (difficultySettings().stopOnTimeout && !["ready", "settled"].includes(state.mistQuest?.status)) {
       state.running = false;
       const settlement = settleLevelRun(false);
       startBtn.textContent = text.again;
@@ -2419,9 +2442,10 @@ function update(dt) {
   checkObstacles();
   checkCollectibles();
   checkTasks(dt);
+  updateMistQuestReadiness();
 
   const requiredTasks = requiredTasksForCurrentLevel();
-  if (requiredTasks.length > 0 && requiredTasks.every((task) => task.done)) {
+  if (requiredTasks.length > 0 && canSettleCurrentLevel(requiredTasks)) {
     state.running = false;
     stopMusic();
     const settlement = settleLevelRun(true);
@@ -2994,7 +3018,8 @@ function checkTasks(dt) {
         state.nearbyTask = task;
       }
     }
-    if (near && isMistQuestNpc(task)) {
+    const activeQuestMechanic = state.mistQuest?.status === "active" && ["mist_core", "mud_boss"].includes(task.kind);
+    if (near && isMistQuestNpc(task) && !activeQuestMechanic) {
       const marker = state.mistQuest.status === "locked" ? "接任务" : state.mistQuest.status === "ready" ? "交任务" : "查看任务";
       messageEl.textContent = `按 E 和${task.name}对话（${marker}）。`;
       continue;
@@ -3109,6 +3134,14 @@ function checkTasks(dt) {
   }
 }
 
+function grantTaskReward(task, x = task.x, y = task.y) {
+  if (!task.reward || task.rewardGranted) return false;
+  state.inventory.push(task.reward);
+  task.rewardGranted = true;
+  addFloatingText(x, y - 82, `+ ${itemLabel(task.reward)}`, "#f2ad31");
+  return true;
+}
+
 function completeTask(task, x, y) {
   task.done = true;
   task.progress = 1;
@@ -3117,8 +3150,8 @@ function completeTask(task, x, y) {
   state.time = Math.min(state.levelTime + 8, state.time + 5);
   if (task.kind === "sort_basket") addRunPoints(10, x, y, "+10 sort");
   if (task.reward) {
-    state.inventory.push(task.reward);
-    addFloatingText(x, y - 82, `+ ${itemLabel(task.reward)}`, "#f2ad31");
+    if (isMistQuestNpc(task) && state.mistQuest.status !== "settled") state.mistQuest.pendingReward = task.reward;
+    else grantTaskReward(task, x, y);
   }
   if (task.animal === "appleCartStation" && state.escortCart) {
     state.escortCart.active = true;
@@ -3281,6 +3314,14 @@ function shouldShowTaskHint(task) {
 }
 
 function taskDialogueMode(task) {
+  if (isMistQuestNpc(task)) {
+    return {
+      locked: "quest_intro",
+      active: "quest_active",
+      ready: "quest_ready",
+      settled: "quest_after",
+    }[state.mistQuest.status];
+  }
   if (task.done) return "after";
   if (task.animal === "owlPrincipal" && !canUseEscortCart()) return "missing";
   if (task.kind === "delivery") return missingNeeds(task.need).length ? (task.dialogueSeen ? "missing" : "intro") : "ready";
@@ -3292,6 +3333,13 @@ function taskDialogueMode(task) {
 }
 
 function taskDialogueLines(task, mode) {
+  if (isMistQuestNpc(task)) {
+    const quest = levels[state.levelIndex].mistQuest;
+    if (mode === "quest_intro") return quest.introLines;
+    if (mode === "quest_active") return [quest.activeHint];
+    if (mode === "quest_ready") return quest.completeLines;
+    if (mode === "quest_after") return ["谢谢你，继续开心探索吧！"];
+  }
   const library = task.dialogue || DIALOGUE_LIBRARY[task.animal] || {};
   if (library[mode]?.length) return library[mode];
   if (mode === "intro" && task.kind === "quiz") return [quizDisplay(task)?.dialogue || task.speech];
@@ -3386,16 +3434,34 @@ function renderDialogue() {
   dialogueText.textContent = dialogue.lines[dialogue.index] || "";
   setDialogueAvatar(task);
   const hasNext = dialogue.index < dialogue.lines.length - 1;
-  dialogueNextBtn.hidden = !hasNext;
-  dialogueGiveBtn.hidden = !((task.kind === "delivery" || task.kind === "sort_basket") && dialogue.mode === "ready" && !task.done);
+  dialogueNextBtn.textContent = "下一句";
+  dialogueGiveBtn.textContent = "交给TA";
+  const questIntroDone = dialogue.mode === "quest_intro" && !hasNext;
+  dialogueNextBtn.hidden = !hasNext && !questIntroDone;
+  if (questIntroDone) dialogueNextBtn.textContent = "接受任务";
+  const questReady = dialogue.mode === "quest_ready";
+  dialogueGiveBtn.hidden = !(questReady || ((task.kind === "delivery" || task.kind === "sort_basket") && dialogue.mode === "ready" && !task.done));
+  if (questReady) dialogueGiveBtn.textContent = "完成任务";
   dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext);
 }
 
 function nextDialogueLine() {
   const dialogue = state?.activeDialogue;
   if (!dialogue) return;
+  const task = dialogue.task;
   if (dialogue.index < dialogue.lines.length - 1) {
     dialogue.index += 1;
+    renderDialogue();
+  } else if (dialogue.mode === "quest_intro") {
+    acceptMistQuest();
+    state.activeDialogue = {
+      taskId: task.id,
+      task,
+      speaker: task.name,
+      lines: [levels[state.levelIndex].mistQuest.activeHint],
+      index: 0,
+      mode: "quest_active",
+    };
     renderDialogue();
   } else if (!dialogueGiveBtn.hidden) {
     finishDialogueDelivery();
@@ -3411,9 +3477,35 @@ function closeDialogue() {
   if (state) state.activeDialogue = null;
 }
 
+function turnInMistQuest(task = mistQuestNpcTask()) {
+  if (!isMistQuestNpc(task) || state.mistQuest.status !== "ready") return false;
+  if (task.kind === "delivery" && !task.done) {
+    if (missingNeeds(task.need).length || !canTalkToMistSwampTask(task)) return false;
+    consumeNeeds(task.need);
+    completeTask(task, task.x, task.y);
+  }
+  state.mistQuest.status = "settled";
+  grantTaskReward(task, task.x, task.y);
+  state.activeDialogue = {
+    taskId: task.id,
+    task,
+    speaker: task.name,
+    lines: levels[state.levelIndex].mistQuest.completeLines,
+    index: 0,
+    mode: "quest_after",
+  };
+  updateHud();
+  renderDialogue();
+  return true;
+}
+
 function finishDialogueDelivery() {
   const dialogue = state?.activeDialogue;
   const task = dialogue?.task;
+  if (dialogue?.mode === "quest_ready") {
+    turnInMistQuest(task);
+    return;
+  }
   if (!task || (task.kind !== "delivery" && task.kind !== "sort_basket") || task.done || missingNeeds(task.need).length) return;
   if (!canTalkToMistSwampTask(task)) {
     messageEl.textContent = "雾又浓起来了，先重新点亮一盏雾灯吧。";
@@ -3498,8 +3590,9 @@ function talkToNearbyTask() {
     nextDialogueLine();
     return;
   }
-  if (isMistSwampLevel() && state.mistQuest?.status === "locked" && isMistQuestNpc(state.nearbyTask)) {
-    acceptMistQuest();
+  const activeQuestMechanic = state.mistQuest?.status === "active" && ["mist_core", "mud_boss"].includes(state.nearbyTask?.kind);
+  if (isMistQuestNpc(state.nearbyTask) && !activeQuestMechanic) {
+    openDialogue(state.nearbyTask);
     return;
   }
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
