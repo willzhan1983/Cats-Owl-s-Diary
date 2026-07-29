@@ -50,16 +50,20 @@ assert.ok(
 );
 
 assert.ok(
-  index.includes("./game.js?v=sleeping-bridge-lamps-20260722"),
-  "game.js should use the current Mist Swamp cache version",
+  index.includes("./game.js?v=acorn-town-20260729"),
+  "game.js should use the current Acorn Town cache version",
 );
 
-for (const script of ["mist-swamp-quiz-bank.js", "grade-quiz.js", "art-assets.js"]) {
+for (const script of ["mist-swamp-quiz-bank.js", "grade-quiz.js"]) {
   assert.ok(
     index.includes(`./${script}?v=mist-swamp-final-20260720c`),
     `${script} should use the current Mist Swamp cache version`,
   );
 }
+assert.ok(
+  index.includes("./art-assets.js?v=acorn-town-20260729"),
+  "art-assets.js should use the current Acorn Town cache version",
+);
 
 const game = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 assert.match(

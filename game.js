@@ -1971,7 +1971,7 @@ function canTalkToMistSwampTask(task) {
 }
 
 function requiredTasksForCurrentLevel() {
-  return isMistSwampSleepingBridgeLevel() ? state.tasksList.filter((task) => !task.optional) : state.tasksList;
+  return state.tasksList.filter((task) => !task.optional);
 }
 
 function taskSystemType(kind) {

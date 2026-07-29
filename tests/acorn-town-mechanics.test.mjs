@@ -38,3 +38,4 @@ for (const name of [
 assert.match(game, /先完成小镇任务，再来回答最后一题/);
 assert.match(game, /这里不是通往河畔码头的出口/);
 assert.match(game, /townCartCooldownUntil/);
+assert.match(game, /function requiredTasksForCurrentLevel\(\) \{\s*return state\.tasksList\.filter\(\(task\) => !task\.optional\);\s*\}/);

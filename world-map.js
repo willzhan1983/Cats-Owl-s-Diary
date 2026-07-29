@@ -358,7 +358,8 @@
 
   function regionIsUnlocked(regionId) {
     const region = WORLD_MAP[regionId];
-    return Boolean(region?.unlocked || window.CATS_OWLS_PROGRESS?.isWorldUnlocked(regionId));
+    const hasDynamicProgress = ["acorn_town", "riverside_dock"].includes(regionId);
+    return Boolean(region?.unlocked || (hasDynamicProgress && window.CATS_OWLS_PROGRESS?.isWorldUnlocked(regionId)));
   }
 
   function renderRegionDetail(regionId) {
