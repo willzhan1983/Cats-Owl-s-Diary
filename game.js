@@ -2097,6 +2097,8 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeBubbleLift: null,
     bubbleLiftCooldownUntil: 0,
     hurtCooldownUntil: 0,
+    townCartCooldownUntil: 0,
+    exitCooldownUntil: 0,
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
     hazards: [],
@@ -2775,6 +2777,7 @@ function update(dt) {
   updatePlayer(dt);
   updateAppleCart(dt);
   updateForestRoadMechanisms(dt);
+  updateAcornTownMechanisms(dt);
   updateMistSwampMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
@@ -3395,6 +3398,45 @@ function finishNoticeSlot(task) {
   return false;
 }
 
+function updateTownCarts(dt) {
+  const now = performance.now();
+  for (const cart of state.townCarts || []) {
+    cart.x += cart.speed * cart.dir * dt;
+    if (cart.x <= cart.minX || cart.x >= cart.maxX) {
+      cart.x = clamp(cart.x, cart.minX, cart.maxX);
+      cart.dir *= -1;
+    }
+    if (distance(state.player, cart) < 48 && now >= state.townCartCooldownUntil) {
+      state.townCartCooldownUntil = now + 1000;
+      applyAcornTownWrongAction(cart.x, cart.y, "小推车经过，先让一让。");
+      state.player.x = clamp(state.player.x - cart.dir * 34, 28, canvas.width - 28);
+    }
+  }
+}
+
+function checkAcornTownExitAreas() {
+  const now = performance.now();
+  if (now < state.exitCooldownUntil) return;
+  for (const area of state.exitAreas || []) {
+    if (distance(state.player, area) >= area.r + 16) continue;
+    state.exitCooldownUntil = now + 900;
+    applyAcornTownWrongAction(area.x, area.y, "这里不是通往河畔码头的出口。");
+    state.player.x = levels[state.levelIndex].start.x;
+    state.player.y = levels[state.levelIndex].start.y;
+    return;
+  }
+}
+
+function updateAcornTownMechanisms(dt) {
+  if (levels[state.levelIndex]?.world !== "acorn_town") return;
+  updateTownCarts(dt);
+  checkAcornTownExitAreas();
+}
+
+function quizTaskAvailable(task) {
+  return !task.requiresCoreTasks || CATS_OWLS_ACORN_TOWN_RULES.coreTasksDone(state.tasksList);
+}
+
 function checkCollectibles() {
   const p = state.player;
   for (const entry of state.collectibles) {
@@ -3497,8 +3539,17 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "town_exit") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? "按 E 前往河畔码头。"
+        : "🔒 先修好公告板，确认码头路线。";
+      continue;
+    }
+
     if (task.kind === "quiz") {
-      messageEl.textContent = taskNearHint(task);
+      messageEl.textContent = quizTaskAvailable(task)
+        ? taskNearHint(task)
+        : "先完成小镇任务，再来回答最后一题。";
       continue;
     }
 
@@ -3744,6 +3795,7 @@ function taskShortHint(task) {
   if (task.kind === "decoy_target") return "查看";
   if (task.kind === "market_trade") return "兑换";
   if (task.kind === "notice_slot") return "拼碎片";
+  if (task.kind === "town_exit") return "去码头";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
@@ -3759,7 +3811,11 @@ function taskNearHint(task) {
   if (task.done && task.kind === "direction_sign") return task.directions?.join("  ") || "→ 橡果镇";
   if (task.done && task.kind === "road_clear") return "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
   if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
-  if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
+  if (task.kind === "quiz") {
+    return quizTaskAvailable(task)
+      ? quizDisplay(task)?.near || "\u6309 E \u6311\u6218"
+      : "先完成小镇任务，再来回答最后一题。";
+  }
   if (task.kind === "sort_basket") {
     const missing = missingNeeds(task.need);
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u653e\u8fdb${task.name}`;
@@ -3911,7 +3967,7 @@ function renderDialogue() {
   const questReady = dialogue.mode === "quest_ready";
   dialogueGiveBtn.hidden = !(questReady || ((task.kind === "delivery" || task.kind === "sort_basket") && dialogue.mode === "ready" && !task.done));
   if (questReady) dialogueGiveBtn.textContent = "完成任务";
-  dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext);
+  dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext && quizTaskAvailable(task));
 }
 
 function nextDialogueLine() {
@@ -4080,6 +4136,15 @@ function talkToNearbyTask() {
   }
   if (state.nearbyTask?.kind === "notice_slot") {
     finishNoticeSlot(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "town_exit") {
+    if (!taskDependenciesMet(state.nearbyTask)) {
+      messageEl.textContent = "先修好公告板，确认码头路线。";
+      return;
+    }
+    completeTask(state.nearbyTask, state.nearbyTask.x, state.nearbyTask.y);
+    updateHud();
     return;
   }
   if (state.nearbyTask?.kind === "direction_sign") {
@@ -4252,6 +4317,10 @@ function repairDirectionSign(task) {
 }
 
 function openQuiz(task) {
+  if (!quizTaskAvailable(task)) {
+    messageEl.textContent = "先完成小镇任务，再来回答最后一题。";
+    return;
+  }
   if (state.activeQuiz === task) return;
   closeDialogue();
   state.activeQuiz = task;
@@ -4350,6 +4419,7 @@ function draw() {
   drawSceneObjects();
   drawFireflyTrail();
   drawEscortCart();
+  drawTownCarts();
   drawCollectibles();
   drawTasks();
   drawMudBubbles();
@@ -4883,6 +4953,18 @@ function drawEscortCart() {
   drawAppleValleyGroundShadow(0, 40, 34, 7);
   drawAppleCart();
   ctx.restore();
+}
+
+function drawTownCarts() {
+  for (const cart of state.townCarts || []) {
+    ctx.save();
+    ctx.translate(cart.x, cart.y);
+    if (cart.dir < 0) ctx.scale(-1, 1);
+    if (!drawPropImage(ctx, "acornTownCart", -46, -42, 92, 72)) {
+      drawAcornTownPropFallback("推车");
+    }
+    ctx.restore();
+  }
 }
 
 function drawDarkBubbles() {

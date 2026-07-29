@@ -26,3 +26,15 @@ assert.match(game, /订单 B/);
 assert.match(game, /订单 C/);
 assert.match(game, /公告碎片放错位置/);
 assert.match(game, /reward: "travelStar"/);
+
+for (const name of [
+  "updateAcornTownMechanisms",
+  "updateTownCarts",
+  "checkAcornTownExitAreas",
+  "quizTaskAvailable",
+]) {
+  assert.match(game, new RegExp(`function ${name}\\(`));
+}
+assert.match(game, /先完成小镇任务，再来回答最后一题/);
+assert.match(game, /这里不是通往河畔码头的出口/);
+assert.match(game, /townCartCooldownUntil/);
