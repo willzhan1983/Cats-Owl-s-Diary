@@ -67,6 +67,11 @@ const MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, cr
 const MUSHROOM_COLOR_LABELS = Object.freeze({ yellow: "黄", blue: "蓝", purple: "紫", green: "绿" });
 const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy: 2 };
 const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
+const ACORN_MARKET_ORDERS = Object.freeze({
+  A: ["acorn", "acorn", "redApple"],
+  B: ["acorn", "acorn", "acorn", "greenApple"],
+  C: ["acorn", "acorn", "redApple", "greenApple"],
+});
 const SLEEPING_BRIDGE_REPAIR_ANCHOR = Object.freeze({ x: 570, y: 300 });
 const SLEEPING_BRIDGE_LAMP_SLOTS = Object.freeze([
   Object.freeze({ x: 420, y: 100 }),
@@ -1602,9 +1607,9 @@ const levels = [
       { ...item(814, 290, "greenApple", "青苹果"), minDifficulty: "hard" },
     ],
     tasks: [
-      marketTradeTask(320, 194, "market_order_a", "订单 A", ["acorn", "acorn", "redApple"]),
-      marketTradeTask(520, 178, "market_order_b", "订单 B", ["acorn", "acorn", "acorn", "greenApple"], { requiresTaskId: "market_order_a" }),
-      marketTradeTask(724, 192, "market_order_c", "订单 C", ["acorn", "acorn", "redApple", "greenApple"], { minDifficulty: "hard", requiresTaskId: "market_order_b", reward: "travelStar" }),
+      marketTradeTask(320, 194, "market_order_a", "订单 A", ACORN_MARKET_ORDERS.A),
+      marketTradeTask(520, 178, "market_order_b", "订单 B", ACORN_MARKET_ORDERS.B, { requiresTaskId: "market_order_a" }),
+      marketTradeTask(724, 192, "market_order_c", "订单 C", ACORN_MARKET_ORDERS.C, { minDifficulty: "hard", requiresTaskId: "market_order_b", reward: "travelStar" }),
     ],
     townCarts: [
       { x: 292, y: 334, minX: 210, maxX: 720, speed: 62, dir: 1, minDifficulty: "normal" },
@@ -3352,6 +3357,44 @@ function finishMatchedDelivery(task) {
   return false;
 }
 
+function finishMarketTrade(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = task.lockedMessage || "先完成上一张订单。";
+    return false;
+  }
+  const missing = missingNeeds(task.need);
+  if (missing.length) {
+    applyAcornTownWrongAction(task.x, task.y, `${task.name}还缺少：${needLabels(missing)}。`);
+    return false;
+  }
+  consumeNeeds(task.need);
+  completeTask(task, task.x, task.y);
+  if (task.reward && !state.inventory.includes(task.reward)) state.inventory.push(task.reward);
+  updateHud();
+  return true;
+}
+
+function finishNoticeSlot(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = "请从第一块公告碎片开始按顺序拼。";
+    return false;
+  }
+  if (state.inventory.includes(task.need)) {
+    consumeNeeds([task.need]);
+    completeTask(task, task.x, task.y);
+    updateHud();
+    return true;
+  }
+  if (state.inventory.some((type) => type.startsWith("noticeFragment") || type === "fakeNoticeFragment")) {
+    applyAcornTownWrongAction(task.x, task.y, "公告碎片放错位置。");
+    return false;
+  }
+  messageEl.textContent = `还没有找到${itemLabel(task.need)}。`;
+  return false;
+}
+
 function checkCollectibles() {
   const p = state.player;
   for (const entry of state.collectibles) {
@@ -3436,6 +3479,21 @@ function checkTasks(dt) {
 
     if (task.kind === "decoy_target") {
       messageEl.textContent = `按 E 查看${task.label}。`;
+      continue;
+    }
+
+    if (task.kind === "market_trade") {
+      const missing = missingNeeds(task.need);
+      messageEl.textContent = taskDependenciesMet(task)
+        ? (missing.length ? `${task.name}还需要：${needLabels(missing)}。` : `按 E 完成${task.name}。`)
+        : task.lockedMessage || "🔒 先完成上一张订单。";
+      continue;
+    }
+
+    if (task.kind === "notice_slot") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? `按 E 放置${itemLabel(task.need)}。`
+        : "🔒 请按顺序拼公告板。";
       continue;
     }
 
@@ -3684,6 +3742,8 @@ function taskShortHint(task) {
   if (!taskDependenciesMet(task)) return "🔒 未解锁";
   if (task.kind === "matched_delivery") return "投递";
   if (task.kind === "decoy_target") return "查看";
+  if (task.kind === "market_trade") return "兑换";
+  if (task.kind === "notice_slot") return "拼碎片";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
@@ -4012,6 +4072,14 @@ function talkToNearbyTask() {
   }
   if (state.nearbyTask?.kind === "decoy_target") {
     applyAcornTownWrongAction(state.nearbyTask.x, state.nearbyTask.y, "这封信不是寄到这里的。");
+    return;
+  }
+  if (state.nearbyTask?.kind === "market_trade") {
+    finishMarketTrade(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "notice_slot") {
+    finishNoticeSlot(state.nearbyTask);
     return;
   }
   if (state.nearbyTask?.kind === "direction_sign") {
@@ -5600,8 +5668,25 @@ function drawPotionStump(x, y, s) {
   ctx.restore();
 }
 
+function acornNoticeBoardRepaired() {
+  return ["notice_slot_1", "notice_slot_2", "notice_slot_3", "notice_slot_4"]
+    .every((id) => state.tasksList.find((task) => task.id === id)?.done);
+}
+
+function drawAcornNoticeBoard() {
+  const key = acornNoticeBoardRepaired() ? "acornNoticeBoardRepaired" : "acornNoticeBoardBroken";
+  if (!drawPropImage(ctx, key, 650, 120, 156, 156)) {
+    ctx.fillStyle = "#8b5b2b";
+    roundRect(668, 150, 120, 92, 10);
+    ctx.fill();
+  }
+}
+
 function drawLandmarks() {
   const index = state.levelIndex;
+  if (levels[index]?.id === "acorn_notice_board") {
+    drawAcornNoticeBoard();
+  }
   if (index === 1) {
     drawGroundFlowerBed(382, 414, 1);
   }
