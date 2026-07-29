@@ -451,6 +451,13 @@ const WORLD_MAP = {
     levels: [16, 17, 18, 19],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  acorn_town: {
+    id: "acorn_town",
+    name: "橡果镇",
+    background: "acornTownPlaza",
+    levels: [],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
   mist_swamp: {
     id: "mist_swamp",
     name: "迷雾沼泽",
@@ -487,6 +494,10 @@ const dayNames = [
   "沉睡木桥",
   "迷雾核心",
   "沼泽泥浆怪",
+  "橡果镇邮局",
+  "寻找丢失的橡果",
+  "橡果集市兑换",
+  "小镇公告板",
 ];
 
 const keys = new Set();
@@ -553,6 +564,9 @@ const MUSIC_PATTERN_BY_WORLD = {
   dark_swamp: "danger",
   boss: "boss",
 };
+
+MUSIC_BY_WORLD.acorn_town = MUSIC_BY_WORLD.apple_valley;
+MUSIC_PATTERN_BY_WORLD.acorn_town = "harvest";
 
 const MUSIC_WORLD_ALIASES = {
   mist_swamp: "dark_swamp",
@@ -1500,6 +1514,140 @@ const levels = [
     puddles: [],
     obstacles: [{ type: "softMud", x: 540, y: 335, r: 48 }],
   },
+  {
+    id: "acorn_post_office",
+    name: "橡果镇邮局",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 110,
+    timeByDifficulty: { easy: 130, normal: 110, hard: 95, crazy: 80 },
+    start: { x: 480, y: 472 },
+    message: "根据头像和颜色提示，把信送到正确邮箱。",
+    collectibles: [
+      item(184, 384, "acornLetterRuru", "给 Ruru 的信"),
+      item(292, 326, "acornLetterCoco", "给 Coco 的信"),
+      item(406, 402, "acornLetterOwlly", "给 Owlly 的信"),
+      { ...item(522, 348, "acornLetterNono", "给 Nono 的信"), minDifficulty: "hard" },
+      { ...item(642, 394, "acornLetterBird", "给小鸟邮差的信"), minDifficulty: "crazy" },
+    ],
+    tasks: [
+      matchedDeliveryTask(176, 208, "mail_ruru", "Ruru", "ruru", "acornLetterRuru", "棕色橡果头像"),
+      matchedDeliveryTask(340, 202, "mail_coco", "Coco", "coco", "acornLetterCoco", "绿色树叶头像"),
+      matchedDeliveryTask(508, 202, "mail_owlly", "Owlly", "owl", "acornLetterOwlly", "蓝色月亮头像"),
+      matchedDeliveryTask(676, 202, "mail_nono", "Nono", "nono", "acornLetterNono", "红色刺猬头像", { minDifficulty: "hard" }),
+      matchedDeliveryTask(826, 214, "mail_bird", "小鸟邮差", "birdPostman", "acornLetterBird", "黄色羽毛头像", { minDifficulty: "crazy" }),
+      decoyTargetTask(742, 424, "mail_decoy_1", "旧邮箱", "褪色图案", { minDifficulty: "hard" }),
+      decoyTargetTask(862, 364, "mail_decoy_2", "空邮箱", "没有收件人", { minDifficulty: "crazy" }),
+    ],
+    townCarts: [
+      { x: 260, y: 300, minX: 220, maxX: 690, speed: 58, dir: 1, minDifficulty: "normal" },
+      { x: 720, y: 420, minX: 330, maxX: 790, speed: 76, dir: -1, minDifficulty: "crazy" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_hunt",
+    name: "寻找丢失的橡果",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 120,
+    timeByDifficulty: { easy: 140, normal: 120, hard: 105, crazy: 90 },
+    start: { x: 118, y: 426 },
+    message: "清理落叶，找回真正的橡果并放进篮子。",
+    collectibles: [
+      item(172, 360, "acorn", "橡果"),
+      item(280, 244, "acorn", "橡果"),
+      item(402, 392, "acorn", "橡果"),
+      item(516, 286, "acorn", "橡果"),
+      { ...item(630, 402, "acorn", "橡果"), requiresTaskId: "hunt_leaf_1" },
+      { ...item(728, 270, "acorn", "橡果"), requiresTaskId: "hunt_leaf_2" },
+      { ...item(792, 424, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(856, 314, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(592, 214, "acorn", "橡果"), minDifficulty: "crazy", requiresTaskId: "hunt_leaf_3" },
+      { ...item(850, 214, "acorn", "橡果"), minDifficulty: "crazy", requiresTaskId: "hunt_leaf_3" },
+      { ...item(348, 188, "fakeAcorn", "假橡果"), minDifficulty: "hard", decoy: true },
+      { ...item(698, 344, "fakeAcorn", "假橡果"), minDifficulty: "hard", decoy: true },
+      { ...item(448, 216, "fakeAcorn", "假橡果"), minDifficulty: "crazy", decoy: true },
+    ],
+    tasks: [
+      { ...roadClearTask(552, 364, "左侧落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_1" },
+      { ...roadClearTask(680, 248, "右侧落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_2", minDifficulty: "normal" },
+      { ...roadClearTask(760, 196, "高处落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_3", minDifficulty: "crazy" },
+      { ...marketTradeTask(820, 380, "hunt_basket", "橡果篮", Array(6).fill("acorn")), animal: "acornBasket" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_market",
+    name: "橡果集市兑换",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 125,
+    timeByDifficulty: { easy: 145, normal: 125, hard: 110, crazy: 95 },
+    start: { x: 112, y: 428 },
+    message: "看清订单内容，按顺序用橡果和苹果完成兑换。",
+    collectibles: [
+      item(156, 354, "acorn", "橡果"),
+      item(246, 258, "acorn", "橡果"),
+      item(344, 404, "acorn", "橡果"),
+      item(442, 310, "acorn", "橡果"),
+      item(546, 418, "acorn", "橡果"),
+      item(268, 420, "redApple", "红苹果"),
+      item(520, 242, "greenApple", "青苹果"),
+      { ...item(648, 348, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(734, 416, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(630, 224, "redApple", "红苹果"), minDifficulty: "hard" },
+      { ...item(814, 290, "greenApple", "青苹果"), minDifficulty: "hard" },
+    ],
+    tasks: [
+      marketTradeTask(320, 194, "market_order_a", "订单 A", ["acorn", "acorn", "redApple"]),
+      marketTradeTask(520, 178, "market_order_b", "订单 B", ["acorn", "acorn", "acorn", "greenApple"], { requiresTaskId: "market_order_a" }),
+      marketTradeTask(724, 192, "market_order_c", "订单 C", ["acorn", "acorn", "redApple", "greenApple"], { minDifficulty: "hard", requiresTaskId: "market_order_b", reward: "travelStar" }),
+    ],
+    townCarts: [
+      { x: 292, y: 334, minX: 210, maxX: 720, speed: 62, dir: 1, minDifficulty: "normal" },
+      { x: 734, y: 392, minX: 300, maxX: 820, speed: 80, dir: -1, minDifficulty: "crazy" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_notice_board",
+    name: "小镇公告板",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 130,
+    timeByDifficulty: { easy: 150, normal: 130, hard: 115, crazy: 100 },
+    start: { x: 112, y: 428 },
+    message: "按顺序修复公告板，再选择通往河畔码头的正确出口。",
+    collectibles: [
+      item(182, 360, "noticeFragment1", "公告板碎片一"),
+      item(310, 242, "noticeFragment2", "公告板碎片二"),
+      item(452, 408, "noticeFragment3", "公告板碎片三"),
+      item(592, 278, "noticeFragment4", "公告板碎片四"),
+      { ...item(706, 414, "noticeFragmentDecoy1", "不匹配的碎片"), minDifficulty: "hard", fragmentDecoy: true },
+      { ...item(804, 298, "noticeFragmentDecoy2", "不匹配的碎片"), minDifficulty: "crazy", fragmentDecoy: true },
+    ],
+    tasks: [
+      noticeSlotTask(676, 254, "notice_slot_1", "公告板左上角", "noticeFragment1"),
+      noticeSlotTask(758, 254, "notice_slot_2", "公告板右上角", "noticeFragment2", "notice_slot_1"),
+      noticeSlotTask(676, 336, "notice_slot_3", "公告板左下角", "noticeFragment3", "notice_slot_2"),
+      noticeSlotTask(758, 336, "notice_slot_4", "公告板右下角", "noticeFragment4", "notice_slot_3"),
+      townExitTask(856, 382, "dock_exit", "河畔码头", ["notice_slot_1", "notice_slot_2", "notice_slot_3", "notice_slot_4"]),
+    ],
+    exitAreas: [
+      { id: "forest_exit", x: 480, y: 142, r: 56, label: "森林小路", wrong: true },
+      { id: "hill_exit", x: 164, y: 182, r: 56, label: "山丘岔路", wrong: true },
+    ],
+    townCarts: [
+      { x: 332, y: 364, minX: 250, maxX: 690, speed: 60, dir: 1, minDifficulty: "normal" },
+      { x: 696, y: 430, minX: 330, maxX: 800, speed: 82, dir: -1, minDifficulty: "crazy" },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1533,6 +1681,28 @@ WORLD_MAP.forest_road.levels = [16, 17, 18, 19];
 WORLD_MAP.mist_swamp.levels = levels
   .map((level, index) => (level.world === "mist_swamp" ? index : -1))
   .filter((index) => index >= 0);
+
+WORLD_MAP.acorn_town.levels = levels
+  .map((level, index) => (level.world === "acorn_town" ? index : -1))
+  .filter((index) => index >= 0);
+
+function prepareAcornTownLevel(level) {
+  if (level?.world !== "acorn_town") return level;
+  const visible = (entry) => CATS_OWLS_ACORN_TOWN_RULES.visibleAtDifficulty(entry, selectedDifficulty);
+  const basketCounts = { easy: 6, normal: 6, hard: 8, crazy: 10 };
+  return {
+    ...level,
+    time: CATS_OWLS_ACORN_TOWN_RULES.timeFor(level.id, selectedDifficulty),
+    collectibles: level.collectibles.filter(visible),
+    tasks: level.tasks.filter(visible).map((task) => (
+      task.id === "hunt_basket"
+        ? { ...task, need: Array(basketCounts[selectedDifficulty] || 6).fill("acorn") }
+        : task
+    )),
+    townCarts: (level.townCarts || []).filter(visible),
+    exitAreas: (level.exitAreas || []).filter(visible),
+  };
+}
 
 function levelBackgroundKey(level) {
   if (!level) return null;
@@ -1823,6 +1993,26 @@ function exitTask(x, y, animal, name) {
   return { x, y, name, animal, speech: "走到正确出口。", kind: "exit_area", done: false, progress: 0 };
 }
 
+function matchedDeliveryTask(x, y, id, name, animal, need, label, options = {}) {
+  return { x, y, id, name, need, label, animal, kind: "matched_delivery", done: false, progress: 0, ...options };
+}
+
+function decoyTargetTask(x, y, id, name, label, options = {}) {
+  return { x, y, id, name, label, animal: "acornPostbox", kind: "decoy_target", optional: true, done: false, progress: 0, ...options };
+}
+
+function marketTradeTask(x, y, id, name, need, options = {}) {
+  return { x, y, id, name, need, animal: "acornExchangeStall", kind: "market_trade", done: false, progress: 0, ...options };
+}
+
+function noticeSlotTask(x, y, id, name, need, requiresTaskId = null) {
+  return { x, y, id, name, need, requiresTaskId, animal: "acornNoticeFragment", kind: "notice_slot", done: false, progress: 0 };
+}
+
+function townExitTask(x, y, id, name, requiresTaskIds) {
+  return { x, y, id, name, requiresTaskIds, animal: "riversideDockSign", kind: "town_exit", done: false, progress: 0 };
+}
+
 function escortNpcTask(x, y, name, animal, safeZoneId) {
   return { x, y, name, animal, safeZoneId, speech: "靠近小伙伴，让它跟着你去安全区。", kind: "escort_npc", done: false, progress: 0, following: false };
 }
@@ -1872,7 +2062,7 @@ function mudBossTask(x, y) {
 }
 
 function resetGame(levelIndex = 0, keepHearts = false) {
-  const level = levels[levelIndex];
+  const level = prepareAcornTownLevel(levels[levelIndex]);
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
@@ -1925,6 +2115,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     trafficLights: (level.trafficLights || []).map((entry) => ({ ...entry })),
     crossingZones: (level.crossingZones || []).map((entry) => ({ ...entry })),
     exitAreas: (level.exitAreas || []).map((entry) => ({ ...entry })),
+    townCarts: (level.townCarts || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
@@ -2102,6 +2293,9 @@ function difficultySettings() {
 }
 
 function levelTimeForDifficulty(level) {
+  if (level.world === "acorn_town") {
+    return CATS_OWLS_ACORN_TOWN_RULES.timeFor(level.id, selectedDifficulty);
+  }
   return Math.max(20, Math.round(level.time * difficultySettings().timeScale));
 }
 
