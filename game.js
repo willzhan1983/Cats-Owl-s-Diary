@@ -124,6 +124,7 @@ const backgroundSources = {
   windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
   escortForestPath: "./assets/bg/escort_forest_path.png",
   acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
+  acornTownPlaza: "./assets/bg/acorn_town_plaza.png",
   mistSwampEntrance: "./assets/bg/mist_swamp_entrance.png",
   fireflyTrailPath: "./assets/bg/firefly_trail_path.png",
   sleepingWoodenBridge: "./assets/bg/sleeping_wooden_bridge.png",
@@ -158,6 +159,11 @@ const backgroundSourceCandidates = {
   windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
   escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
   acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
+  acornTownPlaza: [
+    "./assets/bg/acorn_town_plaza.png",
+    "./assets/bg/acorn_town_crossroad.png",
+    "./assets/v2/v2-bg-city-road.png",
+  ],
   mistSwampEntrance: ["./assets/bg/mist_swamp_entrance.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   fireflyTrailPath: ["./assets/bg/firefly_trail_path.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
   sleepingWoodenBridge: ["./assets/bg/sleeping_wooden_bridge.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
@@ -3403,6 +3409,21 @@ function itemLabel(type) {
     mudCore: "泥浆核心",
     bigMistLamp: "大雾灯",
     mistGuardianBadge: "迷雾守护徽章",
+    acornLetterRuru: "给 Ruru 的信",
+    acornLetterCoco: "给 Coco 的信",
+    acornLetterOwlly: "给 Owlly 的信",
+    acornLetterNono: "给 Nono 的信",
+    acornLetterBird: "给小鸟邮差的信",
+    acorn: "橡果",
+    fakeAcorn: "假橡果",
+    acornBasket: "橡果篮",
+    noticeFragment1: "公告碎片一",
+    noticeFragment2: "公告碎片二",
+    noticeFragment3: "公告碎片三",
+    noticeFragment4: "公告碎片四",
+    noticeFragmentDecoy1: "旧纸片",
+    noticeFragmentDecoy2: "落叶碎片",
+    travelStar: "旅行星星",
   }[type] || type;
 }
 
@@ -4709,6 +4730,21 @@ const ART_PACK_PROP_KEYS = {
   leafPile: "leafPile",
   roadStone: "roadStonePile",
   safeFlag: "safeFlag",
+  acornLetterRuru: "acornLetter",
+  acornLetterCoco: "acornLetter",
+  acornLetterOwlly: "acornLetter",
+  acornLetterNono: "acornLetter",
+  acornLetterBird: "acornLetter",
+  acorn: "acorn",
+  fakeAcorn: "fakeAcorn",
+  acornBasket: "acornBasket",
+  noticeFragment1: "acornNoticeFragment",
+  noticeFragment2: "acornNoticeFragment",
+  noticeFragment3: "acornNoticeFragment",
+  noticeFragment4: "acornNoticeFragment",
+  noticeFragmentDecoy1: "acornNoticeFragment",
+  noticeFragmentDecoy2: "acornNoticeFragment",
+  travelStar: "travelStar",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -4774,6 +4810,25 @@ const ART_PACK_SCENE_PROP_KEYS = {
   bigMistLamp: "bigMistLamp",
   mistLamp: "mistLamp",
   brokenBridge: "brokenBridge",
+  acornPostbox: "acornPostbox",
+  acornExchangeStall: "acornExchangeStall",
+  acornOrderBoard: "acornOrderBoard",
+  acornNoticeBoardBroken: "acornNoticeBoardBroken",
+  acornNoticeBoardRepaired: "acornNoticeBoardRepaired",
+  acornNoticeFragment: "acornNoticeFragment",
+  acornTownCart: "acornTownCart",
+  riversideDockSign: "riversideDockSign",
+};
+
+const ACORN_TOWN_PROP_LABELS = {
+  acornPostbox: "邮箱",
+  acornExchangeStall: "集市",
+  acornOrderBoard: "订单",
+  acornNoticeBoardBroken: "公告板",
+  acornNoticeBoardRepaired: "公告板",
+  acornNoticeFragment: "碎片",
+  acornTownCart: "推车",
+  riversideDockSign: "码头",
 };
 
 const MIST_SWAMP_MUSHROOM_ART_KEYS = {
@@ -4868,6 +4923,21 @@ const ART_PACK_ITEM_BOUNDS = {
   bridgePlank: { x: -34, y: -16, w: 68, h: 32 },
   bridgeKey: { x: -28, y: -32, w: 56, h: 64 },
   mistGuardianBadge: { x: -30, y: -32, w: 60, h: 60 },
+  acornLetterRuru: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterCoco: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterOwlly: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterNono: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterBird: { x: -30, y: -24, w: 60, h: 48 },
+  acorn: { x: -26, y: -30, w: 52, h: 60 },
+  fakeAcorn: { x: -26, y: -30, w: 52, h: 60 },
+  acornBasket: { x: -34, y: -34, w: 68, h: 68 },
+  noticeFragment1: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment2: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment3: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment4: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragmentDecoy1: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragmentDecoy2: { x: -28, y: -28, w: 56, h: 56 },
+  travelStar: { x: -28, y: -30, w: 56, h: 56 },
   bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
   mistLamp: { x: -32, y: -58, w: 64, h: 88 },
   brokenBridge: { x: -78, y: -55, w: 156, h: 110 },
@@ -4875,6 +4945,14 @@ const ART_PACK_ITEM_BOUNDS = {
   mushroomLampBlue: { x: -38, y: -60, w: 76, h: 76 },
   mushroomLampPurple: { x: -38, y: -60, w: 76, h: 76 },
   mushroomLampGreen: { x: -38, y: -60, w: 76, h: 76 },
+  acornPostbox: { x: -42, y: -68, w: 84, h: 104 },
+  acornExchangeStall: { x: -62, y: -72, w: 124, h: 104 },
+  acornOrderBoard: { x: -48, y: -68, w: 96, h: 108 },
+  acornNoticeBoardBroken: { x: -62, y: -78, w: 124, h: 124 },
+  acornNoticeBoardRepaired: { x: -62, y: -78, w: 124, h: 124 },
+  acornNoticeFragment: { x: -30, y: -30, w: 60, h: 60 },
+  acornTownCart: { x: -50, y: -46, w: 100, h: 80 },
+  riversideDockSign: { x: -48, y: -70, w: 96, h: 112 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -5308,9 +5386,57 @@ function drawCollectibles() {
   }
 }
 
+function drawAcornFallback() {
+  ctx.fillStyle = "#8b5b2b";
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 17, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#5b3212";
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 18, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLetterFallback() {
+  ctx.fillStyle = "#fff4d2";
+  roundRect(-24, -17, 48, 34, 5);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.stroke();
+}
+
+function drawAcornBasketFallback() {
+  ctx.fillStyle = "#b97938";
+  roundRect(-26, -16, 52, 34, 9);
+  ctx.fill();
+  ctx.strokeStyle = "#6b3f1d";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function drawNoticeFragmentFallback() {
+  ctx.fillStyle = "#f8e6b8";
+  roundRect(-20, -18, 40, 36, 4);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawTravelStarFallback() {
+  ctx.fillStyle = "#ffd94a";
+  star(0, 0, 23);
+}
+
 function drawItem(type) {
   if (drawItemArtPackImage(type)) return;
-  if (type === "apple") drawApple();
+  if (type.startsWith("acornLetter")) drawLetterFallback();
+  else if (type === "acorn") drawAcornFallback();
+  else if (type === "fakeAcorn") drawAcornFallback();
+  else if (type === "acornBasket") drawAcornBasketFallback();
+  else if (type.startsWith("noticeFragment")) drawNoticeFragmentFallback();
+  else if (type === "travelStar") drawTravelStarFallback();
+  else if (type === "apple") drawApple();
   else if (type === "redApple") drawAppleVariant("#ff9589", "#e84b3f", "#b92f2d");
   else if (type === "greenApple") drawAppleVariant("#d8f08a", "#8fbd3a", "#4d7d28");
   else if (type === "goldenApple") drawAppleVariant("#fff2a8", "#ffd94a", "#d38c18");
@@ -5567,11 +5693,28 @@ function drawQuizStandArt(kind, fallbackColor, fallbackLabel) {
   drawQuizStand(fallbackColor, fallbackLabel);
 }
 
+function drawAcornTownPropFallback(label) {
+  ctx.fillStyle = "#f6d89a";
+  roundRect(-34, -42, 68, 72, 12);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#5b3212";
+  ctx.font = "900 11px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(label, 0, 0, 58);
+}
+
 function drawAnimal(kind) {
   const visualOffset = NPC_VISUAL_OFFSETS[kind];
   if (visualOffset) ctx.translate(visualOffset.x, visualOffset.y);
   if (drawNpcArtPackImage(kind)) return;
   if (drawScenePropArtPackImage(kind)) return;
+  if (ACORN_TOWN_PROP_LABELS[kind]) {
+    drawAcornTownPropFallback(ACORN_TOWN_PROP_LABELS[kind]);
+    return;
+  }
   const npc = NPC_REGISTRY[kind];
   if (npc?.renderer) {
     npc.renderer();
