@@ -3316,11 +3316,52 @@ function updateProjectiles(dt) {
   });
 }
 
+function taskDependenciesMet(task, tasks = state.tasksList) {
+  const ids = task.requiresTaskIds || (task.requiresTaskId ? [task.requiresTaskId] : []);
+  return ids.every((id) => tasks.find((entry) => entry.id === id)?.done);
+}
+
+function applyAcornTownWrongAction(x, y, message) {
+  const amount = CATS_OWLS_ACORN_TOWN_RULES.wrongActionPenalty(selectedDifficulty);
+  if (amount) {
+    state.time = Math.max(0, state.time - amount);
+    addFloatingText(x, y - 56, `-${amount}秒`, "#e84b3f");
+  }
+  messageEl.textContent = message;
+  updateHud();
+  return amount;
+}
+
+function finishMatchedDelivery(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = task.lockedMessage || "先完成前面的任务。";
+    return false;
+  }
+  if (state.inventory.includes(task.need)) {
+    consumeNeeds([task.need]);
+    completeTask(task, task.x, task.y);
+    updateHud();
+    return true;
+  }
+  if (state.inventory.some((type) => type.startsWith("acornLetter"))) {
+    applyAcornTownWrongAction(task.x, task.y, "这封信不是寄到这里的。");
+    return false;
+  }
+  messageEl.textContent = `${task.name}需要：${itemLabel(task.need)}。`;
+  return false;
+}
+
 function checkCollectibles() {
   const p = state.player;
   for (const entry of state.collectibles) {
+    if (entry.requiresTaskId && !state.tasksList.find((task) => task.id === entry.requiresTaskId)?.done) continue;
     if (!entry.taken && distance(p, entry) < 42) {
       entry.taken = true;
+      if (entry.decoy) {
+        applyAcornTownWrongAction(entry.x, entry.y, "这不是真橡果。");
+        continue;
+      }
       if (entry.type === "potion") {
         state.hearts += 2;
         state.time = Math.min(state.levelTime + 8, state.time + 3);
@@ -3383,6 +3424,18 @@ function checkTasks(dt) {
           ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u3002\u6309 E \u5bf9\u8bdd\u3002`
           : `${task.name}\u6b63\u7b49\u7740\u4f60\u3002\u6309 E \u5bf9\u8bdd\u540e\u4ea4\u7ed9TA\u3002`;
       }
+      continue;
+    }
+
+    if (task.kind === "matched_delivery") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? `按 E 查看${task.label}的邮箱。`
+        : task.lockedMessage || "🔒 先完成前面的任务。";
+      continue;
+    }
+
+    if (task.kind === "decoy_target") {
+      messageEl.textContent = `按 E 查看${task.label}。`;
       continue;
     }
 
@@ -3628,6 +3681,9 @@ function quizDisplay(taskOrKind) {
 
 function taskShortHint(task) {
   if (task.done) return "\u5b8c\u6210";
+  if (!taskDependenciesMet(task)) return "🔒 未解锁";
+  if (task.kind === "matched_delivery") return "投递";
+  if (task.kind === "decoy_target") return "查看";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
@@ -3950,6 +4006,14 @@ function talkToNearbyTask() {
     return;
   }
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
+  if (state.nearbyTask?.kind === "matched_delivery") {
+    finishMatchedDelivery(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "decoy_target") {
+    applyAcornTownWrongAction(state.nearbyTask.x, state.nearbyTask.y, "这封信不是寄到这里的。");
+    return;
+  }
   if (state.nearbyTask?.kind === "direction_sign") {
     repairDirectionSign(state.nearbyTask);
     return;
@@ -5561,6 +5625,7 @@ function appleValleyTaskGroundShadow(task) {
 function drawCollectibles() {
   for (const entry of state.collectibles) {
     if (entry.taken) continue;
+    if (entry.requiresTaskId && !state.tasksList.find((task) => task.id === entry.requiresTaskId)?.done) continue;
     const t = performance.now() / 260 + entry.x;
     const bobAmplitude = isAppleValleyLevel() ? APPLE_VALLEY_COLLECTIBLE_BOB : 5;
     const bob = entry.type === "potion" ? Math.sin(t) * 1.4 : Math.sin(t) * bobAmplitude;
@@ -5654,6 +5719,7 @@ function drawItem(type) {
 }
 
 function taskRenderAlpha(task) {
+  if (!taskDependenciesMet(task)) return 0.42;
   return task.done && !(task.kind === "mushroom_lamp" && task.lit) ? 0.58 : 1;
 }
 
@@ -5674,7 +5740,8 @@ function drawTasks() {
     ctx.scale(idleScale, idleScale);
     ctx.globalAlpha = taskRenderAlpha(task);
     drawSpeech(task);
-    if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
+    if (task.kind === "matched_delivery" || task.kind === "decoy_target") drawAnimal("acornPostbox");
+    else if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
     else if (isMistSwampLevel() && task.kind === "mist_lamp" && task.animal !== "bigMistLamp") {
       const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
       if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
