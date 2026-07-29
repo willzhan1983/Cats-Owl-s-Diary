@@ -534,10 +534,51 @@ const PLAYER_PROFILE_KEY = "catsOwlPlayerProfile";
 const TOTAL_POINTS_KEY = "catsOwlTotalPoints";
 const BEST_SCORE_KEY = "catsOwlBestScore";
 const RUN_HISTORY_KEY = "catsOwlRunHistory";
+const COMPLETED_WORLDS_STORAGE_KEY = "catsOwlCompletedWorlds";
+const WORLD_PREREQUISITES = Object.freeze({
+  acorn_town: "forest_road",
+  riverside_dock: "acorn_town",
+});
 const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
 let playerProfile = loadPlayerProfile();
 let totalPoints = readStoredNumber(TOTAL_POINTS_KEY);
 let bestScore = readStoredNumber(BEST_SCORE_KEY);
+
+function completedWorlds() {
+  try {
+    const values = JSON.parse(localStorage.getItem(COMPLETED_WORLDS_STORAGE_KEY) || "[]");
+    return new Set(Array.isArray(values) ? values : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function isWorldCompleted(worldId) {
+  return completedWorlds().has(worldId);
+}
+
+function isWorldUnlocked(worldId) {
+  const prerequisite = WORLD_PREREQUISITES[worldId];
+  return !prerequisite || isWorldCompleted(prerequisite);
+}
+
+function markWorldCompleted(worldId) {
+  const completed = completedWorlds();
+  completed.add(worldId);
+  localStorage.setItem(COMPLETED_WORLDS_STORAGE_KEY, JSON.stringify([...completed]));
+}
+
+function markCurrentWorldCompletedAtBoundary() {
+  const currentWorld = levels[state.levelIndex]?.world;
+  const nextWorld = levels[state.levelIndex + 1]?.world;
+  if (currentWorld && currentWorld !== nextWorld) markWorldCompleted(currentWorld);
+}
+
+window.CATS_OWLS_PROGRESS = Object.freeze({
+  isWorldCompleted,
+  isWorldUnlocked,
+  markWorldCompleted,
+});
 
 const music = {
   ctx: null,
@@ -2796,6 +2837,7 @@ function update(dt) {
     stopMusic();
     const settlement = settleLevelRun(true);
     state.levelClear = true;
+    markCurrentWorldCompletedAtBoundary();
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
       startBtn.textContent = text.again;
