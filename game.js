@@ -570,7 +570,7 @@ function markWorldCompleted(worldId) {
 
 function markCurrentWorldCompletedAtBoundary() {
   const currentWorld = levels[state.levelIndex]?.world;
-  const nextWorld = levels[state.levelIndex + 1]?.world;
+  const nextWorld = levels[nextPlayableLevelIndex(state.levelIndex)]?.world;
   if (currentWorld && currentWorld !== nextWorld) markWorldCompleted(currentWorld);
 }
 
@@ -639,7 +639,7 @@ function ensureBackground(key) {
 
 function preloadNearbyBackgrounds(levelIndex) {
   const current = levelBackgroundKey(levels[levelIndex]);
-  const next = levelBackgroundKey(levels[levelIndex + 1]);
+  const next = levelBackgroundKey(levels[nextPlayableLevelIndex(levelIndex)]);
   ensureBackground(current);
   window.setTimeout(() => ensureBackground(next), 800);
 }
@@ -1569,6 +1569,7 @@ const levels = [
     timeByDifficulty: { easy: 130, normal: 110, hard: 95, crazy: 80 },
     start: { x: 480, y: 472 },
     message: "根据头像和颜色提示，把信送到正确邮箱。",
+    levelReward: { type: "postmanBadge", count: 1 },
     collectibles: [
       item(184, 384, "acornLetterRuru", "给 Ruru 的信"),
       item(292, 326, "acornLetterCoco", "给 Coco 的信"),
@@ -1601,6 +1602,7 @@ const levels = [
     timeByDifficulty: { easy: 140, normal: 120, hard: 105, crazy: 90 },
     start: { x: 118, y: 426 },
     message: "清理落叶，找回真正的橡果并放进篮子。",
+    levelReward: { type: "acorn", count: 5 },
     collectibles: [
       item(172, 360, "acorn", "橡果"),
       item(280, 244, "acorn", "橡果"),
@@ -1634,6 +1636,7 @@ const levels = [
     timeByDifficulty: { easy: 145, normal: 125, hard: 110, crazy: 95 },
     start: { x: 112, y: 428 },
     message: "看清订单内容，按顺序用橡果和苹果完成兑换。",
+    levelReward: { type: "travelStar", count: 1 },
     collectibles: [
       item(156, 354, "acorn", "橡果"),
       item(246, 258, "acorn", "橡果"),
@@ -1650,7 +1653,7 @@ const levels = [
     tasks: [
       marketTradeTask(320, 194, "market_order_a", "订单 A", ACORN_MARKET_ORDERS.A),
       marketTradeTask(520, 178, "market_order_b", "订单 B", ACORN_MARKET_ORDERS.B, { requiresTaskId: "market_order_a" }),
-      marketTradeTask(724, 192, "market_order_c", "订单 C", ACORN_MARKET_ORDERS.C, { minDifficulty: "hard", requiresTaskId: "market_order_b", reward: "travelStar" }),
+      marketTradeTask(724, 192, "market_order_c", "订单 C", ACORN_MARKET_ORDERS.C, { minDifficulty: "hard", requiresTaskId: "market_order_b" }),
     ],
     townCarts: [
       { x: 292, y: 334, minX: 210, maxX: 720, speed: 62, dir: 1, minDifficulty: "normal" },
@@ -1668,6 +1671,7 @@ const levels = [
     timeByDifficulty: { easy: 150, normal: 130, hard: 115, crazy: 100 },
     start: { x: 112, y: 428 },
     message: "按顺序修复公告板，再选择通往河畔码头的正确出口。",
+    routeClue: "路线：向右 → 向上 → 再向右，找到河畔码头。",
     collectibles: [
       item(182, 360, "noticeFragment1", "公告板碎片一"),
       item(310, 242, "noticeFragment2", "公告板碎片二"),
@@ -1731,6 +1735,13 @@ WORLD_MAP.mist_swamp.levels = levels
 WORLD_MAP.acorn_town.levels = levels
   .map((level, index) => (level.world === "acorn_town" ? index : -1))
   .filter((index) => index >= 0);
+
+function nextPlayableLevelIndex(currentIndex) {
+  const forestRoadLevels = WORLD_MAP.forest_road.levels;
+  const forestRoadEnd = forestRoadLevels[forestRoadLevels.length - 1];
+  if (currentIndex === forestRoadEnd) return WORLD_MAP.acorn_town.levels[0] ?? currentIndex + 1;
+  return currentIndex + 1;
+}
 
 function prepareAcornTownLevel(level) {
   if (level?.world !== "acorn_town") return level;
@@ -2140,6 +2151,9 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     hurtCooldownUntil: 0,
     townCartCooldownUntil: 0,
     exitCooldownUntil: 0,
+    levelRewardGranted: false,
+    acornRouteHint: "",
+    acornRouteHintUntil: 0,
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
     hazards: [],
@@ -2604,7 +2618,7 @@ function startGame() {
   }
 
   if (state.levelClear) {
-    const nextLevel = state.levelIndex + 1;
+    const nextLevel = nextPlayableLevelIndex(state.levelIndex);
     if (nextLevel >= levels.length) {
       resetGame(0, false);
     } else {
@@ -2835,6 +2849,7 @@ function update(dt) {
   if (requiredTasks.length > 0 && canSettleCurrentLevel(requiredTasks)) {
     state.running = false;
     stopMusic();
+    grantAcornTownLevelReward();
     const settlement = settleLevelRun(true);
     state.levelClear = true;
     markCurrentWorldCompletedAtBoundary();
@@ -3429,6 +3444,7 @@ function finishNoticeSlot(task) {
   if (state.inventory.includes(task.need)) {
     consumeNeeds([task.need]);
     completeTask(task, task.x, task.y);
+    if (acornNoticeBoardRepaired()) revealAcornTownRouteHint();
     updateHud();
     return true;
   }
@@ -3683,6 +3699,16 @@ function grantTaskReward(task, x = task.x, y = task.y) {
   return true;
 }
 
+function grantAcornTownLevelReward() {
+  if (state.levelRewardGranted) return false;
+  const reward = levels[state.levelIndex]?.levelReward;
+  if (!reward) return false;
+  for (let index = 0; index < reward.count; index += 1) state.inventory.push(reward.type);
+  state.levelRewardGranted = true;
+  addFloatingText(canvas.width / 2, 130, `+ ${reward.count} ${itemLabel(reward.type)}`, "#f2ad31");
+  return true;
+}
+
 function completeTask(task, x, y) {
   task.done = true;
   task.progress = 1;
@@ -3821,6 +3847,7 @@ function itemLabel(type) {
     noticeFragment4: "公告碎片四",
     noticeFragmentDecoy1: "旧纸片",
     noticeFragmentDecoy2: "落叶碎片",
+    postmanBadge: "邮差徽章",
     travelStar: "旅行星星",
   }[type] || type;
 }
@@ -4472,6 +4499,7 @@ function draw() {
   drawPlayer();
   drawParticles();
   drawAppleValleyForegroundDepth();
+  drawAcornTownRouteHint();
   if (!state.running && !state.levelClear && state.time === state.levelTime) drawStartHint();
   if (state.levelClear) drawLevelRibbon();
   ctx.restore();
@@ -5797,6 +5825,39 @@ function acornNoticeBoardRepaired() {
     .every((id) => state.tasksList.find((task) => task.id === id)?.done);
 }
 
+function revealAcornTownRouteHint() {
+  const clue = levels[state.levelIndex]?.routeClue;
+  if (!clue) return false;
+  state.acornRouteHint = clue;
+  state.acornRouteHintUntil = selectedDifficulty === "crazy" ? performance.now() + 5000 : null;
+  messageEl.textContent = selectedDifficulty === "crazy"
+    ? `${clue} 记住路线，提示即将收起！`
+    : clue;
+  return true;
+}
+
+function acornTownRouteHintVisible(now = performance.now()) {
+  if (!state?.acornRouteHint) return false;
+  return state.acornRouteHintUntil === null || now < state.acornRouteHintUntil;
+}
+
+function drawAcornTownRouteHint() {
+  if (!acornTownRouteHintVisible()) return;
+  ctx.save();
+  ctx.globalAlpha = 0.94;
+  ctx.fillStyle = "#fff5cf";
+  roundRect(242, 16, 476, 48, 14);
+  ctx.fill();
+  ctx.strokeStyle = "#9a632d";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#5f3b1f";
+  ctx.font = "bold 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(state.acornRouteHint, canvas.width / 2, 47);
+  ctx.restore();
+}
+
 function drawAcornNoticeBoard() {
   const key = acornNoticeBoardRepaired() ? "acornNoticeBoardRepaired" : "acornNoticeBoardBroken";
   if (!drawPropImage(ctx, key, 650, 120, 156, 156)) {
@@ -5929,6 +5990,7 @@ function drawItem(type) {
 
 function taskRenderAlpha(task) {
   if (!taskDependenciesMet(task)) return 0.42;
+  if (task.kind === "quiz" && !quizTaskAvailable(task)) return 0.42;
   return task.done && !(task.kind === "mushroom_lamp" && task.lit) ? 0.58 : 1;
 }
 

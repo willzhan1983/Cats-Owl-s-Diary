@@ -10,6 +10,7 @@ assert.ok(existsSync(entryUrl), "Acorn Town map entry should exist");
 const entry = readFileSync(entryUrl, "utf8");
 assert.match(game, /catsOwlCompletedWorlds/);
 assert.match(game, /markWorldCompleted\(currentWorld\)/);
+assert.match(game, /function nextPlayableLevelIndex\(/);
 assert.match(worldMap, /CATS_OWLS_PROGRESS\?\.isWorldUnlocked/);
 assert.match(worldMap, /\["acorn_town", "riverside_dock"\]\.includes\(regionId\)/);
 assert.match(entry, /CATS_OWLS_PROGRESS\?\.isWorldUnlocked\("acorn_town"\)/);

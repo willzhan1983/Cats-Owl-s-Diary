@@ -171,6 +171,7 @@ const behavior = vm.runInContext(`
     const decoyAction = { time: state.time, inventory: [...state.inventory] };
 
     const quiz = state.tasksList.find((task) => task.kind === "quiz");
+    const lockedQuizAlpha = taskRenderAlpha(quiz);
     openQuiz(quiz);
     const lockedQuiz = { active: state.activeQuiz !== null, message: messageEl.textContent };
     state.tasksList.filter((task) => task.kind !== "quiz" && !task.optional).forEach((task) => { task.done = true; });
@@ -191,6 +192,7 @@ const behavior = vm.runInContext(`
       wrongAction,
       decoyAction,
       lockedQuiz,
+      lockedQuizAlpha,
       unlockedQuiz,
       quizDone: quiz.done,
       cartTime: state.time,
@@ -205,6 +207,7 @@ assert.deepEqual(plain(behavior), {
   wrongAction: { time: 95, inventory: ["acornLetterRuru"] },
   decoyAction: { time: 90, inventory: ["acornLetterRuru"] },
   lockedQuiz: { active: false, message: "先完成小镇任务，再来回答最后一题。" },
+  lockedQuizAlpha: 0.42,
   unlockedQuiz: true,
   quizDone: true,
   cartTime: 95,
@@ -235,4 +238,69 @@ assert.deepEqual(plain(progression), {
   afterRoad: true,
   afterTown: true,
   completed: ["acorn_town", "forest_road"],
+});
+
+const transition = vm.runInContext(`
+  (() => {
+    const forestRoadEnd = WORLD_MAP.forest_road.levels[WORLD_MAP.forest_road.levels.length - 1];
+    return {
+      next: nextPlayableLevelIndex(forestRoadEnd),
+      acornTownStart: WORLD_MAP.acorn_town.levels[0],
+    };
+  })();
+`, runtime);
+
+assert.deepEqual(plain(transition), {
+  next: transition.acornTownStart,
+  acornTownStart: transition.acornTownStart,
+});
+
+const rewards = vm.runInContext(`
+  (() => {
+    const result = [];
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      selectedDifficulty = difficulty;
+      for (const levelId of ["acorn_post_office", "acorn_hunt", "acorn_market"]) {
+        resetGame(levels.findIndex((level) => level.id === levelId));
+        grantAcornTownLevelReward();
+        result.push({ difficulty, levelId, inventory: [...state.inventory] });
+      }
+    }
+    return result;
+  })();
+`, runtime);
+
+for (const reward of plain(rewards)) {
+  if (reward.levelId === "acorn_post_office") assert.deepEqual(reward.inventory, ["postmanBadge"]);
+  if (reward.levelId === "acorn_hunt") assert.deepEqual(reward.inventory, Array(5).fill("acorn"));
+  if (reward.levelId === "acorn_market") assert.deepEqual(reward.inventory, ["travelStar"]);
+}
+
+const routeHints = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    resetGame(levels.findIndex((level) => level.id === "acorn_notice_board"));
+    revealAcornTownRouteHint();
+    const normal = {
+      visible: acornTownRouteHintVisible(),
+      until: state.acornRouteHintUntil,
+    };
+
+    selectedDifficulty = "crazy";
+    resetGame(levels.findIndex((level) => level.id === "acorn_notice_board"));
+    revealAcornTownRouteHint();
+    const crazyStart = {
+      visible: acornTownRouteHintVisible(),
+      until: state.acornRouteHintUntil,
+    };
+    performance.now = () => 6000;
+    const crazyExpired = acornTownRouteHintVisible();
+    return { normal, crazyStart, crazyExpired };
+  })();
+`, runtime);
+
+assert.deepEqual(plain(routeHints), {
+  normal: { visible: true, until: null },
+  crazyStart: { visible: true, until: 5000 },
+  crazyExpired: false,
 });
