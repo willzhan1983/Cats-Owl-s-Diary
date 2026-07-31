@@ -113,6 +113,7 @@ const matrix = vm.runInContext(`
           blockers: state.tasksList.filter((task) => task.kind === "road_clear").length,
           orders: state.tasksList.filter((task) => task.kind === "market_trade").length,
           carts: state.townCarts.length,
+          cartSpeeds: [...new Set(state.townCarts.map((cart) => cart.speed))],
           basketNeed: state.tasksList.find((task) => task.id === "hunt_basket")?.need.length || 0,
           quizzes: state.tasksList.filter((task) => task.kind === "quiz").length,
         });
@@ -128,13 +129,20 @@ const row = (difficulty, levelId) => rows.find((entry) => entry.difficulty === d
 assert.deepEqual(row("normal", "acorn_post_office"), {
   difficulty: "normal", levelId: "acorn_post_office", time: 110, realAcorns: 0, fakeAcorns: 0,
   letters: 3, fakeFragments: 0, mailboxes: 3, decoyMailboxes: 0, blockers: 0, orders: 0,
-  carts: 1, basketNeed: 0, quizzes: 1,
+  carts: 2, cartSpeeds: [64], basketNeed: 0, quizzes: 1,
 });
 assert.deepEqual(row("crazy", "acorn_post_office"), {
   difficulty: "crazy", levelId: "acorn_post_office", time: 80, realAcorns: 0, fakeAcorns: 0,
   letters: 5, fakeFragments: 0, mailboxes: 5, decoyMailboxes: 2, blockers: 0, orders: 0,
-  carts: 2, basketNeed: 0, quizzes: 1,
+  carts: 4, cartSpeeds: [96], basketNeed: 0, quizzes: 1,
 });
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_post_office");
+    return [entry.carts, entry.cartSpeeds];
+  }),
+  [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
+);
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((difficulty) => {
     const entry = row(difficulty, "acorn_hunt");
@@ -145,17 +153,56 @@ assert.deepEqual(
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((difficulty) => {
     const entry = row(difficulty, "acorn_market");
-    return [entry.time, entry.orders, entry.carts];
+    return [entry.carts, entry.cartSpeeds];
   }),
-  [[145, 2, 0], [125, 2, 1], [110, 3, 1], [95, 3, 2]]
+  [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
 );
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((difficulty) => {
     const entry = row(difficulty, "acorn_notice_board");
-    return [entry.time, entry.fakeFragments, entry.carts, entry.quizzes];
+    return [entry.carts, entry.cartSpeeds];
   }),
-  [[150, 0, 0, 1], [130, 0, 1, 1], [115, 1, 1, 1], [100, 2, 2, 1]]
+  [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
 );
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_hunt");
+    return [entry.carts, entry.cartSpeeds];
+  }),
+  [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
+);
+
+const routeSafety = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "crazy";
+    return levels
+      .filter((level) => level.world === "acorn_town")
+      .map((level) => {
+        const prepared = prepareAcornTownLevel(level);
+        return {
+          levelId: level.id,
+          insideBounds: prepared.townCarts.every((cart) =>
+            cart.minX >= 28 && cart.maxX <= 932 && cart.y >= 80 && cart.y <= 460
+          ),
+          startSafe: prepared.townCarts.every((cart) =>
+            Math.hypot(cart.x - level.start.x, cart.y - level.start.y) >= 72
+          ),
+          reversalsSafe: prepared.townCarts.every((cart) =>
+            prepared.tasks
+              .filter((task) => !task.optional)
+              .every((task) =>
+                Math.hypot(cart.minX - task.x, cart.y - task.y) >= 56 &&
+                Math.hypot(cart.maxX - task.x, cart.y - task.y) >= 56
+              )
+          ),
+        };
+      });
+  })();
+`, runtime);
+
+assert.ok(plain(routeSafety).every((entry) =>
+  entry.insideBounds && entry.startSafe && entry.reversalsSafe
+));
 
 const behavior = vm.runInContext(`
   (() => {
@@ -179,13 +226,27 @@ const behavior = vm.runInContext(`
     const unlockedQuiz = state.activeQuiz === quiz;
     answerQuiz(quiz, quiz.quiz.answer);
 
-    resetGame(levels.findIndex((level) => level.id === "acorn_post_office"));
-    state.time = 100;
-    const cart = state.townCarts[0];
-    cart.x = state.player.x;
-    cart.y = state.player.y;
-    updateTownCarts(0);
-    updateTownCarts(0);
+    const trafficCollisions = [];
+    for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
+      selectedDifficulty = difficulty;
+      resetGame(levels.findIndex((level) => level.id === "acorn_post_office"));
+      state.time = 100;
+      state.hearts = 3;
+      state.inventory.push("acornLetterRuru");
+      const cart = state.townCarts[0];
+      cart.x = state.player.x;
+      cart.y = state.player.y;
+      updateTownCarts(0);
+      const afterFirstHit = state.time;
+      updateTownCarts(0);
+      trafficCollisions.push({
+        difficulty,
+        time: afterFirstHit,
+        cooldownTime: state.time,
+        hearts: state.hearts,
+        inventory: [...state.inventory],
+      });
+    }
 
     return {
       inventoryBeforeWrong,
@@ -195,7 +256,7 @@ const behavior = vm.runInContext(`
       lockedQuizAlpha,
       unlockedQuiz,
       quizDone: quiz.done,
-      cartTime: state.time,
+      trafficCollisions,
       requiredCount: requiredTasksForCurrentLevel().length,
       totalCount: state.tasksList.length,
     };
@@ -210,7 +271,12 @@ assert.deepEqual(plain(behavior), {
   lockedQuizAlpha: 0.42,
   unlockedQuiz: true,
   quizDone: true,
-  cartTime: 95,
+  trafficCollisions: [
+    { difficulty: "easy", time: 100, cooldownTime: 100, hearts: 3, inventory: ["acornLetterRuru"] },
+    { difficulty: "normal", time: 98, cooldownTime: 98, hearts: 3, inventory: ["acornLetterRuru"] },
+    { difficulty: "hard", time: 96, cooldownTime: 96, hearts: 3, inventory: ["acornLetterRuru"] },
+    { difficulty: "crazy", time: 94, cooldownTime: 94, hearts: 3, inventory: ["acornLetterRuru"] },
+  ],
   requiredCount: 6,
   totalCount: 8,
 });

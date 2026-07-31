@@ -1587,8 +1587,10 @@ const levels = [
       decoyTargetTask(862, 364, "mail_decoy_2", "空邮箱", "没有收件人", { minDifficulty: "crazy" }),
     ],
     townCarts: [
-      { x: 260, y: 300, minX: 220, maxX: 690, speed: 58, dir: 1, minDifficulty: "normal" },
-      { x: 720, y: 420, minX: 330, maxX: 790, speed: 76, dir: -1, minDifficulty: "crazy" },
+      { x: 220, y: 282, minX: 220, maxX: 690, dir: 1 },
+      { x: 840, y: 350, minX: 120, maxX: 840, dir: -1 },
+      { x: 240, y: 420, minX: 240, maxX: 700, dir: 1 },
+      { x: 900, y: 250, minX: 420, maxX: 900, dir: -1 },
     ],
     puddles: [],
     obstacles: [],
@@ -1624,6 +1626,12 @@ const levels = [
       { ...roadClearTask(760, 196, "高处落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_3", minDifficulty: "crazy" },
       { ...marketTradeTask(820, 380, "hunt_basket", "橡果篮", Array(6).fill("acorn")), animal: "acornBasket" },
     ],
+    townCarts: [
+      { x: 180, y: 310, minX: 180, maxX: 760, dir: 1 },
+      { x: 720, y: 430, minX: 260, maxX: 720, dir: -1 },
+      { x: 340, y: 280, minX: 340, maxX: 880, dir: 1 },
+      { x: 660, y: 390, minX: 210, maxX: 660, dir: -1 },
+    ],
     puddles: [],
     obstacles: [],
   },
@@ -1656,8 +1664,10 @@ const levels = [
       marketTradeTask(724, 192, "market_order_c", "订单 C", ACORN_MARKET_ORDERS.C, { minDifficulty: "hard", requiresTaskId: "market_order_b" }),
     ],
     townCarts: [
-      { x: 292, y: 334, minX: 210, maxX: 720, speed: 62, dir: 1, minDifficulty: "normal" },
-      { x: 734, y: 392, minX: 300, maxX: 820, speed: 80, dir: -1, minDifficulty: "crazy" },
+      { x: 190, y: 300, minX: 190, maxX: 760, dir: 1 },
+      { x: 820, y: 360, minX: 260, maxX: 820, dir: -1 },
+      { x: 320, y: 430, minX: 320, maxX: 880, dir: 1 },
+      { x: 900, y: 250, minX: 420, maxX: 900, dir: -1 },
     ],
     puddles: [],
     obstacles: [],
@@ -1692,8 +1702,10 @@ const levels = [
       { id: "hill_exit", x: 164, y: 182, r: 56, label: "山丘岔路", wrong: true },
     ],
     townCarts: [
-      { x: 332, y: 364, minX: 250, maxX: 690, speed: 60, dir: 1, minDifficulty: "normal" },
-      { x: 696, y: 430, minX: 330, maxX: 800, speed: 82, dir: -1, minDifficulty: "crazy" },
+      { x: 200, y: 180, minX: 200, maxX: 720, dir: 1 },
+      { x: 840, y: 440, minX: 280, maxX: 840, dir: -1 },
+      { x: 240, y: 380, minX: 240, maxX: 600, dir: 1 },
+      { x: 900, y: 280, minX: 380, maxX: 900, dir: -1 },
     ],
     puddles: [],
     obstacles: [],
@@ -1746,6 +1758,7 @@ function nextPlayableLevelIndex(currentIndex) {
 function prepareAcornTownLevel(level) {
   if (level?.world !== "acorn_town") return level;
   const visible = (entry) => CATS_OWLS_ACORN_TOWN_RULES.visibleAtDifficulty(entry, selectedDifficulty);
+  const traffic = CATS_OWLS_ACORN_TOWN_RULES.trafficFor(selectedDifficulty);
   const basketCounts = { easy: 6, normal: 6, hard: 8, crazy: 10 };
   return {
     ...level,
@@ -1756,7 +1769,9 @@ function prepareAcornTownLevel(level) {
         ? { ...task, need: Array(basketCounts[selectedDifficulty] || 6).fill("acorn") }
         : task
     )),
-    townCarts: (level.townCarts || []).filter(visible),
+    townCarts: (level.townCarts || [])
+      .slice(0, traffic.count)
+      .map((cart) => ({ ...cart, speed: traffic.speed })),
     exitAreas: (level.exitAreas || []).filter(visible),
   };
 }
@@ -3397,6 +3412,16 @@ function applyAcornTownWrongAction(x, y, message) {
   return amount;
 }
 
+function applyAcornTownTrafficCollision(cart) {
+  state.obstacleHits += 1;
+  const amount = applyTimePenalty("obstacle", cart.x, cart.y);
+  messageEl.textContent = amount
+    ? `小推车经过，扣除 ${amount} 秒，先让一让。`
+    : "小推车经过，先让一让。";
+  state.shake = Math.max(state.shake, 0.12);
+  return amount;
+}
+
 function finishMatchedDelivery(task) {
   if (!task || task.done) return false;
   if (!taskDependenciesMet(task)) {
@@ -3466,7 +3491,7 @@ function updateTownCarts(dt) {
     }
     if (distance(state.player, cart) < 48 && now >= state.townCartCooldownUntil) {
       state.townCartCooldownUntil = now + 1000;
-      applyAcornTownWrongAction(cart.x, cart.y, "小推车经过，先让一让。");
+      applyAcornTownTrafficCollision(cart);
       state.player.x = clamp(state.player.x - cart.dir * 34, 28, canvas.width - 28);
     }
   }
