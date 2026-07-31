@@ -2134,7 +2134,17 @@ function mudBossTask(x, y) {
 }
 
 function resetGame(levelIndex = 0, keepHearts = false) {
-  const level = prepareAcornTownLevel(levels[levelIndex]);
+  const rawLevel = levels[levelIndex];
+  const previousWorld = state ? levels[state.levelIndex]?.world : null;
+  const acornQuizApi = window.CATS_OWLS_ACORN_TOWN_QUIZ;
+  if (
+    rawLevel?.world === "acorn_town" &&
+    previousWorld !== "acorn_town" &&
+    typeof acornQuizApi?.beginRun === "function"
+  ) {
+    acornQuizApi.beginRun(selectedDifficulty);
+  }
+  const level = prepareAcornTownLevel(rawLevel);
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
@@ -2292,7 +2302,17 @@ function prepareTask(entry, level, index) {
   task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
   task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
   const quizScope = task.mistSwampShared && level.world === "mist_swamp" ? level.world : level.id || level.bg || level.name;
-  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, quizScope);
+  if (
+    task.acornTownShared &&
+    level.world === "acorn_town" &&
+    typeof window.CATS_OWLS_ACORN_TOWN_QUIZ?.assign === "function"
+  ) {
+    const assignment = window.CATS_OWLS_ACORN_TOWN_QUIZ.assign(level.id, selectedDifficulty);
+    task.quiz = assignment.core;
+    task.bonusQuiz = assignment.bonus;
+  } else if (task.quizKey) {
+    task.quiz = randomQuiz(task.quizKey, quizScope);
+  }
   return task;
 }
 

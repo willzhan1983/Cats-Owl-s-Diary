@@ -67,6 +67,95 @@
   const catalog = [...existingCoreQuestions, ...additionalCoreQuestions, ...bonusQuestions];
   const coreQuestions = catalog.filter((entry) => entry.mode === "core");
   const bonusPool = catalog.filter((entry) => entry.mode === "bonus");
+  const runState = {
+    id: 0,
+    difficulty: null,
+    bags: { core: [], bonus: [] },
+    assignments: new Map(),
+  };
+
+  function shuffled(list) {
+    const copy = list.slice();
+    for (let index = copy.length - 1; index > 0; index -= 1) {
+      const swapIndex = Math.floor(Math.random() * (index + 1));
+      [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+    }
+    return copy;
+  }
+
+  function cloneQuestion(question) {
+    if (!question) return null;
+    return { ...question, options: [...question.options] };
+  }
+
+  function shuffleOptions(question) {
+    if (!question?.options?.length) return cloneQuestion(question);
+    const indexed = question.options.map((option, index) => ({ option, index }));
+    const options = shuffled(indexed);
+    return {
+      ...question,
+      options: options.map((entry) => entry.option),
+      answer: options.findIndex((entry) => entry.index === question.answer),
+    };
+  }
+
+  function poolFor(difficulty, mode) {
+    const key = mode === "bonus" ? ACORN_TOWN_BONUS_KEY : ACORN_TOWN_CORE_KEY;
+    return (quizBank[key] || []).filter((entry) =>
+      entry.difficulty === difficulty && entry.mode === mode
+    );
+  }
+
+  function beginRun(difficulty = "normal") {
+    const normalized = ["easy", "normal", "hard", "crazy"].includes(difficulty) ? difficulty : "normal";
+    runState.id += 1;
+    runState.difficulty = normalized;
+    runState.bags = {
+      core: shuffled(poolFor(normalized, "core")),
+      bonus: shuffled(poolFor(normalized, "bonus")),
+    };
+    runState.assignments.clear();
+    return runState.id;
+  }
+
+  function safeFallback(mode) {
+    if (mode === "bonus") return null;
+    const preferred = catalog.find((entry) =>
+      entry.difficulty === runState.difficulty && entry.mode === mode
+    );
+    return shuffleOptions(preferred || quizBank.math?.[0]);
+  }
+
+  function draw(mode) {
+    const question = runState.bags[mode]?.pop();
+    return shuffleOptions(question) || safeFallback(mode);
+  }
+
+  function assign(levelId, difficulty = "normal") {
+    if (runState.difficulty !== difficulty) beginRun(difficulty);
+    const key = `${runState.id}:${runState.difficulty}:${levelId}`;
+    if (!runState.assignments.has(key)) {
+      runState.assignments.set(key, {
+        core: draw("core"),
+        bonus: draw("bonus"),
+      });
+    }
+    const assignment = runState.assignments.get(key);
+    return {
+      core: cloneQuestion(assignment.core),
+      bonus: cloneQuestion(assignment.bonus),
+    };
+  }
+
+  function runSnapshot() {
+    return {
+      id: runState.id,
+      difficulty: runState.difficulty,
+      assignedLevels: runState.assignments.size,
+      remainingCore: runState.bags.core.length,
+      remainingBonus: runState.bags.bonus.length,
+    };
+  }
 
   const placements = [
     { level: "橡果镇邮局", x: 468, y: 430, name: "邮局四年级题" },
@@ -126,6 +215,9 @@
     coreKey: ACORN_TOWN_CORE_KEY,
     bonusKey: ACORN_TOWN_BONUS_KEY,
     count: catalog.length,
+    beginRun,
+    assign,
+    runSnapshot,
     catalog: Object.freeze(catalog.map((entry) => Object.freeze({
       ...entry,
       options: Object.freeze([...entry.options]),
