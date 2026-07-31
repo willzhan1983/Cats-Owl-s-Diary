@@ -1981,6 +1981,12 @@ function updateMistQuestReadiness() {
 
 function canSettleCurrentLevel(requiredTasks) {
   if (!requiredTasks.every((task) => task.done)) return false;
+  if (
+    levels[state.levelIndex]?.world === "acorn_town" &&
+    ["offered", "answering"].includes(state.acornBonusStatus)
+  ) {
+    return false;
+  }
   return !state.mistQuest || state.mistQuest.status === "settled";
 }
 
@@ -2179,6 +2185,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     levelRewardGranted: false,
     acornRouteHint: "",
     acornRouteHintUntil: 0,
+    acornBonusStatus: "none",
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
     hazards: [],
@@ -4430,6 +4437,21 @@ function repairDirectionSign(task) {
   updateHud();
 }
 
+function renderQuizQuestion(task, quiz, mode = "core") {
+  if (!quiz) return false;
+  quizTitle.textContent = quiz.title;
+  quizQuestion.textContent = quiz.question;
+  quizOptions.innerHTML = "";
+  quiz.options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = option;
+    button.addEventListener("click", () => answerQuiz(task, index, mode));
+    quizOptions.appendChild(button);
+  });
+  return true;
+}
+
 function openQuiz(task) {
   if (!quizTaskAvailable(task)) {
     messageEl.textContent = "先完成小镇任务，再来回答最后一题。";
@@ -4438,29 +4460,88 @@ function openQuiz(task) {
   if (state.activeQuiz === task) return;
   closeDialogue();
   state.activeQuiz = task;
-  quizTitle.textContent = task.quiz.title;
-  quizQuestion.textContent = task.quiz.question;
-  quizOptions.innerHTML = "";
-  task.quiz.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.textContent = option;
-    button.addEventListener("click", () => answerQuiz(task, index));
-    quizOptions.appendChild(button);
-  });
+  if (!renderQuizQuestion(task, task.quiz, "core")) {
+    messageEl.textContent = "题目暂时不可用，请稍后再试。";
+    state.activeQuiz = null;
+    return;
+  }
   quizPanel.hidden = false;
   renderMistQuestHud();
 }
 
-function answerQuiz(task, index) {
-  if (index === task.quiz.answer) {
+function finishAcornTownBonusChoice(message) {
+  state.acornBonusStatus = "resolved";
+  closeQuiz();
+  messageEl.textContent = message;
+  updateHud();
+}
+
+function skipAcornTownBonus() {
+  finishAcornTownBonusChoice("奖励谜题已跳过，关卡可以完成。");
+}
+
+function openAcornTownBonusQuiz(task = state.activeQuiz) {
+  if (!task?.bonusQuiz) {
+    skipAcornTownBonus();
+    return false;
+  }
+  state.acornBonusStatus = "answering";
+  return renderQuizQuestion(task, task.bonusQuiz, "bonus");
+}
+
+function showAcornTownBonusChoice(task) {
+  if (!task?.bonusQuiz) {
+    state.acornBonusStatus = "resolved";
+    closeQuiz();
+    return;
+  }
+  state.acornBonusStatus = "offered";
+  state.activeQuiz = task;
+  quizTitle.textContent = "额外挑战";
+  quizQuestion.textContent = "要挑战一道不扣时间的奖励谜题吗？";
+  quizOptions.innerHTML = "";
+
+  const challenge = document.createElement("button");
+  challenge.type = "button";
+  challenge.textContent = "挑战奖励谜题";
+  challenge.addEventListener("click", () => openAcornTownBonusQuiz(task));
+
+  const finish = document.createElement("button");
+  finish.type = "button";
+  finish.textContent = "直接完成关卡";
+  finish.addEventListener("click", skipAcornTownBonus);
+
+  quizOptions.append(challenge, finish);
+  quizPanel.hidden = false;
+}
+
+function answerQuiz(task, index, mode = "core") {
+  const quiz = mode === "bonus" ? task.bonusQuiz : task.quiz;
+  if (!quiz) return;
+  if (index === quiz.answer) {
+    if (mode === "bonus") {
+      state.correctAnswers += 1;
+      const points = CATS_OWLS_ACORN_TOWN_RULES.bonusPoints();
+      addRunPoints(points, task.x, task.y, `+${points} 奖励积分`);
+      finishAcornTownBonusChoice("奖励谜题答对啦，额外获得 10 分！");
+      return;
+    }
     state.correctAnswers += 1;
     addRunPoints(8, task.x, task.y, "+8 积分");
-    closeQuiz();
     completeTask(task, task.x, task.y);
+    if (task.acornTownShared && levels[state.levelIndex]?.world === "acorn_town") {
+      showAcornTownBonusChoice(task);
+      return;
+    }
+    closeQuiz();
     if (isMistSwampLevel() && task.kind === "mud_boss") {
       messageEl.textContent = "泥浆怪安静下来了，它原来是在守护沼泽。";
     }
+    return;
+  }
+  if (mode === "bonus") {
+    state.wrongAnswers += 1;
+    finishAcornTownBonusChoice("奖励谜题没有答对，但不扣时间，关卡仍然完成。");
     return;
   }
   if (isMistSwampLevel() && task.kind === "mud_boss") {

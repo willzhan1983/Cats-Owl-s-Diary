@@ -342,6 +342,74 @@ assert.deepEqual(plain(behavior), {
   totalCount: 8,
 });
 
+const bonusFlow = vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    resetGame(levels.findIndex((level) => level.id === "acorn_post_office"));
+    const task = state.tasksList.find((entry) => entry.acornTownShared);
+    state.tasksList.filter((entry) => entry !== task && !entry.optional).forEach((entry) => { entry.done = true; });
+    answerQuiz(task, task.quiz.answer);
+    const startTime = state.time;
+    const offered = {
+      taskDone: task.done,
+      status: state.acornBonusStatus,
+      canSettle: canSettleCurrentLevel(requiredTasksForCurrentLevel()),
+    };
+    skipAcornTownBonus();
+    const skipped = {
+      status: state.acornBonusStatus,
+      canSettle: canSettleCurrentLevel(requiredTasksForCurrentLevel()),
+      time: state.time,
+    };
+
+    resetGame(levels.findIndex((level) => level.id === "acorn_post_office"));
+    const correctTask = state.tasksList.find((entry) => entry.acornTownShared);
+    state.tasksList.filter((entry) => entry !== correctTask && !entry.optional).forEach((entry) => { entry.done = true; });
+    answerQuiz(correctTask, correctTask.quiz.answer);
+    openAcornTownBonusQuiz(correctTask);
+    const beforeBonusPoints = state.runPoints;
+    answerQuiz(correctTask, correctTask.bonusQuiz.answer, "bonus");
+    const correct = {
+      status: state.acornBonusStatus,
+      gained: state.runPoints - beforeBonusPoints,
+      time: state.time,
+    };
+
+    resetGame(levels.findIndex((level) => level.id === "acorn_post_office"));
+    const wrongTask = state.tasksList.find((entry) => entry.acornTownShared);
+    state.tasksList.filter((entry) => entry !== wrongTask && !entry.optional).forEach((entry) => { entry.done = true; });
+    answerQuiz(wrongTask, wrongTask.quiz.answer);
+    openAcornTownBonusQuiz(wrongTask);
+    const beforeWrong = { time: state.time, hearts: state.hearts };
+    const wrongIndex = (wrongTask.bonusQuiz.answer + 1) % wrongTask.bonusQuiz.options.length;
+    answerQuiz(wrongTask, wrongIndex, "bonus");
+    const wrong = {
+      status: state.acornBonusStatus,
+      time: state.time,
+      hearts: state.hearts,
+      beforeWrong,
+    };
+
+    return { startTime, offered, skipped, correct, wrong };
+  })();
+`, runtime);
+
+assert.deepEqual(plain(bonusFlow.offered), {
+  taskDone: true,
+  status: "offered",
+  canSettle: false,
+});
+assert.deepEqual(plain(bonusFlow.skipped), {
+  status: "resolved",
+  canSettle: true,
+  time: bonusFlow.startTime,
+});
+assert.equal(bonusFlow.correct.status, "resolved");
+assert.equal(bonusFlow.correct.gained, 10);
+assert.equal(bonusFlow.wrong.status, "resolved");
+assert.equal(bonusFlow.wrong.time, bonusFlow.wrong.beforeWrong.time);
+assert.equal(bonusFlow.wrong.hearts, bonusFlow.wrong.beforeWrong.hearts);
+
 const progression = vm.runInContext(`
   (() => {
     const before = {
