@@ -2139,13 +2139,13 @@ function mudBossTask(x, y) {
   return { x, y, name: "沼泽泥浆怪", animal: "mudMonster", kind: "mud_boss", done: false, phase: 1, phaseProgress: 0, quizKey: "mistSwampBoss", quiz: null, reward: "mistGuardianBadge", speech: "点亮雾灯，帮泥浆怪恢复清醒。" };
 }
 
-function resetGame(levelIndex = 0, keepHearts = false) {
+function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   const rawLevel = levels[levelIndex];
   const previousWorld = state ? levels[state.levelIndex]?.world : null;
   const acornQuizApi = window.CATS_OWLS_ACORN_TOWN_QUIZ;
   if (
     rawLevel?.world === "acorn_town" &&
-    previousWorld !== "acorn_town" &&
+    (options.startAcornTownChapter || previousWorld !== "acorn_town") &&
     typeof acornQuizApi?.beginRun === "function"
   ) {
     acornQuizApi.beginRun(selectedDifficulty);

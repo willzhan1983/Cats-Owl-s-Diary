@@ -23,6 +23,14 @@ vm.runInContext(source, context);
 
 const api = context.CATS_OWLS_ACORN_TOWN_QUIZ;
 const levelIds = ["acorn_post_office", "acorn_hunt", "acorn_market", "acorn_notice_board"];
+const testQuestion = (question, mode) => ({
+  difficulty: "normal",
+  mode,
+  title: "test",
+  question,
+  options: ["a", "b", "c", "d"],
+  answer: 0,
+});
 
 api.beginRun("normal");
 const firstRun = levelIds.map((levelId) => api.assign(levelId, "normal"));
@@ -53,4 +61,25 @@ assert.equal(api.assign("acorn_post_office", "easy").bonus, null);
 
 context.quizBank[api.coreKey] = [];
 api.beginRun("easy");
-assert.ok(api.assign("acorn_hunt", "easy").core.question);
+const fallbackAssignment = api.assign("acorn_hunt", "easy").core;
+assert.equal(fallbackAssignment.question, "1+1?");
+assert.equal(fallbackAssignment.options.length, 4);
+assert.ok(fallbackAssignment.answer >= 0 && fallbackAssignment.answer < 4);
+
+const forcedBonusPool = [testQuestion("bonus A", "bonus"), testQuestion("bonus B", "bonus")];
+context.quizBank[api.bonusKey] = forcedBonusPool;
+api.beginRun("normal");
+const forcedBonusDraws = ["bonus-1", "bonus-2", "bonus-3"]
+  .map((levelId) => api.assign(levelId, "normal").bonus?.question || null);
+assert.deepEqual(new Set(forcedBonusDraws.slice(0, 2)), new Set(["bonus A", "bonus B"]));
+assert.ok(forcedBonusPool.some((question) => question.question === forcedBonusDraws[2]));
+assert.notEqual(forcedBonusDraws[2], forcedBonusDraws[1]);
+
+const forcedCorePool = [testQuestion("core A", "core"), testQuestion("core B", "core")];
+context.quizBank[api.coreKey] = forcedCorePool;
+api.beginRun("normal");
+const forcedCoreDraws = ["core-1", "core-2", "core-3"]
+  .map((levelId) => api.assign(levelId, "normal").core.question);
+assert.deepEqual(new Set(forcedCoreDraws.slice(0, 2)), new Set(["core A", "core B"]));
+assert.ok(forcedCorePool.some((question) => question.question === forcedCoreDraws[2]));
+assert.notEqual(forcedCoreDraws[2], forcedCoreDraws[1]);

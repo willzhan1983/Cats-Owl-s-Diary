@@ -19,7 +19,7 @@
     document.getElementById("homeScreen")?.classList.add("is-hidden");
     const panel = document.getElementById("worldMapPanel");
     if (panel) panel.hidden = true;
-    resetGame(levelIndex, keepHearts);
+    resetGame(levelIndex, keepHearts, { startAcornTownChapter: true });
     startBtn.textContent = text.start;
     messageEl.textContent = "已从世界地图进入橡果镇篇，点击开始帮助镇上的朋友。";
     preloadNearbyBackgrounds(levelIndex);

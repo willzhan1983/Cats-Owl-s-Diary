@@ -6,9 +6,10 @@ const rulesSource = readFileSync(new URL("../acorn-town-rules.js", import.meta.u
 const gameSource = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const gradeQuizSource = readFileSync(new URL("../grade-quiz.js", import.meta.url), "utf8");
 const acornQuizSource = readFileSync(new URL("../acorn-town-quiz-bank.js", import.meta.url), "utf8");
+const acornMapEntrySource = readFileSync(new URL("../acorn-town-map-entry.js", import.meta.url), "utf8");
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
-function loadGameRuntime() {
+function loadGameRuntime({ withAcornMapEntry = false } = {}) {
   const noop = () => {};
   const gradient = { addColorStop: noop };
   const canvasContext = new Proxy({}, {
@@ -89,6 +90,12 @@ function loadGameRuntime() {
   vm.runInContext(gameSource, context, { filename: "game.js" });
   vm.runInContext(gradeQuizSource, context, { filename: "grade-quiz.js" });
   vm.runInContext(acornQuizSource, context, { filename: "acorn-town-quiz-bank.js" });
+  if (withAcornMapEntry) {
+    const listeners = {};
+    context.document.addEventListener = (type, handler) => { listeners[type] = handler; };
+    vm.runInContext(acornMapEntrySource, context, { filename: "acorn-town-map-entry.js" });
+    context.__acornTownMapClick = listeners.click;
+  }
   return context;
 }
 
@@ -153,6 +160,20 @@ assert.deepEqual(
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((difficulty) => {
     const entry = row(difficulty, "acorn_market");
+    return [entry.time, entry.orders];
+  }),
+  [[145, 2], [125, 2], [110, 3], [95, 3]]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_notice_board");
+    return [entry.time, entry.fakeFragments, entry.quizzes];
+  }),
+  [[150, 0, 1], [130, 0, 1], [115, 1, 1], [100, 2, 1]]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_market");
     return [entry.carts, entry.cartSpeeds];
   }),
   [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
@@ -172,10 +193,11 @@ assert.deepEqual(
   [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
 );
 
-const quizRunRuntime = loadGameRuntime();
+const quizRunRuntime = loadGameRuntime({ withAcornMapEntry: true });
 const quizRunResetBehavior = plain(vm.runInContext(`
   (() => {
     selectedDifficulty = "normal";
+    markWorldCompleted("forest_road");
     const nonAcornIndex = WORLD_MAP.forest_road.levels[0];
     const postOfficeIndex = levels.findIndex((level) => level.id === "acorn_post_office");
     const huntIndex = levels.findIndex((level) => level.id === "acorn_hunt");
@@ -203,6 +225,18 @@ const quizRunResetBehavior = plain(vm.runInContext(`
     const withinTown = api.runSnapshot();
     const preservedPair = api.assign("acorn_post_office", "normal");
 
+    __acornTownMapClick({
+      target: {
+        closest(selector) {
+          return selector === "[data-acorn-town-start]" ? {} : null;
+        },
+      },
+      preventDefault() {},
+    });
+    const explicitMapReentry = api.runSnapshot();
+    const explicitMapPair = currentPair();
+    const explicitMapLevel = levels[state.levelIndex].id;
+
     resetGame(nonAcornIndex);
     resetGame(marketIndex);
     const reentry = api.runSnapshot();
@@ -218,6 +252,9 @@ const quizRunResetBehavior = plain(vm.runInContext(`
         core: preservedPair.core.question,
         bonus: preservedPair.bonus?.question || null,
       },
+      explicitMapReentry,
+      explicitMapPair,
+      explicitMapLevel,
       reentry,
     };
   })();
@@ -230,6 +267,13 @@ assert.deepEqual(quizRunResetBehavior.restartPair, quizRunResetBehavior.firstPai
 assert.equal(quizRunResetBehavior.withinTown.id, quizRunResetBehavior.firstEntry.id);
 assert.equal(quizRunResetBehavior.withinTown.assignedLevels, 2);
 assert.deepEqual(quizRunResetBehavior.preservedPair, quizRunResetBehavior.firstPair);
+assert.ok(quizRunResetBehavior.explicitMapReentry.id > quizRunResetBehavior.withinTown.id);
+assert.equal(quizRunResetBehavior.explicitMapReentry.assignedLevels, 1);
+assert.equal(quizRunResetBehavior.explicitMapReentry.remainingCore, 7);
+assert.equal(quizRunResetBehavior.explicitMapReentry.remainingBonus, 3);
+assert.ok(quizRunResetBehavior.explicitMapPair.core);
+assert.ok(quizRunResetBehavior.explicitMapPair.bonus);
+assert.equal(quizRunResetBehavior.explicitMapLevel, "acorn_post_office");
 assert.ok(quizRunResetBehavior.reentry.id > quizRunResetBehavior.firstEntry.id);
 assert.equal(quizRunResetBehavior.reentry.assignedLevels, 1);
 

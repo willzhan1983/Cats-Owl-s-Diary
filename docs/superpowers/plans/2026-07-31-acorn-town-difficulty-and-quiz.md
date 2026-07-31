@@ -19,6 +19,7 @@
 - The final quiz catalog must contain exactly 48 unique questions: 8 required and 4 bonus questions for each difficulty.
 - One Acorn Town run must assign eight distinct questions across its four levels.
 - Restarting the same level must reuse its assigned required and bonus questions.
+- Normal movement to the next Acorn Town level must keep the current run, while every explicit world-map chapter start or re-entry must begin a new run.
 - Required-question mistakes retain the existing heart and time penalties.
 - Bonus-question mistakes apply no heart or time penalty and never block completion.
 - Missing question data must use a safe fallback instead of blocking the level.
@@ -138,7 +139,7 @@ In the matrix result inside `tests/acorn-town-runtime.test.mjs`, add:
 cartSpeeds: [...new Set(state.townCarts.map((cart) => cart.speed))],
 ```
 
-Replace the existing market and notice-board vehicle assertions and add post-office and hunt assertions:
+Keep the existing market time/order and notice-board time/fake-fragment/quiz assertions, then add traffic count/speed assertions alongside them:
 
 ```js
 assert.deepEqual(row("normal", "acorn_post_office"), {
@@ -164,6 +165,20 @@ assert.deepEqual(
     return [entry.carts, entry.cartSpeeds];
   }),
   [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_market");
+    return [entry.time, entry.orders];
+  }),
+  [[145, 2], [125, 2], [110, 3], [95, 3]]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((difficulty) => {
+    const entry = row(difficulty, "acorn_notice_board");
+    return [entry.time, entry.fakeFragments, entry.quizzes];
+  }),
+  [[150, 0, 1], [130, 0, 1], [115, 1, 1], [100, 2, 1]]
 );
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((difficulty) => {
@@ -483,7 +498,7 @@ const bonusQuestions = [
   { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "什么东西越分享，大家拥有得越多？", options: ["快乐", "石头", "空盒", "泥巴"], answer: 0 },
   { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "什么“车”不在路上跑，只在电脑里帮你装商品？", options: ["购物车图标", "火车", "汽车", "自行车"], answer: 0 },
   { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "一条路有三个箭头：右、上、右。第二个箭头指向哪里？", options: ["上", "下", "左", "右"], answer: 0 },
-  { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "两颗橡果加两颗橡果，哪一个选项不是总数？", options: ["5", "4", "四", "2+2"], answer: 0 },
+  { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "以下哪个选项表示的数量不是 4？", options: ["5", "4", "四", "2+2"], answer: 0 },
   { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "我不是鸟，却能带着消息飞到朋友手里。我是什么？", options: ["信件", "橡果", "小车", "路灯"], answer: 0 },
   { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "一张四方纸剪掉一个角，新的图形一共有几个角？", options: ["5", "3", "4", "2"], answer: 0 },
   { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "一辆车从左向右开，掉头后方向是什么？", options: ["从右向左", "继续向右", "向上", "不移动"], answer: 0 },
@@ -549,8 +564,10 @@ git commit -m "feat: expand Acorn Town quiz catalog"
 
 **Files:**
 - Modify: `acorn-town-quiz-bank.js`
+- Modify: `acorn-town-map-entry.js`
 - Modify: `game.js:1745-1765`
 - Modify: `game.js:2125-2205`
+- Modify: `tests/acorn-town-runtime.test.mjs`
 - Create: `tests/acorn-town-quiz-run.test.mjs`
 
 **Interfaces:**
@@ -588,6 +605,10 @@ vm.runInContext(source, context);
 
 const api = context.CATS_OWLS_ACORN_TOWN_QUIZ;
 const levelIds = ["acorn_post_office", "acorn_hunt", "acorn_market", "acorn_notice_board"];
+const testQuestion = (question, mode) => ({
+  difficulty: "normal", mode, title: "test", question,
+  options: ["a", "b", "c", "d"], answer: 0,
+});
 
 api.beginRun("normal");
 const firstRun = levelIds.map((levelId) => api.assign(levelId, "normal"));
@@ -618,7 +639,23 @@ assert.equal(api.assign("acorn_post_office", "easy").bonus, null);
 
 context.quizBank[api.coreKey] = [];
 api.beginRun("easy");
-assert.ok(api.assign("acorn_hunt", "easy").core.question);
+assert.equal(api.assign("acorn_hunt", "easy").core.question, "1+1?");
+
+const forcedBonusPool = [testQuestion("bonus A", "bonus"), testQuestion("bonus B", "bonus")];
+context.quizBank[api.bonusKey] = forcedBonusPool;
+api.beginRun("normal");
+const forcedBonusDraws = ["bonus-1", "bonus-2", "bonus-3"]
+  .map((levelId) => api.assign(levelId, "normal").bonus.question);
+assert.ok(forcedBonusPool.some((question) => question.question === forcedBonusDraws[2]));
+assert.notEqual(forcedBonusDraws[2], forcedBonusDraws[1]);
+
+const forcedCorePool = [testQuestion("core A", "core"), testQuestion("core B", "core")];
+context.quizBank[api.coreKey] = forcedCorePool;
+api.beginRun("normal");
+const forcedCoreDraws = ["core-1", "core-2", "core-3"]
+  .map((levelId) => api.assign(levelId, "normal").core.question);
+assert.ok(forcedCorePool.some((question) => question.question === forcedCoreDraws[2]));
+assert.notEqual(forcedCoreDraws[2], forcedCoreDraws[1]);
 ```
 
 - [ ] **Step 2: Run the shuffle-bag test and verify it fails**
@@ -640,6 +677,7 @@ const runState = {
   id: 0,
   difficulty: null,
   bags: { core: [], bonus: [] },
+  lastDrawn: { core: null, bonus: null },
   assignments: new Map(),
 };
 
@@ -683,21 +721,29 @@ function beginRun(difficulty = "normal") {
     core: shuffled(poolFor(normalized, "core")),
     bonus: shuffled(poolFor(normalized, "bonus")),
   };
+  runState.lastDrawn = { core: null, bonus: null };
   runState.assignments.clear();
   return runState.id;
 }
 
 function safeFallback(mode) {
   if (mode === "bonus") return null;
-  const preferred = catalog.find((entry) =>
-    entry.difficulty === runState.difficulty && entry.mode === mode
-  );
-  return shuffleOptions(preferred || quizBank.math?.[0]);
+  return shuffleOptions(quizBank.math?.[0]);
 }
 
 function draw(mode) {
+  if (!runState.bags[mode]?.length) {
+    const pool = poolFor(runState.difficulty, mode);
+    const lastQuestion = runState.lastDrawn[mode];
+    const refill = pool.length > 1
+      ? pool.filter((entry) => entry.question !== lastQuestion)
+      : pool;
+    runState.bags[mode] = shuffled(refill);
+  }
   const question = runState.bags[mode]?.pop();
-  return shuffleOptions(question) || safeFallback(mode);
+  if (!question) return safeFallback(mode);
+  runState.lastDrawn[mode] = question.question;
+  return shuffleOptions(question);
 }
 
 function assign(levelId, difficulty = "normal") {
@@ -729,23 +775,40 @@ function runSnapshot() {
 
 Expose `beginRun`, `assign`, and `runSnapshot` on `CATS_OWLS_ACORN_TOWN_QUIZ`.
 
-- [ ] **Step 4: Begin a run only when entering Acorn Town from another world**
+- [ ] **Step 4: Start a new run only for chapter-entry intent**
+
+Treat the lifecycle as three distinct events:
+
+1. A same-level restart calls `resetGame` without chapter-entry intent and keeps the current run and assignments.
+2. Normal movement to another Acorn Town level also calls `resetGame` without chapter-entry intent and keeps the run while assigning that level's pair.
+3. The world-map action `进入橡果镇篇` passes explicit chapter-entry intent and begins a new run even when the current level is already in Acorn Town. Entry from another world also begins a run.
 
 At the beginning of `resetGame`, before `prepareAcornTownLevel`, use:
 
 ```js
-const rawLevel = levels[levelIndex];
-const previousWorld = state ? levels[state.levelIndex]?.world : null;
-const acornQuizApi = window.CATS_OWLS_ACORN_TOWN_QUIZ;
-if (
-  rawLevel?.world === "acorn_town" &&
-  previousWorld !== "acorn_town" &&
-  typeof acornQuizApi?.beginRun === "function"
-) {
-  acornQuizApi.beginRun(selectedDifficulty);
+function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
+  const rawLevel = levels[levelIndex];
+  const previousWorld = state ? levels[state.levelIndex]?.world : null;
+  const acornQuizApi = window.CATS_OWLS_ACORN_TOWN_QUIZ;
+  if (
+    rawLevel?.world === "acorn_town" &&
+    (options.startAcornTownChapter || previousWorld !== "acorn_town") &&
+    typeof acornQuizApi?.beginRun === "function"
+  ) {
+    acornQuizApi.beginRun(selectedDifficulty);
+  }
+  const level = prepareAcornTownLevel(rawLevel);
+  // ...existing reset body...
 }
-const level = prepareAcornTownLevel(rawLevel);
 ```
+
+In `acorn-town-map-entry.js`, make the chapter action explicit:
+
+```js
+resetGame(levelIndex, keepHearts, { startAcornTownChapter: true });
+```
+
+Extend the runtime regression to invoke the real map-entry click handler from an Acorn Town level. Assert that the run ID advances and assignments reset, while the existing same-level restart and within-town next-level assertions remain stable.
 
 Remove the original single line:
 

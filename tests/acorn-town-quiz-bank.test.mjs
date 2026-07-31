@@ -36,3 +36,11 @@ for (const entry of catalog) {
   assert.ok(entry.answer >= 0 && entry.answer < 4, entry.question);
   assert.ok(entry.options[entry.answer], entry.question);
 }
+
+const normalQuantityRiddle = catalog.find((entry) =>
+  entry.difficulty === "normal" &&
+  entry.mode === "bonus" &&
+  entry.options.includes("2+2")
+);
+assert.match(normalQuantityRiddle.question, /表示的数量不是 4/);
+assert.equal(normalQuantityRiddle.options[normalQuantityRiddle.answer], "5");

@@ -53,7 +53,7 @@
     { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "什么东西越分享，大家拥有得越多？", options: ["快乐", "石头", "空盒", "泥巴"], answer: 0 },
     { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "什么“车”不在路上跑，只在电脑里帮你装商品？", options: ["购物车图标", "火车", "汽车", "自行车"], answer: 0 },
     { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "一条路有三个箭头：右、上、右。第二个箭头指向哪里？", options: ["上", "下", "左", "右"], answer: 0 },
-    { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "两颗橡果加两颗橡果，哪一个选项不是总数？", options: ["5", "4", "四", "2+2"], answer: 0 },
+    { difficulty: "normal", mode: "bonus", title: "奖励谜题", question: "以下哪个选项表示的数量不是 4？", options: ["5", "4", "四", "2+2"], answer: 0 },
     { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "我不是鸟，却能带着消息飞到朋友手里。我是什么？", options: ["信件", "橡果", "小车", "路灯"], answer: 0 },
     { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "一张四方纸剪掉一个角，新的图形一共有几个角？", options: ["5", "3", "4", "2"], answer: 0 },
     { difficulty: "hard", mode: "bonus", title: "奖励谜题", question: "一辆车从左向右开，掉头后方向是什么？", options: ["从右向左", "继续向右", "向上", "不移动"], answer: 0 },
@@ -71,6 +71,7 @@
     id: 0,
     difficulty: null,
     bags: { core: [], bonus: [] },
+    lastDrawn: { core: null, bonus: null },
     assignments: new Map(),
   };
 
@@ -114,21 +115,29 @@
       core: shuffled(poolFor(normalized, "core")),
       bonus: shuffled(poolFor(normalized, "bonus")),
     };
+    runState.lastDrawn = { core: null, bonus: null };
     runState.assignments.clear();
     return runState.id;
   }
 
   function safeFallback(mode) {
     if (mode === "bonus") return null;
-    const preferred = catalog.find((entry) =>
-      entry.difficulty === runState.difficulty && entry.mode === mode
-    );
-    return shuffleOptions(preferred || quizBank.math?.[0]);
+    return shuffleOptions(quizBank.math?.[0]);
   }
 
   function draw(mode) {
+    if (!runState.bags[mode]?.length) {
+      const pool = poolFor(runState.difficulty, mode);
+      const lastQuestion = runState.lastDrawn[mode];
+      const refill = pool.length > 1
+        ? pool.filter((entry) => entry.question !== lastQuestion)
+        : pool;
+      runState.bags[mode] = shuffled(refill);
+    }
     const question = runState.bags[mode]?.pop();
-    return shuffleOptions(question) || safeFallback(mode);
+    if (!question) return safeFallback(mode);
+    runState.lastDrawn[mode] = question.question;
+    return shuffleOptions(question);
   }
 
   function assign(levelId, difficulty = "normal") {
