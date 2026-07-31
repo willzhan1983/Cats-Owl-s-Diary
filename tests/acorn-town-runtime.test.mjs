@@ -172,6 +172,67 @@ assert.deepEqual(
   [[1, [48]], [2, [64]], [3, [80]], [4, [96]]]
 );
 
+const quizRunRuntime = loadGameRuntime();
+const quizRunResetBehavior = plain(vm.runInContext(`
+  (() => {
+    selectedDifficulty = "normal";
+    const nonAcornIndex = WORLD_MAP.forest_road.levels[0];
+    const postOfficeIndex = levels.findIndex((level) => level.id === "acorn_post_office");
+    const huntIndex = levels.findIndex((level) => level.id === "acorn_hunt");
+    const marketIndex = levels.findIndex((level) => level.id === "acorn_market");
+    const api = CATS_OWLS_ACORN_TOWN_QUIZ;
+    const currentPair = () => {
+      const task = state.tasksList.find((entry) => entry.acornTownShared);
+      return {
+        core: task.quiz.question,
+        bonus: task.bonusQuiz?.question || null,
+      };
+    };
+
+    resetGame(nonAcornIndex);
+    const beforeEntry = api.runSnapshot();
+    resetGame(postOfficeIndex);
+    const firstEntry = api.runSnapshot();
+    const firstPair = currentPair();
+
+    resetGame(postOfficeIndex);
+    const restarted = api.runSnapshot();
+    const restartPair = currentPair();
+
+    resetGame(huntIndex);
+    const withinTown = api.runSnapshot();
+    const preservedPair = api.assign("acorn_post_office", "normal");
+
+    resetGame(nonAcornIndex);
+    resetGame(marketIndex);
+    const reentry = api.runSnapshot();
+
+    return {
+      beforeEntry,
+      firstEntry,
+      firstPair,
+      restarted,
+      restartPair,
+      withinTown,
+      preservedPair: {
+        core: preservedPair.core.question,
+        bonus: preservedPair.bonus?.question || null,
+      },
+      reentry,
+    };
+  })();
+`, quizRunRuntime));
+
+assert.ok(quizRunResetBehavior.firstEntry.id > quizRunResetBehavior.beforeEntry.id);
+assert.equal(quizRunResetBehavior.firstEntry.assignedLevels, 1);
+assert.equal(quizRunResetBehavior.restarted.id, quizRunResetBehavior.firstEntry.id);
+assert.deepEqual(quizRunResetBehavior.restartPair, quizRunResetBehavior.firstPair);
+assert.equal(quizRunResetBehavior.withinTown.id, quizRunResetBehavior.firstEntry.id);
+assert.equal(quizRunResetBehavior.withinTown.assignedLevels, 2);
+assert.deepEqual(quizRunResetBehavior.preservedPair, quizRunResetBehavior.firstPair);
+assert.ok(quizRunResetBehavior.reentry.id > quizRunResetBehavior.firstEntry.id);
+assert.equal(quizRunResetBehavior.reentry.assignedLevels, 1);
+
 const routeSafety = vm.runInContext(`
   (() => {
     selectedDifficulty = "crazy";
