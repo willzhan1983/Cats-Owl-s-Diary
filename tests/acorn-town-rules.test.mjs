@@ -20,6 +20,17 @@ assert.equal(rules.wrongActionPenalty("easy"), 0);
 assert.equal(rules.wrongActionPenalty("normal"), 0);
 assert.equal(rules.wrongActionPenalty("hard"), 3);
 assert.equal(rules.wrongActionPenalty("crazy"), 5);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map((mode) => ({ ...rules.trafficFor(mode) })),
+  [
+    { count: 1, speed: 48 },
+    { count: 2, speed: 64 },
+    { count: 3, speed: 80 },
+    { count: 4, speed: 96 },
+  ]
+);
+assert.deepEqual({ ...rules.trafficFor("unknown") }, { count: 2, speed: 64 });
+assert.equal(rules.bonusPoints(), 10);
 assert.equal(
   rules.coreTasksDone([
     { kind: "matched_delivery", done: true },
