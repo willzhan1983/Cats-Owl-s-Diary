@@ -1172,15 +1172,17 @@ Expected: all tests pass with zero failures.
 Run:
 
 ```bash
-git diff --check
+git diff --check 2004585..HEAD
 git status --short
-git diff --stat HEAD~4..HEAD
+git diff --stat 2004585..HEAD
+git diff --name-only 2004585..HEAD
 ```
 
 Expected:
 
-- No whitespace errors.
-- Only the planned JavaScript, test, spec, and plan files are changed.
+- No whitespace errors across the full feature range.
+- The worktree is clean.
+- The full `2004585..HEAD` range contains only the planned JavaScript, test, spec, and plan files.
 - No assets are changed.
 
 - [ ] **Step 4: Start the local server**
