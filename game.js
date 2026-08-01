@@ -545,12 +545,24 @@ let totalPoints = readStoredNumber(TOTAL_POINTS_KEY);
 let bestScore = readStoredNumber(BEST_SCORE_KEY);
 
 function completedWorlds() {
+  const completed = new Set();
   try {
     const values = JSON.parse(localStorage.getItem(COMPLETED_WORLDS_STORAGE_KEY) || "[]");
-    return new Set(Array.isArray(values) ? values : []);
-  } catch {
-    return new Set();
+    if (Array.isArray(values)) values.forEach((worldId) => completed.add(worldId));
+  } catch {}
+
+  const lastLevelByWorld = new Map();
+  levels.forEach((level, index) => lastLevelByWorld.set(level.world, index));
+  const history = readStoredJson(RUN_HISTORY_KEY, []);
+  if (Array.isArray(history)) {
+    history.forEach((record) => {
+      const level = levels[record?.levelIndex];
+      if (record?.completed && level && lastLevelByWorld.get(level.world) === record.levelIndex) {
+        completed.add(level.world);
+      }
+    });
   }
+  return completed;
 }
 
 function isWorldCompleted(worldId) {
@@ -1567,7 +1579,7 @@ const levels = [
     world: "acorn_town",
     time: 110,
     timeByDifficulty: { easy: 130, normal: 110, hard: 95, crazy: 80 },
-    start: { x: 480, y: 472 },
+    start: { x: 180, y: 472 },
     message: "根据头像和颜色提示，把信送到正确邮箱。",
     levelReward: { type: "postmanBadge", count: 1 },
     collectibles: [
@@ -1749,9 +1761,6 @@ WORLD_MAP.acorn_town.levels = levels
   .filter((index) => index >= 0);
 
 function nextPlayableLevelIndex(currentIndex) {
-  const forestRoadLevels = WORLD_MAP.forest_road.levels;
-  const forestRoadEnd = forestRoadLevels[forestRoadLevels.length - 1];
-  if (currentIndex === forestRoadEnd) return WORLD_MAP.acorn_town.levels[0] ?? currentIndex + 1;
   return currentIndex + 1;
 }
 
@@ -2645,6 +2654,11 @@ function clearLocalScoreRecords() {
   renderRunHistory();
 }
 
+function currentLevelStartMessage() {
+  const level = levels[state.levelIndex];
+  return level?.world === "acorn_town" ? level.message || text.move : text.move;
+}
+
 function startGame() {
   gameEntered = true;
   storybookIntroSeen = true;
@@ -2654,7 +2668,7 @@ function startGame() {
     resetGame(state.levelIndex, state.levelIndex > 0);
     state.running = true;
     startBtn.textContent = text.restart;
-    messageEl.textContent = text.move;
+    messageEl.textContent = currentLevelStartMessage();
     startMusicForLevel();
     return;
   }
@@ -2673,7 +2687,7 @@ function startGame() {
   state.running = true;
   state.levelClear = false;
   startBtn.textContent = text.restart;
-  messageEl.textContent = text.move;
+  messageEl.textContent = currentLevelStartMessage();
   startMusicForLevel();
 }
 
