@@ -61,6 +61,11 @@ function loadGameRuntime({ withAcornMapEntry = false } = {}) {
   const context = {
     console,
     Image: TestImage,
+    Audio: class {
+      addEventListener() {}
+      pause() {}
+      play() { return Promise.resolve(); }
+    },
     URLSearchParams,
     performance: { now: () => 0 },
     requestAnimationFrame: noop,
@@ -481,20 +486,76 @@ assert.deepEqual(plain(progression), {
   completed: ["acorn_town", "forest_road"],
 });
 
+const legacyProgressRuntime = loadGameRuntime();
+const legacyProgression = vm.runInContext(`
+  (() => {
+    levels.push({ id: "dynamic_forest_road_end", world: "forest_road" });
+    const forestRoadEnd = levels.length - 1;
+    localStorage.setItem("catsOwlRunHistory", JSON.stringify([
+      { levelIndex: forestRoadEnd, completed: true },
+    ]));
+    return {
+      explicitCompletion: isWorldCompleted("forest_road"),
+      acornTownUnlocked: isWorldUnlocked("acorn_town"),
+    };
+  })();
+`, legacyProgressRuntime);
+
+assert.deepEqual(plain(legacyProgression), {
+  explicitCompletion: true,
+  acornTownUnlocked: true,
+});
+
 const transition = vm.runInContext(`
   (() => {
     const forestRoadEnd = WORLD_MAP.forest_road.levels[WORLD_MAP.forest_road.levels.length - 1];
     return {
       next: nextPlayableLevelIndex(forestRoadEnd),
-      acornTownStart: WORLD_MAP.acorn_town.levels[0],
+      mistSwampStart: WORLD_MAP.mist_swamp.levels[0],
     };
   })();
 `, runtime);
 
 assert.deepEqual(plain(transition), {
-  next: transition.acornTownStart,
-  acornTownStart: transition.acornTownStart,
+  next: transition.mistSwampStart,
+  mistSwampStart: transition.mistSwampStart,
 });
+
+const taskPromptFlow = vm.runInContext(`
+  (() => {
+    const acornTownLevels = WORLD_MAP.acorn_town.levels;
+    const prompts = [];
+    resetGame(acornTownLevels[0], false, { startAcornTownChapter: true });
+    for (let index = 0; index < acornTownLevels.length; index += 1) {
+      startGame();
+      checkTasks(0);
+      const level = levels[state.levelIndex];
+      prompts.push({ levelId: level.id, message: messageEl.textContent });
+      if (index < acornTownLevels.length - 1) {
+        state.running = false;
+        state.levelClear = true;
+      }
+    }
+    return prompts;
+  })();
+`, loadGameRuntime());
+
+assert.deepEqual(plain(taskPromptFlow), [
+  { levelId: "acorn_post_office", message: "根据头像和颜色提示，把信送到正确邮箱。" },
+  { levelId: "acorn_hunt", message: "清理落叶，找回真正的橡果并放进篮子。" },
+  { levelId: "acorn_market", message: "看清订单内容，按顺序用橡果和苹果完成兑换。" },
+  { levelId: "acorn_notice_board", message: "按顺序修复公告板，再选择通往河畔码头的正确出口。" },
+]);
+
+const legacyChapterPrompt = vm.runInContext(`
+  (() => {
+    resetGame(levels.findIndex((level) => level.id === "day_1"));
+    startGame();
+    return messageEl.textContent;
+  })();
+`, loadGameRuntime());
+
+assert.equal(legacyChapterPrompt, "方向键或屏幕按钮移动，看看谁需要帮忙。");
 
 const rewards = vm.runInContext(`
   (() => {
