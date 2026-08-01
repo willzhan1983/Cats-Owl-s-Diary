@@ -27,9 +27,9 @@
   checkPuddles = function checkPuddlesDisabled() {};
 
   const originalResetGame = resetGame;
-  resetGame = function resetGameWithoutPuddles(levelIndex = 0, keepHearts = false) {
+  resetGame = function resetGameWithoutPuddles(levelIndex = 0, ...resetArgs) {
     cleanLevel(levels?.[levelIndex]);
-    originalResetGame(levelIndex, keepHearts);
+    originalResetGame(levelIndex, ...resetArgs);
     cleanState();
   };
 

@@ -152,7 +152,7 @@
       emoji: "🏙️",
       type: "town",
       description: "橡果镇是森林居民的小镇。Mimi / 詹涞儿 和 Owlly / 姚头鹰 在这里看到任务公告板，发现河畔码头的桥坏了，需要继续前往码头帮忙。",
-      background: "assets/v2/v2-bg-city-road.png",
+      background: "assets/bg/acorn_town_plaza.png",
       npcs: ["ruru", "coco", "owlly"],
       neighbors: ["forest_road", "riverside_dock"],
       unlocked: false,
@@ -356,9 +356,16 @@
     `;
   }
 
+  function regionIsUnlocked(regionId) {
+    const region = WORLD_MAP[regionId];
+    const hasDynamicProgress = ["acorn_town", "riverside_dock"].includes(regionId);
+    return Boolean(region?.unlocked || (hasDynamicProgress && window.CATS_OWLS_PROGRESS?.isWorldUnlocked(regionId)));
+  }
+
   function renderRegionDetail(regionId) {
     const detail = document.getElementById("worldMapDetail");
     const region = WORLD_MAP[regionId] || WORLD_MAP.forest_school;
+    const unlocked = regionIsUnlocked(regionId);
     if (!detail || !region) return;
 
     detail.innerHTML = `
@@ -369,13 +376,13 @@
         <span class="world-detail-emoji" aria-hidden="true">${region.emoji}</span>
         <div>
           <h3>${region.name}</h3>
-          <p>${region.unlocked ? "已开放区域" : "后续解锁区域"} · ${region.theme}</p>
+          <p>${unlocked ? "已开放区域" : "后续解锁区域"} · ${region.theme}</p>
         </div>
       </div>
       <p class="world-detail-copy">${region.description}</p>
       <dl class="world-detail-list">
         <div><dt>区域名称</dt><dd>${region.emoji} ${region.name}</dd></div>
-        <div><dt>Unlock status</dt><dd>${region.unlocked ? "已解锁 / Unlocked" : "未解锁 / Locked"}；${region.unlockCondition}</dd></div>
+        <div><dt>Unlock status</dt><dd>${unlocked ? "已解锁 / Unlocked" : "未解锁 / Locked"}；${region.unlockCondition}</dd></div>
         <div><dt>解锁条件</dt><dd>${region.unlockCondition}</dd></div>
         <div><dt>Background image path</dt><dd>${region.background}</dd></div>
         <div><dt>Connected / next regions</dt><dd>${listText(region.neighbors.map((id) => WORLD_MAP[id]?.name || id))}；下一阶段：${region.next}</dd></div>
@@ -398,6 +405,7 @@
 
   function createNode(regionId) {
     const region = WORLD_MAP[regionId];
+    const unlocked = regionIsUnlocked(regionId);
     const button = document.createElement("button");
     button.type = "button";
     button.className = `world-node world-node--${region.type}`;
@@ -408,7 +416,7 @@
     button.innerHTML = `
       <span class="world-node-emoji" aria-hidden="true">${region.emoji}</span>
       <span class="world-node-name">${region.name}</span>
-      <span class="world-node-lock">${region.unlocked ? "可探索" : "未解锁"}</span>
+      <span class="world-node-lock">${unlocked ? "可探索" : "未解锁"}</span>
     `;
     return button;
   }

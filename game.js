@@ -67,6 +67,11 @@ const MUSHROOM_SEQUENCE_LENGTH_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, cr
 const MUSHROOM_COLOR_LABELS = Object.freeze({ yellow: "黄", blue: "蓝", purple: "紫", green: "绿" });
 const MUD_BUBBLE_WAVE_SIZE_BY_DIFFICULTY = { easy: 1, normal: 1, hard: 2, crazy: 2 };
 const MIST_LANTERN_CHARGE_TIME_BY_DIFFICULTY = { easy: 1.2, normal: 2, hard: 2.5, crazy: 3 };
+const ACORN_MARKET_ORDERS = Object.freeze({
+  A: ["acorn", "acorn", "redApple"],
+  B: ["acorn", "acorn", "acorn", "greenApple"],
+  C: ["acorn", "acorn", "redApple", "greenApple"],
+});
 const SLEEPING_BRIDGE_REPAIR_ANCHOR = Object.freeze({ x: 570, y: 300 });
 const SLEEPING_BRIDGE_LAMP_SLOTS = Object.freeze([
   Object.freeze({ x: 420, y: 100 }),
@@ -124,6 +129,7 @@ const backgroundSources = {
   windingForestCrossroad: "./assets/bg/winding_forest_crossroad.png",
   escortForestPath: "./assets/bg/escort_forest_path.png",
   acornTownCrossroad: "./assets/bg/acorn_town_crossroad.png",
+  acornTownPlaza: "./assets/bg/acorn_town_plaza.png",
   mistSwampEntrance: "./assets/bg/mist_swamp_entrance.png",
   fireflyTrailPath: "./assets/bg/firefly_trail_path.png",
   sleepingWoodenBridge: "./assets/bg/sleeping_wooden_bridge.png",
@@ -158,6 +164,11 @@ const backgroundSourceCandidates = {
   windingForestCrossroad: ["./assets/bg/winding_forest_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
   escortForestPath: ["./assets/bg/escort_forest_path.png", "./assets/v2/v2-bg-city-road.png"],
   acornTownCrossroad: ["./assets/bg/acorn_town_crossroad.png", "./assets/v2/v2-bg-city-road.png"],
+  acornTownPlaza: [
+    "./assets/bg/acorn_town_plaza.png",
+    "./assets/bg/acorn_town_crossroad.png",
+    "./assets/v2/v2-bg-city-road.png",
+  ],
   mistSwampEntrance: ["./assets/bg/mist_swamp_entrance.png", "./assets/v2/v2-bg-swamp-boss.png", "./assets/v2/v2-bg-wetland.png"],
   fireflyTrailPath: ["./assets/bg/firefly_trail_path.png", "./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
   sleepingWoodenBridge: ["./assets/bg/sleeping_wooden_bridge.png", "./assets/v2/v2-bg-pond.png", "./assets/v2/v2-bg-wetland.png"],
@@ -445,6 +456,13 @@ const WORLD_MAP = {
     levels: [16, 17, 18, 19],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  acorn_town: {
+    id: "acorn_town",
+    name: "橡果镇",
+    background: "acornTownPlaza",
+    levels: [],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
+  },
   mist_swamp: {
     id: "mist_swamp",
     name: "迷雾沼泽",
@@ -481,6 +499,10 @@ const dayNames = [
   "沉睡木桥",
   "迷雾核心",
   "沼泽泥浆怪",
+  "橡果镇邮局",
+  "寻找丢失的橡果",
+  "橡果集市兑换",
+  "小镇公告板",
 ];
 
 const keys = new Set();
@@ -512,10 +534,51 @@ const PLAYER_PROFILE_KEY = "catsOwlPlayerProfile";
 const TOTAL_POINTS_KEY = "catsOwlTotalPoints";
 const BEST_SCORE_KEY = "catsOwlBestScore";
 const RUN_HISTORY_KEY = "catsOwlRunHistory";
+const COMPLETED_WORLDS_STORAGE_KEY = "catsOwlCompletedWorlds";
+const WORLD_PREREQUISITES = Object.freeze({
+  acorn_town: "forest_road",
+  riverside_dock: "acorn_town",
+});
 const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
 let playerProfile = loadPlayerProfile();
 let totalPoints = readStoredNumber(TOTAL_POINTS_KEY);
 let bestScore = readStoredNumber(BEST_SCORE_KEY);
+
+function completedWorlds() {
+  try {
+    const values = JSON.parse(localStorage.getItem(COMPLETED_WORLDS_STORAGE_KEY) || "[]");
+    return new Set(Array.isArray(values) ? values : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function isWorldCompleted(worldId) {
+  return completedWorlds().has(worldId);
+}
+
+function isWorldUnlocked(worldId) {
+  const prerequisite = WORLD_PREREQUISITES[worldId];
+  return !prerequisite || isWorldCompleted(prerequisite);
+}
+
+function markWorldCompleted(worldId) {
+  const completed = completedWorlds();
+  completed.add(worldId);
+  localStorage.setItem(COMPLETED_WORLDS_STORAGE_KEY, JSON.stringify([...completed]));
+}
+
+function markCurrentWorldCompletedAtBoundary() {
+  const currentWorld = levels[state.levelIndex]?.world;
+  const nextWorld = levels[nextPlayableLevelIndex(state.levelIndex)]?.world;
+  if (currentWorld && currentWorld !== nextWorld) markWorldCompleted(currentWorld);
+}
+
+window.CATS_OWLS_PROGRESS = Object.freeze({
+  isWorldCompleted,
+  isWorldUnlocked,
+  markWorldCompleted,
+});
 
 const music = {
   ctx: null,
@@ -548,6 +611,9 @@ const MUSIC_PATTERN_BY_WORLD = {
   boss: "boss",
 };
 
+MUSIC_BY_WORLD.acorn_town = MUSIC_BY_WORLD.apple_valley;
+MUSIC_PATTERN_BY_WORLD.acorn_town = "harvest";
+
 const MUSIC_WORLD_ALIASES = {
   mist_swamp: "dark_swamp",
 };
@@ -573,7 +639,7 @@ function ensureBackground(key) {
 
 function preloadNearbyBackgrounds(levelIndex) {
   const current = levelBackgroundKey(levels[levelIndex]);
-  const next = levelBackgroundKey(levels[levelIndex + 1]);
+  const next = levelBackgroundKey(levels[nextPlayableLevelIndex(levelIndex)]);
   ensureBackground(current);
   window.setTimeout(() => ensureBackground(next), 800);
 }
@@ -1494,6 +1560,156 @@ const levels = [
     puddles: [],
     obstacles: [{ type: "softMud", x: 540, y: 335, r: 48 }],
   },
+  {
+    id: "acorn_post_office",
+    name: "橡果镇邮局",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 110,
+    timeByDifficulty: { easy: 130, normal: 110, hard: 95, crazy: 80 },
+    start: { x: 480, y: 472 },
+    message: "根据头像和颜色提示，把信送到正确邮箱。",
+    levelReward: { type: "postmanBadge", count: 1 },
+    collectibles: [
+      item(184, 384, "acornLetterRuru", "给 Ruru 的信"),
+      item(292, 326, "acornLetterCoco", "给 Coco 的信"),
+      item(406, 402, "acornLetterOwlly", "给 Owlly 的信"),
+      { ...item(522, 348, "acornLetterNono", "给 Nono 的信"), minDifficulty: "hard" },
+      { ...item(642, 394, "acornLetterBird", "给小鸟邮差的信"), minDifficulty: "crazy" },
+    ],
+    tasks: [
+      matchedDeliveryTask(176, 208, "mail_ruru", "Ruru", "ruru", "acornLetterRuru", "棕色橡果头像"),
+      matchedDeliveryTask(340, 202, "mail_coco", "Coco", "coco", "acornLetterCoco", "绿色树叶头像"),
+      matchedDeliveryTask(508, 202, "mail_owlly", "Owlly", "owl", "acornLetterOwlly", "蓝色月亮头像"),
+      matchedDeliveryTask(676, 202, "mail_nono", "Nono", "nono", "acornLetterNono", "红色刺猬头像", { minDifficulty: "hard" }),
+      matchedDeliveryTask(826, 214, "mail_bird", "小鸟邮差", "birdPostman", "acornLetterBird", "黄色羽毛头像", { minDifficulty: "crazy" }),
+      decoyTargetTask(742, 424, "mail_decoy_1", "旧邮箱", "褪色图案", { minDifficulty: "hard" }),
+      decoyTargetTask(862, 364, "mail_decoy_2", "空邮箱", "没有收件人", { minDifficulty: "crazy" }),
+    ],
+    townCarts: [
+      { x: 220, y: 282, minX: 220, maxX: 690, dir: 1 },
+      { x: 840, y: 350, minX: 120, maxX: 840, dir: -1 },
+      { x: 240, y: 420, minX: 240, maxX: 700, dir: 1 },
+      { x: 900, y: 250, minX: 420, maxX: 900, dir: -1 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_hunt",
+    name: "寻找丢失的橡果",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 120,
+    timeByDifficulty: { easy: 140, normal: 120, hard: 105, crazy: 90 },
+    start: { x: 118, y: 426 },
+    message: "清理落叶，找回真正的橡果并放进篮子。",
+    levelReward: { type: "acorn", count: 5 },
+    collectibles: [
+      item(172, 360, "acorn", "橡果"),
+      item(280, 244, "acorn", "橡果"),
+      item(402, 392, "acorn", "橡果"),
+      item(516, 286, "acorn", "橡果"),
+      { ...item(630, 402, "acorn", "橡果"), requiresTaskId: "hunt_leaf_1" },
+      { ...item(728, 270, "acorn", "橡果"), requiresTaskId: "hunt_leaf_2" },
+      { ...item(792, 424, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(856, 314, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(592, 214, "acorn", "橡果"), minDifficulty: "crazy", requiresTaskId: "hunt_leaf_3" },
+      { ...item(850, 214, "acorn", "橡果"), minDifficulty: "crazy", requiresTaskId: "hunt_leaf_3" },
+      { ...item(348, 188, "fakeAcorn", "假橡果"), minDifficulty: "hard", decoy: true },
+      { ...item(698, 344, "fakeAcorn", "假橡果"), minDifficulty: "hard", decoy: true },
+      { ...item(448, 216, "fakeAcorn", "假橡果"), minDifficulty: "crazy", decoy: true },
+    ],
+    tasks: [
+      { ...roadClearTask(552, 364, "左侧落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_1" },
+      { ...roadClearTask(680, 248, "右侧落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_2", minDifficulty: "normal" },
+      { ...roadClearTask(760, 196, "高处落叶堆", "leafPile", "正在清理落叶……", 1.1), id: "hunt_leaf_3", minDifficulty: "crazy" },
+      { ...marketTradeTask(820, 380, "hunt_basket", "橡果篮", Array(6).fill("acorn")), animal: "acornBasket" },
+    ],
+    townCarts: [
+      { x: 180, y: 310, minX: 180, maxX: 760, dir: 1 },
+      { x: 720, y: 430, minX: 260, maxX: 720, dir: -1 },
+      { x: 340, y: 280, minX: 340, maxX: 880, dir: 1 },
+      { x: 660, y: 390, minX: 210, maxX: 660, dir: -1 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_market",
+    name: "橡果集市兑换",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 125,
+    timeByDifficulty: { easy: 145, normal: 125, hard: 110, crazy: 95 },
+    start: { x: 112, y: 428 },
+    message: "看清订单内容，按顺序用橡果和苹果完成兑换。",
+    levelReward: { type: "travelStar", count: 1 },
+    collectibles: [
+      item(156, 354, "acorn", "橡果"),
+      item(246, 258, "acorn", "橡果"),
+      item(344, 404, "acorn", "橡果"),
+      item(442, 310, "acorn", "橡果"),
+      item(546, 418, "acorn", "橡果"),
+      item(268, 420, "redApple", "红苹果"),
+      item(520, 242, "greenApple", "青苹果"),
+      { ...item(648, 348, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(734, 416, "acorn", "橡果"), minDifficulty: "hard" },
+      { ...item(630, 224, "redApple", "红苹果"), minDifficulty: "hard" },
+      { ...item(814, 290, "greenApple", "青苹果"), minDifficulty: "hard" },
+    ],
+    tasks: [
+      marketTradeTask(320, 194, "market_order_a", "订单 A", ACORN_MARKET_ORDERS.A),
+      marketTradeTask(520, 178, "market_order_b", "订单 B", ACORN_MARKET_ORDERS.B, { requiresTaskId: "market_order_a" }),
+      marketTradeTask(724, 192, "market_order_c", "订单 C", ACORN_MARKET_ORDERS.C, { minDifficulty: "hard", requiresTaskId: "market_order_b" }),
+    ],
+    townCarts: [
+      { x: 190, y: 300, minX: 190, maxX: 760, dir: 1 },
+      { x: 820, y: 360, minX: 260, maxX: 820, dir: -1 },
+      { x: 320, y: 430, minX: 320, maxX: 880, dir: 1 },
+      { x: 900, y: 250, minX: 420, maxX: 900, dir: -1 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "acorn_notice_board",
+    name: "小镇公告板",
+    bg: "acornTownPlaza",
+    world: "acorn_town",
+    time: 130,
+    timeByDifficulty: { easy: 150, normal: 130, hard: 115, crazy: 100 },
+    start: { x: 112, y: 428 },
+    message: "按顺序修复公告板，再选择通往河畔码头的正确出口。",
+    routeClue: "路线：向右 → 向上 → 再向右，找到河畔码头。",
+    collectibles: [
+      item(182, 360, "noticeFragment1", "公告板碎片一"),
+      item(310, 242, "noticeFragment2", "公告板碎片二"),
+      item(452, 408, "noticeFragment3", "公告板碎片三"),
+      item(592, 278, "noticeFragment4", "公告板碎片四"),
+      { ...item(706, 414, "noticeFragmentDecoy1", "不匹配的碎片"), minDifficulty: "hard", fragmentDecoy: true },
+      { ...item(804, 298, "noticeFragmentDecoy2", "不匹配的碎片"), minDifficulty: "crazy", fragmentDecoy: true },
+    ],
+    tasks: [
+      noticeSlotTask(676, 254, "notice_slot_1", "公告板左上角", "noticeFragment1"),
+      noticeSlotTask(758, 254, "notice_slot_2", "公告板右上角", "noticeFragment2", "notice_slot_1"),
+      noticeSlotTask(676, 336, "notice_slot_3", "公告板左下角", "noticeFragment3", "notice_slot_2"),
+      noticeSlotTask(758, 336, "notice_slot_4", "公告板右下角", "noticeFragment4", "notice_slot_3"),
+      townExitTask(856, 382, "dock_exit", "河畔码头", ["notice_slot_1", "notice_slot_2", "notice_slot_3", "notice_slot_4"]),
+    ],
+    exitAreas: [
+      { id: "forest_exit", x: 480, y: 142, r: 56, label: "森林小路", wrong: true },
+      { id: "hill_exit", x: 164, y: 182, r: 56, label: "山丘岔路", wrong: true },
+    ],
+    townCarts: [
+      { x: 200, y: 180, minX: 200, maxX: 720, dir: 1 },
+      { x: 840, y: 440, minX: 280, maxX: 840, dir: -1 },
+      { x: 240, y: 380, minX: 240, maxX: 600, dir: 1 },
+      { x: 900, y: 280, minX: 380, maxX: 900, dir: -1 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1527,6 +1743,38 @@ WORLD_MAP.forest_road.levels = [16, 17, 18, 19];
 WORLD_MAP.mist_swamp.levels = levels
   .map((level, index) => (level.world === "mist_swamp" ? index : -1))
   .filter((index) => index >= 0);
+
+WORLD_MAP.acorn_town.levels = levels
+  .map((level, index) => (level.world === "acorn_town" ? index : -1))
+  .filter((index) => index >= 0);
+
+function nextPlayableLevelIndex(currentIndex) {
+  const forestRoadLevels = WORLD_MAP.forest_road.levels;
+  const forestRoadEnd = forestRoadLevels[forestRoadLevels.length - 1];
+  if (currentIndex === forestRoadEnd) return WORLD_MAP.acorn_town.levels[0] ?? currentIndex + 1;
+  return currentIndex + 1;
+}
+
+function prepareAcornTownLevel(level) {
+  if (level?.world !== "acorn_town") return level;
+  const visible = (entry) => CATS_OWLS_ACORN_TOWN_RULES.visibleAtDifficulty(entry, selectedDifficulty);
+  const traffic = CATS_OWLS_ACORN_TOWN_RULES.trafficFor(selectedDifficulty);
+  const basketCounts = { easy: 6, normal: 6, hard: 8, crazy: 10 };
+  return {
+    ...level,
+    time: CATS_OWLS_ACORN_TOWN_RULES.timeFor(level.id, selectedDifficulty),
+    collectibles: level.collectibles.filter(visible),
+    tasks: level.tasks.filter(visible).map((task) => (
+      task.id === "hunt_basket"
+        ? { ...task, need: Array(basketCounts[selectedDifficulty] || 6).fill("acorn") }
+        : task
+    )),
+    townCarts: (level.townCarts || [])
+      .slice(0, traffic.count)
+      .map((cart) => ({ ...cart, speed: traffic.speed })),
+    exitAreas: (level.exitAreas || []).filter(visible),
+  };
+}
 
 function levelBackgroundKey(level) {
   if (!level) return null;
@@ -1733,6 +1981,12 @@ function updateMistQuestReadiness() {
 
 function canSettleCurrentLevel(requiredTasks) {
   if (!requiredTasks.every((task) => task.done)) return false;
+  if (
+    levels[state.levelIndex]?.world === "acorn_town" &&
+    ["offered", "answering"].includes(state.acornBonusStatus)
+  ) {
+    return false;
+  }
   return !state.mistQuest || state.mistQuest.status === "settled";
 }
 
@@ -1749,7 +2003,7 @@ function canTalkToMistSwampTask(task) {
 }
 
 function requiredTasksForCurrentLevel() {
-  return isMistSwampSleepingBridgeLevel() ? state.tasksList.filter((task) => !task.optional) : state.tasksList;
+  return state.tasksList.filter((task) => !task.optional);
 }
 
 function taskSystemType(kind) {
@@ -1817,6 +2071,26 @@ function exitTask(x, y, animal, name) {
   return { x, y, name, animal, speech: "走到正确出口。", kind: "exit_area", done: false, progress: 0 };
 }
 
+function matchedDeliveryTask(x, y, id, name, animal, need, label, options = {}) {
+  return { x, y, id, name, need, label, animal, kind: "matched_delivery", done: false, progress: 0, ...options };
+}
+
+function decoyTargetTask(x, y, id, name, label, options = {}) {
+  return { x, y, id, name, label, animal: "acornPostbox", kind: "decoy_target", optional: true, done: false, progress: 0, ...options };
+}
+
+function marketTradeTask(x, y, id, name, need, options = {}) {
+  return { x, y, id, name, need, animal: "acornExchangeStall", kind: "market_trade", done: false, progress: 0, ...options };
+}
+
+function noticeSlotTask(x, y, id, name, need, requiresTaskId = null) {
+  return { x, y, id, name, need, requiresTaskId, animal: "acornNoticeFragment", kind: "notice_slot", done: false, progress: 0 };
+}
+
+function townExitTask(x, y, id, name, requiresTaskIds) {
+  return { x, y, id, name, requiresTaskIds, animal: "riversideDockSign", kind: "town_exit", done: false, progress: 0 };
+}
+
 function escortNpcTask(x, y, name, animal, safeZoneId) {
   return { x, y, name, animal, safeZoneId, speech: "靠近小伙伴，让它跟着你去安全区。", kind: "escort_npc", done: false, progress: 0, following: false };
 }
@@ -1865,8 +2139,18 @@ function mudBossTask(x, y) {
   return { x, y, name: "沼泽泥浆怪", animal: "mudMonster", kind: "mud_boss", done: false, phase: 1, phaseProgress: 0, quizKey: "mistSwampBoss", quiz: null, reward: "mistGuardianBadge", speech: "点亮雾灯，帮泥浆怪恢复清醒。" };
 }
 
-function resetGame(levelIndex = 0, keepHearts = false) {
-  const level = levels[levelIndex];
+function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
+  const rawLevel = levels[levelIndex];
+  const previousWorld = state ? levels[state.levelIndex]?.world : null;
+  const acornQuizApi = window.CATS_OWLS_ACORN_TOWN_QUIZ;
+  if (
+    rawLevel?.world === "acorn_town" &&
+    (options.startAcornTownChapter || previousWorld !== "acorn_town") &&
+    typeof acornQuizApi?.beginRun === "function"
+  ) {
+    acornQuizApi.beginRun(selectedDifficulty);
+  }
+  const level = prepareAcornTownLevel(rawLevel);
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
@@ -1896,6 +2180,12 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     activeBubbleLift: null,
     bubbleLiftCooldownUntil: 0,
     hurtCooldownUntil: 0,
+    townCartCooldownUntil: 0,
+    exitCooldownUntil: 0,
+    levelRewardGranted: false,
+    acornRouteHint: "",
+    acornRouteHintUntil: 0,
+    acornBonusStatus: "none",
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
     hazards: [],
@@ -1919,6 +2209,7 @@ function resetGame(levelIndex = 0, keepHearts = false) {
     trafficLights: (level.trafficLights || []).map((entry) => ({ ...entry })),
     crossingZones: (level.crossingZones || []).map((entry) => ({ ...entry })),
     exitAreas: (level.exitAreas || []).map((entry) => ({ ...entry })),
+    townCarts: (level.townCarts || []).map((entry) => ({ ...entry })),
     propDecorations: (level.propDecorations || []).map((entry) => ({ ...entry })),
     npcDecorations: (level.npcDecorations || []).map((entry) => ({ ...entry })),
     darkBubbles: (level.darkBubbles || []).map((entry) => ({ ...entry })),
@@ -2018,7 +2309,17 @@ function prepareTask(entry, level, index) {
   task.npc = task.npc || NPC_REGISTRY[task.animal]?.id || task.animal;
   task.characterId = task.characterId || NPC_REGISTRY[task.animal]?.characterId || null;
   const quizScope = task.mistSwampShared && level.world === "mist_swamp" ? level.world : level.id || level.bg || level.name;
-  if (task.quizKey) task.quiz = randomQuiz(task.quizKey, quizScope);
+  if (
+    task.acornTownShared &&
+    level.world === "acorn_town" &&
+    typeof window.CATS_OWLS_ACORN_TOWN_QUIZ?.assign === "function"
+  ) {
+    const assignment = window.CATS_OWLS_ACORN_TOWN_QUIZ.assign(level.id, selectedDifficulty);
+    task.quiz = assignment.core;
+    task.bonusQuiz = assignment.bonus;
+  } else if (task.quizKey) {
+    task.quiz = randomQuiz(task.quizKey, quizScope);
+  }
   return task;
 }
 
@@ -2096,6 +2397,9 @@ function difficultySettings() {
 }
 
 function levelTimeForDifficulty(level) {
+  if (level.world === "acorn_town") {
+    return CATS_OWLS_ACORN_TOWN_RULES.timeFor(level.id, selectedDifficulty);
+  }
   return Math.max(20, Math.round(level.time * difficultySettings().timeScale));
 }
 
@@ -2356,7 +2660,7 @@ function startGame() {
   }
 
   if (state.levelClear) {
-    const nextLevel = state.levelIndex + 1;
+    const nextLevel = nextPlayableLevelIndex(state.levelIndex);
     if (nextLevel >= levels.length) {
       resetGame(0, false);
     } else {
@@ -2570,6 +2874,7 @@ function update(dt) {
   updatePlayer(dt);
   updateAppleCart(dt);
   updateForestRoadMechanisms(dt);
+  updateAcornTownMechanisms(dt);
   updateMistSwampMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
@@ -2586,8 +2891,10 @@ function update(dt) {
   if (requiredTasks.length > 0 && canSettleCurrentLevel(requiredTasks)) {
     state.running = false;
     stopMusic();
+    grantAcornTownLevelReward();
     const settlement = settleLevelRun(true);
     state.levelClear = true;
+    markCurrentWorldCompletedAtBoundary();
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
       startBtn.textContent = text.again;
@@ -3116,11 +3423,140 @@ function updateProjectiles(dt) {
   });
 }
 
+function taskDependenciesMet(task, tasks = state.tasksList) {
+  const ids = task.requiresTaskIds || (task.requiresTaskId ? [task.requiresTaskId] : []);
+  return ids.every((id) => tasks.find((entry) => entry.id === id)?.done);
+}
+
+function applyAcornTownWrongAction(x, y, message) {
+  const amount = CATS_OWLS_ACORN_TOWN_RULES.wrongActionPenalty(selectedDifficulty);
+  if (amount) {
+    state.time = Math.max(0, state.time - amount);
+    addFloatingText(x, y - 56, `-${amount}秒`, "#e84b3f");
+  }
+  messageEl.textContent = message;
+  updateHud();
+  return amount;
+}
+
+function applyAcornTownTrafficCollision(cart) {
+  state.obstacleHits += 1;
+  const amount = applyTimePenalty("obstacle", cart.x, cart.y);
+  messageEl.textContent = amount
+    ? `小推车经过，扣除 ${amount} 秒，先让一让。`
+    : "小推车经过，先让一让。";
+  state.shake = Math.max(state.shake, 0.12);
+  return amount;
+}
+
+function finishMatchedDelivery(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = task.lockedMessage || "先完成前面的任务。";
+    return false;
+  }
+  if (state.inventory.includes(task.need)) {
+    consumeNeeds([task.need]);
+    completeTask(task, task.x, task.y);
+    updateHud();
+    return true;
+  }
+  if (state.inventory.some((type) => type.startsWith("acornLetter"))) {
+    applyAcornTownWrongAction(task.x, task.y, "这封信不是寄到这里的。");
+    return false;
+  }
+  messageEl.textContent = `${task.name}需要：${itemLabel(task.need)}。`;
+  return false;
+}
+
+function finishMarketTrade(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = task.lockedMessage || "先完成上一张订单。";
+    return false;
+  }
+  const missing = missingNeeds(task.need);
+  if (missing.length) {
+    applyAcornTownWrongAction(task.x, task.y, `${task.name}还缺少：${needLabels(missing)}。`);
+    return false;
+  }
+  consumeNeeds(task.need);
+  completeTask(task, task.x, task.y);
+  if (task.reward && !state.inventory.includes(task.reward)) state.inventory.push(task.reward);
+  updateHud();
+  return true;
+}
+
+function finishNoticeSlot(task) {
+  if (!task || task.done) return false;
+  if (!taskDependenciesMet(task)) {
+    messageEl.textContent = "请从第一块公告碎片开始按顺序拼。";
+    return false;
+  }
+  if (state.inventory.includes(task.need)) {
+    consumeNeeds([task.need]);
+    completeTask(task, task.x, task.y);
+    if (acornNoticeBoardRepaired()) revealAcornTownRouteHint();
+    updateHud();
+    return true;
+  }
+  if (state.inventory.some((type) => type.startsWith("noticeFragment") || type === "fakeNoticeFragment")) {
+    applyAcornTownWrongAction(task.x, task.y, "公告碎片放错位置。");
+    return false;
+  }
+  messageEl.textContent = `还没有找到${itemLabel(task.need)}。`;
+  return false;
+}
+
+function updateTownCarts(dt) {
+  const now = performance.now();
+  for (const cart of state.townCarts || []) {
+    cart.x += cart.speed * cart.dir * dt;
+    if (cart.x <= cart.minX || cart.x >= cart.maxX) {
+      cart.x = clamp(cart.x, cart.minX, cart.maxX);
+      cart.dir *= -1;
+    }
+    if (distance(state.player, cart) < 48 && now >= state.townCartCooldownUntil) {
+      state.townCartCooldownUntil = now + 1000;
+      applyAcornTownTrafficCollision(cart);
+      state.player.x = clamp(state.player.x - cart.dir * 34, 28, canvas.width - 28);
+    }
+  }
+}
+
+function checkAcornTownExitAreas() {
+  const now = performance.now();
+  if (now < state.exitCooldownUntil) return;
+  for (const area of state.exitAreas || []) {
+    if (distance(state.player, area) >= area.r + 16) continue;
+    state.exitCooldownUntil = now + 900;
+    applyAcornTownWrongAction(area.x, area.y, "这里不是通往河畔码头的出口。");
+    state.player.x = levels[state.levelIndex].start.x;
+    state.player.y = levels[state.levelIndex].start.y;
+    return;
+  }
+}
+
+function updateAcornTownMechanisms(dt) {
+  if (levels[state.levelIndex]?.world !== "acorn_town") return;
+  updateTownCarts(dt);
+  checkAcornTownExitAreas();
+}
+
+function quizTaskAvailable(task) {
+  return !task.requiresCoreTasks || CATS_OWLS_ACORN_TOWN_RULES.coreTasksDone(state.tasksList);
+}
+
 function checkCollectibles() {
   const p = state.player;
   for (const entry of state.collectibles) {
+    if (entry.requiresTaskId && !state.tasksList.find((task) => task.id === entry.requiresTaskId)?.done) continue;
     if (!entry.taken && distance(p, entry) < 42) {
       entry.taken = true;
+      if (entry.decoy) {
+        applyAcornTownWrongAction(entry.x, entry.y, "这不是真橡果。");
+        continue;
+      }
       if (entry.type === "potion") {
         state.hearts += 2;
         state.time = Math.min(state.levelTime + 8, state.time + 3);
@@ -3186,8 +3622,44 @@ function checkTasks(dt) {
       continue;
     }
 
+    if (task.kind === "matched_delivery") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? `按 E 查看${task.label}的邮箱。`
+        : task.lockedMessage || "🔒 先完成前面的任务。";
+      continue;
+    }
+
+    if (task.kind === "decoy_target") {
+      messageEl.textContent = `按 E 查看${task.label}。`;
+      continue;
+    }
+
+    if (task.kind === "market_trade") {
+      const missing = missingNeeds(task.need);
+      messageEl.textContent = taskDependenciesMet(task)
+        ? (missing.length ? `${task.name}还需要：${needLabels(missing)}。` : `按 E 完成${task.name}。`)
+        : task.lockedMessage || "🔒 先完成上一张订单。";
+      continue;
+    }
+
+    if (task.kind === "notice_slot") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? `按 E 放置${itemLabel(task.need)}。`
+        : "🔒 请按顺序拼公告板。";
+      continue;
+    }
+
+    if (task.kind === "town_exit") {
+      messageEl.textContent = taskDependenciesMet(task)
+        ? "按 E 前往河畔码头。"
+        : "🔒 先修好公告板，确认码头路线。";
+      continue;
+    }
+
     if (task.kind === "quiz") {
-      messageEl.textContent = taskNearHint(task);
+      messageEl.textContent = quizTaskAvailable(task)
+        ? taskNearHint(task)
+        : "先完成小镇任务，再来回答最后一题。";
       continue;
     }
 
@@ -3276,6 +3748,16 @@ function grantTaskReward(task, x = task.x, y = task.y) {
   state.inventory.push(task.reward);
   task.rewardGranted = true;
   addFloatingText(x, y - 82, `+ ${itemLabel(task.reward)}`, "#f2ad31");
+  return true;
+}
+
+function grantAcornTownLevelReward() {
+  if (state.levelRewardGranted) return false;
+  const reward = levels[state.levelIndex]?.levelReward;
+  if (!reward) return false;
+  for (let index = 0; index < reward.count; index += 1) state.inventory.push(reward.type);
+  state.levelRewardGranted = true;
+  addFloatingText(canvas.width / 2, 130, `+ ${reward.count} ${itemLabel(reward.type)}`, "#f2ad31");
   return true;
 }
 
@@ -3403,6 +3885,22 @@ function itemLabel(type) {
     mudCore: "泥浆核心",
     bigMistLamp: "大雾灯",
     mistGuardianBadge: "迷雾守护徽章",
+    acornLetterRuru: "给 Ruru 的信",
+    acornLetterCoco: "给 Coco 的信",
+    acornLetterOwlly: "给 Owlly 的信",
+    acornLetterNono: "给 Nono 的信",
+    acornLetterBird: "给小鸟邮差的信",
+    acorn: "橡果",
+    fakeAcorn: "假橡果",
+    acornBasket: "橡果篮",
+    noticeFragment1: "公告碎片一",
+    noticeFragment2: "公告碎片二",
+    noticeFragment3: "公告碎片三",
+    noticeFragment4: "公告碎片四",
+    noticeFragmentDecoy1: "旧纸片",
+    noticeFragmentDecoy2: "落叶碎片",
+    postmanBadge: "邮差徽章",
+    travelStar: "旅行星星",
   }[type] || type;
 }
 
@@ -3413,6 +3911,12 @@ function quizDisplay(taskOrKind) {
 
 function taskShortHint(task) {
   if (task.done) return "\u5b8c\u6210";
+  if (!taskDependenciesMet(task)) return "🔒 未解锁";
+  if (task.kind === "matched_delivery") return "投递";
+  if (task.kind === "decoy_target") return "查看";
+  if (task.kind === "market_trade") return "兑换";
+  if (task.kind === "notice_slot") return "拼碎片";
+  if (task.kind === "town_exit") return "去码头";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
@@ -3428,7 +3932,11 @@ function taskNearHint(task) {
   if (task.done && task.kind === "direction_sign") return task.directions?.join("  ") || "→ 橡果镇";
   if (task.done && task.kind === "road_clear") return "\u9053\u8def\u53d8\u5e72\u51c0\u5566\uff01";
   if (task.done) return `${task.name}\u5df2\u5b8c\u6210\u3002\u6309 E \u518d\u804a\u804a\u3002`;
-  if (task.kind === "quiz") return quizDisplay(task)?.near || "\u6309 E \u6311\u6218";
+  if (task.kind === "quiz") {
+    return quizTaskAvailable(task)
+      ? quizDisplay(task)?.near || "\u6309 E \u6311\u6218"
+      : "先完成小镇任务，再来回答最后一题。";
+  }
   if (task.kind === "sort_basket") {
     const missing = missingNeeds(task.need);
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u653e\u8fdb${task.name}`;
@@ -3580,7 +4088,7 @@ function renderDialogue() {
   const questReady = dialogue.mode === "quest_ready";
   dialogueGiveBtn.hidden = !(questReady || ((task.kind === "delivery" || task.kind === "sort_basket") && dialogue.mode === "ready" && !task.done));
   if (questReady) dialogueGiveBtn.textContent = "完成任务";
-  dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext);
+  dialogueQuizBtn.hidden = !(task.kind === "quiz" && !task.done && !hasNext && quizTaskAvailable(task));
 }
 
 function nextDialogueLine() {
@@ -3735,6 +4243,31 @@ function talkToNearbyTask() {
     return;
   }
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
+  if (state.nearbyTask?.kind === "matched_delivery") {
+    finishMatchedDelivery(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "decoy_target") {
+    applyAcornTownWrongAction(state.nearbyTask.x, state.nearbyTask.y, "这封信不是寄到这里的。");
+    return;
+  }
+  if (state.nearbyTask?.kind === "market_trade") {
+    finishMarketTrade(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "notice_slot") {
+    finishNoticeSlot(state.nearbyTask);
+    return;
+  }
+  if (state.nearbyTask?.kind === "town_exit") {
+    if (!taskDependenciesMet(state.nearbyTask)) {
+      messageEl.textContent = "先修好公告板，确认码头路线。";
+      return;
+    }
+    completeTask(state.nearbyTask, state.nearbyTask.x, state.nearbyTask.y);
+    updateHud();
+    return;
+  }
   if (state.nearbyTask?.kind === "direction_sign") {
     repairDirectionSign(state.nearbyTask);
     return;
@@ -3904,33 +4437,111 @@ function repairDirectionSign(task) {
   updateHud();
 }
 
-function openQuiz(task) {
-  if (state.activeQuiz === task) return;
-  closeDialogue();
-  state.activeQuiz = task;
-  quizTitle.textContent = task.quiz.title;
-  quizQuestion.textContent = task.quiz.question;
+function renderQuizQuestion(task, quiz, mode = "core") {
+  if (!quiz) return false;
+  quizTitle.textContent = quiz.title;
+  quizQuestion.textContent = quiz.question;
   quizOptions.innerHTML = "";
-  task.quiz.options.forEach((option, index) => {
+  quiz.options.forEach((option, index) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = option;
-    button.addEventListener("click", () => answerQuiz(task, index));
+    button.addEventListener("click", () => answerQuiz(task, index, mode));
     quizOptions.appendChild(button);
   });
+  return true;
+}
+
+function openQuiz(task) {
+  if (!quizTaskAvailable(task)) {
+    messageEl.textContent = "先完成小镇任务，再来回答最后一题。";
+    return;
+  }
+  if (state.activeQuiz === task) return;
+  closeDialogue();
+  state.activeQuiz = task;
+  if (!renderQuizQuestion(task, task.quiz, "core")) {
+    messageEl.textContent = "题目暂时不可用，请稍后再试。";
+    state.activeQuiz = null;
+    return;
+  }
   quizPanel.hidden = false;
   renderMistQuestHud();
 }
 
-function answerQuiz(task, index) {
-  if (index === task.quiz.answer) {
+function finishAcornTownBonusChoice(message) {
+  state.acornBonusStatus = "resolved";
+  closeQuiz();
+  messageEl.textContent = message;
+  updateHud();
+}
+
+function skipAcornTownBonus() {
+  finishAcornTownBonusChoice("奖励谜题已跳过，关卡可以完成。");
+}
+
+function openAcornTownBonusQuiz(task = state.activeQuiz) {
+  if (!task?.bonusQuiz) {
+    skipAcornTownBonus();
+    return false;
+  }
+  state.acornBonusStatus = "answering";
+  return renderQuizQuestion(task, task.bonusQuiz, "bonus");
+}
+
+function showAcornTownBonusChoice(task) {
+  if (!task?.bonusQuiz) {
+    state.acornBonusStatus = "resolved";
+    closeQuiz();
+    return;
+  }
+  state.acornBonusStatus = "offered";
+  state.activeQuiz = task;
+  quizTitle.textContent = "额外挑战";
+  quizQuestion.textContent = "要挑战一道不扣时间的奖励谜题吗？";
+  quizOptions.innerHTML = "";
+
+  const challenge = document.createElement("button");
+  challenge.type = "button";
+  challenge.textContent = "挑战奖励谜题";
+  challenge.addEventListener("click", () => openAcornTownBonusQuiz(task));
+
+  const finish = document.createElement("button");
+  finish.type = "button";
+  finish.textContent = "直接完成关卡";
+  finish.addEventListener("click", skipAcornTownBonus);
+
+  quizOptions.append(challenge, finish);
+  quizPanel.hidden = false;
+}
+
+function answerQuiz(task, index, mode = "core") {
+  const quiz = mode === "bonus" ? task.bonusQuiz : task.quiz;
+  if (!quiz) return;
+  if (index === quiz.answer) {
+    if (mode === "bonus") {
+      state.correctAnswers += 1;
+      const points = CATS_OWLS_ACORN_TOWN_RULES.bonusPoints();
+      addRunPoints(points, task.x, task.y, `+${points} 奖励积分`);
+      finishAcornTownBonusChoice("奖励谜题答对啦，额外获得 10 分！");
+      return;
+    }
     state.correctAnswers += 1;
     addRunPoints(8, task.x, task.y, "+8 积分");
-    closeQuiz();
     completeTask(task, task.x, task.y);
+    if (task.acornTownShared && levels[state.levelIndex]?.world === "acorn_town") {
+      showAcornTownBonusChoice(task);
+      return;
+    }
+    closeQuiz();
     if (isMistSwampLevel() && task.kind === "mud_boss") {
       messageEl.textContent = "泥浆怪安静下来了，它原来是在守护沼泽。";
     }
+    return;
+  }
+  if (mode === "bonus") {
+    state.wrongAnswers += 1;
+    finishAcornTownBonusChoice("奖励谜题没有答对，但不扣时间，关卡仍然完成。");
     return;
   }
   if (isMistSwampLevel() && task.kind === "mud_boss") {
@@ -4003,6 +4614,7 @@ function draw() {
   drawSceneObjects();
   drawFireflyTrail();
   drawEscortCart();
+  drawTownCarts();
   drawCollectibles();
   drawTasks();
   drawMudBubbles();
@@ -4013,6 +4625,7 @@ function draw() {
   drawPlayer();
   drawParticles();
   drawAppleValleyForegroundDepth();
+  drawAcornTownRouteHint();
   if (!state.running && !state.levelClear && state.time === state.levelTime) drawStartHint();
   if (state.levelClear) drawLevelRibbon();
   ctx.restore();
@@ -4538,6 +5151,18 @@ function drawEscortCart() {
   ctx.restore();
 }
 
+function drawTownCarts() {
+  for (const cart of state.townCarts || []) {
+    ctx.save();
+    ctx.translate(cart.x, cart.y);
+    if (cart.dir < 0) ctx.scale(-1, 1);
+    if (!drawPropImage(ctx, "acornTownCart", -46, -42, 92, 72)) {
+      drawAcornTownPropFallback("推车");
+    }
+    ctx.restore();
+  }
+}
+
 function drawDarkBubbles() {
   for (const bubble of state.darkBubbles || []) {
     if (bubble.broken) continue;
@@ -4709,6 +5334,21 @@ const ART_PACK_PROP_KEYS = {
   leafPile: "leafPile",
   roadStone: "roadStonePile",
   safeFlag: "safeFlag",
+  acornLetterRuru: "acornLetter",
+  acornLetterCoco: "acornLetter",
+  acornLetterOwlly: "acornLetter",
+  acornLetterNono: "acornLetter",
+  acornLetterBird: "acornLetter",
+  acorn: "acorn",
+  fakeAcorn: "fakeAcorn",
+  acornBasket: "acornBasket",
+  noticeFragment1: "acornNoticeFragment",
+  noticeFragment2: "acornNoticeFragment",
+  noticeFragment3: "acornNoticeFragment",
+  noticeFragment4: "acornNoticeFragment",
+  noticeFragmentDecoy1: "acornNoticeFragment",
+  noticeFragmentDecoy2: "acornNoticeFragment",
+  travelStar: "travelStar",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -4774,6 +5414,25 @@ const ART_PACK_SCENE_PROP_KEYS = {
   bigMistLamp: "bigMistLamp",
   mistLamp: "mistLamp",
   brokenBridge: "brokenBridge",
+  acornPostbox: "acornPostbox",
+  acornExchangeStall: "acornExchangeStall",
+  acornOrderBoard: "acornOrderBoard",
+  acornNoticeBoardBroken: "acornNoticeBoardBroken",
+  acornNoticeBoardRepaired: "acornNoticeBoardRepaired",
+  acornNoticeFragment: "acornNoticeFragment",
+  acornTownCart: "acornTownCart",
+  riversideDockSign: "riversideDockSign",
+};
+
+const ACORN_TOWN_PROP_LABELS = {
+  acornPostbox: "邮箱",
+  acornExchangeStall: "集市",
+  acornOrderBoard: "订单",
+  acornNoticeBoardBroken: "公告板",
+  acornNoticeBoardRepaired: "公告板",
+  acornNoticeFragment: "碎片",
+  acornTownCart: "推车",
+  riversideDockSign: "码头",
 };
 
 const MIST_SWAMP_MUSHROOM_ART_KEYS = {
@@ -4868,6 +5527,21 @@ const ART_PACK_ITEM_BOUNDS = {
   bridgePlank: { x: -34, y: -16, w: 68, h: 32 },
   bridgeKey: { x: -28, y: -32, w: 56, h: 64 },
   mistGuardianBadge: { x: -30, y: -32, w: 60, h: 60 },
+  acornLetterRuru: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterCoco: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterOwlly: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterNono: { x: -30, y: -24, w: 60, h: 48 },
+  acornLetterBird: { x: -30, y: -24, w: 60, h: 48 },
+  acorn: { x: -26, y: -30, w: 52, h: 60 },
+  fakeAcorn: { x: -26, y: -30, w: 52, h: 60 },
+  acornBasket: { x: -34, y: -34, w: 68, h: 68 },
+  noticeFragment1: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment2: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment3: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragment4: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragmentDecoy1: { x: -28, y: -28, w: 56, h: 56 },
+  noticeFragmentDecoy2: { x: -28, y: -28, w: 56, h: 56 },
+  travelStar: { x: -28, y: -30, w: 56, h: 56 },
   bigMistLamp: { x: -42, y: -78, w: 84, h: 112 },
   mistLamp: { x: -32, y: -58, w: 64, h: 88 },
   brokenBridge: { x: -78, y: -55, w: 156, h: 110 },
@@ -4875,6 +5549,14 @@ const ART_PACK_ITEM_BOUNDS = {
   mushroomLampBlue: { x: -38, y: -60, w: 76, h: 76 },
   mushroomLampPurple: { x: -38, y: -60, w: 76, h: 76 },
   mushroomLampGreen: { x: -38, y: -60, w: 76, h: 76 },
+  acornPostbox: { x: -42, y: -68, w: 84, h: 104 },
+  acornExchangeStall: { x: -62, y: -72, w: 124, h: 104 },
+  acornOrderBoard: { x: -48, y: -68, w: 96, h: 108 },
+  acornNoticeBoardBroken: { x: -62, y: -78, w: 124, h: 124 },
+  acornNoticeBoardRepaired: { x: -62, y: -78, w: 124, h: 124 },
+  acornNoticeFragment: { x: -30, y: -30, w: 60, h: 60 },
+  acornTownCart: { x: -50, y: -46, w: 100, h: 80 },
+  riversideDockSign: { x: -48, y: -70, w: 96, h: 112 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -5264,8 +5946,58 @@ function drawPotionStump(x, y, s) {
   ctx.restore();
 }
 
+function acornNoticeBoardRepaired() {
+  return ["notice_slot_1", "notice_slot_2", "notice_slot_3", "notice_slot_4"]
+    .every((id) => state.tasksList.find((task) => task.id === id)?.done);
+}
+
+function revealAcornTownRouteHint() {
+  const clue = levels[state.levelIndex]?.routeClue;
+  if (!clue) return false;
+  state.acornRouteHint = clue;
+  state.acornRouteHintUntil = selectedDifficulty === "crazy" ? performance.now() + 5000 : null;
+  messageEl.textContent = selectedDifficulty === "crazy"
+    ? `${clue} 记住路线，提示即将收起！`
+    : clue;
+  return true;
+}
+
+function acornTownRouteHintVisible(now = performance.now()) {
+  if (!state?.acornRouteHint) return false;
+  return state.acornRouteHintUntil === null || now < state.acornRouteHintUntil;
+}
+
+function drawAcornTownRouteHint() {
+  if (!acornTownRouteHintVisible()) return;
+  ctx.save();
+  ctx.globalAlpha = 0.94;
+  ctx.fillStyle = "#fff5cf";
+  roundRect(242, 16, 476, 48, 14);
+  ctx.fill();
+  ctx.strokeStyle = "#9a632d";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#5f3b1f";
+  ctx.font = "bold 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(state.acornRouteHint, canvas.width / 2, 47);
+  ctx.restore();
+}
+
+function drawAcornNoticeBoard() {
+  const key = acornNoticeBoardRepaired() ? "acornNoticeBoardRepaired" : "acornNoticeBoardBroken";
+  if (!drawPropImage(ctx, key, 650, 120, 156, 156)) {
+    ctx.fillStyle = "#8b5b2b";
+    roundRect(668, 150, 120, 92, 10);
+    ctx.fill();
+  }
+}
+
 function drawLandmarks() {
   const index = state.levelIndex;
+  if (levels[index]?.id === "acorn_notice_board") {
+    drawAcornNoticeBoard();
+  }
   if (index === 1) {
     drawGroundFlowerBed(382, 414, 1);
   }
@@ -5289,6 +6021,7 @@ function appleValleyTaskGroundShadow(task) {
 function drawCollectibles() {
   for (const entry of state.collectibles) {
     if (entry.taken) continue;
+    if (entry.requiresTaskId && !state.tasksList.find((task) => task.id === entry.requiresTaskId)?.done) continue;
     const t = performance.now() / 260 + entry.x;
     const bobAmplitude = isAppleValleyLevel() ? APPLE_VALLEY_COLLECTIBLE_BOB : 5;
     const bob = entry.type === "potion" ? Math.sin(t) * 1.4 : Math.sin(t) * bobAmplitude;
@@ -5308,9 +6041,57 @@ function drawCollectibles() {
   }
 }
 
+function drawAcornFallback() {
+  ctx.fillStyle = "#8b5b2b";
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 17, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#5b3212";
+  ctx.beginPath();
+  ctx.ellipse(0, -10, 18, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLetterFallback() {
+  ctx.fillStyle = "#fff4d2";
+  roundRect(-24, -17, 48, 34, 5);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.stroke();
+}
+
+function drawAcornBasketFallback() {
+  ctx.fillStyle = "#b97938";
+  roundRect(-26, -16, 52, 34, 9);
+  ctx.fill();
+  ctx.strokeStyle = "#6b3f1d";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function drawNoticeFragmentFallback() {
+  ctx.fillStyle = "#f8e6b8";
+  roundRect(-20, -18, 40, 36, 4);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawTravelStarFallback() {
+  ctx.fillStyle = "#ffd94a";
+  star(0, 0, 23);
+}
+
 function drawItem(type) {
   if (drawItemArtPackImage(type)) return;
-  if (type === "apple") drawApple();
+  if (type.startsWith("acornLetter")) drawLetterFallback();
+  else if (type === "acorn") drawAcornFallback();
+  else if (type === "fakeAcorn") drawAcornFallback();
+  else if (type === "acornBasket") drawAcornBasketFallback();
+  else if (type.startsWith("noticeFragment")) drawNoticeFragmentFallback();
+  else if (type === "travelStar") drawTravelStarFallback();
+  else if (type === "apple") drawApple();
   else if (type === "redApple") drawAppleVariant("#ff9589", "#e84b3f", "#b92f2d");
   else if (type === "greenApple") drawAppleVariant("#d8f08a", "#8fbd3a", "#4d7d28");
   else if (type === "goldenApple") drawAppleVariant("#fff2a8", "#ffd94a", "#d38c18");
@@ -5334,6 +6115,8 @@ function drawItem(type) {
 }
 
 function taskRenderAlpha(task) {
+  if (!taskDependenciesMet(task)) return 0.42;
+  if (task.kind === "quiz" && !quizTaskAvailable(task)) return 0.42;
   return task.done && !(task.kind === "mushroom_lamp" && task.lit) ? 0.58 : 1;
 }
 
@@ -5354,7 +6137,8 @@ function drawTasks() {
     ctx.scale(idleScale, idleScale);
     ctx.globalAlpha = taskRenderAlpha(task);
     drawSpeech(task);
-    if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
+    if (task.kind === "matched_delivery" || task.kind === "decoy_target") drawAnimal("acornPostbox");
+    else if (isMistSwampLevel() && task.kind === "mushroom_lamp") drawMistSwampMushroomLamp(task);
     else if (isMistSwampLevel() && task.kind === "mist_lamp" && task.animal !== "bigMistLamp") {
       const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
       if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
@@ -5567,11 +6351,28 @@ function drawQuizStandArt(kind, fallbackColor, fallbackLabel) {
   drawQuizStand(fallbackColor, fallbackLabel);
 }
 
+function drawAcornTownPropFallback(label) {
+  ctx.fillStyle = "#f6d89a";
+  roundRect(-34, -42, 68, 72, 12);
+  ctx.fill();
+  ctx.strokeStyle = "#8b5b2b";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.fillStyle = "#5b3212";
+  ctx.font = "900 11px Microsoft YaHei, Arial";
+  ctx.textAlign = "center";
+  fitText(label, 0, 0, 58);
+}
+
 function drawAnimal(kind) {
   const visualOffset = NPC_VISUAL_OFFSETS[kind];
   if (visualOffset) ctx.translate(visualOffset.x, visualOffset.y);
   if (drawNpcArtPackImage(kind)) return;
   if (drawScenePropArtPackImage(kind)) return;
+  if (ACORN_TOWN_PROP_LABELS[kind]) {
+    drawAcornTownPropFallback(ACORN_TOWN_PROP_LABELS[kind]);
+    return;
+  }
   const npc = NPC_REGISTRY[kind];
   if (npc?.renderer) {
     npc.renderer();
