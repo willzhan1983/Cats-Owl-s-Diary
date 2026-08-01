@@ -6,6 +6,7 @@ const rulesSource = readFileSync(new URL("../acorn-town-rules.js", import.meta.u
 const gameSource = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const gradeQuizSource = readFileSync(new URL("../grade-quiz.js", import.meta.url), "utf8");
 const acornQuizSource = readFileSync(new URL("../acorn-town-quiz-bank.js", import.meta.url), "utf8");
+const removePuddlesSource = readFileSync(new URL("../remove-puddles.js", import.meta.url), "utf8");
 const acornMapEntrySource = readFileSync(new URL("../acorn-town-map-entry.js", import.meta.url), "utf8");
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
@@ -90,6 +91,7 @@ function loadGameRuntime({ withAcornMapEntry = false } = {}) {
   vm.runInContext(gameSource, context, { filename: "game.js" });
   vm.runInContext(gradeQuizSource, context, { filename: "grade-quiz.js" });
   vm.runInContext(acornQuizSource, context, { filename: "acorn-town-quiz-bank.js" });
+  vm.runInContext(removePuddlesSource, context, { filename: "remove-puddles.js" });
   if (withAcornMapEntry) {
     const listeners = {};
     context.document.addEventListener = (type, handler) => { listeners[type] = handler; };
