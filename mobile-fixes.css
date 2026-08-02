@@ -1,0 +1,56 @@
+/* Mobile layout fixes. Keep this stylesheet after style.css and world-map.css. */
+
+@media (max-width: 480px) {
+  .brand h1 {
+    font-size: 0;
+  }
+
+  .brand h1 .version-tag {
+    display: none;
+  }
+
+  #worldMapBtn,
+  #recordsBtn,
+  #startBtn {
+    font-size: 0;
+    min-width: 40px;
+    padding: 0 8px;
+  }
+
+  #worldMapBtn::after { content: "\1F5FA"; font-size: 18px; }
+  #recordsBtn::after { content: "\1F4D8"; font-size: 18px; }
+  #startBtn::after { content: "\25B6"; font-size: 16px; }
+
+  .topbar-actions button,
+  #startBtn,
+  .sound-btn {
+    min-height: 40px;
+  }
+
+  .topbar-actions {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 920px) {
+  .controls button {
+    height: 56px;
+  }
+
+  .controls {
+    gap: 8px;
+  }
+
+  .topbar-actions button,
+  #startBtn,
+  .sound-btn {
+    min-height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quiz-panel,
+  .dialogue-panel {
+    padding-bottom: max(96px, env(safe-area-inset-bottom));
+  }
+}

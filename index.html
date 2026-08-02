@@ -2,13 +2,14 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Cats & Owl's Diary 3.0 - 森林学校帮帮忙</title>
     <link rel="icon" href="data:," />
     <link rel="preload" as="image" href="./assets/home-screen-fast.jpg?v=new-cover-20260626" fetchpriority="high" />
     <link rel="stylesheet" href="./style.css?v=sleeping-bridge-lamps-20260722" />
     <link rel="stylesheet" href="./world-map.css" />
     <link rel="stylesheet" href="./grade-quiz.css?v=home-menu-spacing-20260705" />
+    <link rel="stylesheet" href="./mobile-fixes.css?v=mobile-topbar-20260802" />
   </head>
   <body>
     <section id="homeScreen" class="home-screen" aria-label="Cats & Owl's Diary 首页">
@@ -58,8 +59,8 @@
             <span class="bag">背包 <strong id="bag">空</strong></span>
           </div>
           <div class="topbar-actions">
-            <button id="worldMapBtn" class="map-btn" type="button" aria-haspopup="dialog">世界地图</button>
-            <button id="recordsBtn" class="records-btn" type="button" aria-haspopup="dialog">📘 我的记录</button>
+            <button id="worldMapBtn" class="map-btn" type="button" aria-label="世界地图" aria-haspopup="dialog">世界地图</button>
+            <button id="recordsBtn" class="records-btn" type="button" aria-label="我的记录" aria-haspopup="dialog">📘 我的记录</button>
             <button id="soundBtn" class="sound-btn" type="button" aria-label="声音">♫</button>
             <button id="startBtn" type="button">开始</button>
           </div>
