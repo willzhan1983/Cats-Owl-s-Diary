@@ -4,6 +4,15 @@
 
   const STORAGE_KEY = "catsOwlDifficulty";
   const DIFFICULTIES = ["easy", "normal", "hard", "crazy"];
+  const GRADES_BY_DIFFICULTY = { easy: 2, normal: 3, hard: 4, crazy: 5 };
+  const DIFFICULTY_BY_GRADE = {
+    1: "easy",
+    2: "easy",
+    3: "normal",
+    4: "hard",
+    5: "crazy",
+    6: "crazy",
+  };
   const DIFFICULTY_ALIASES = {
     easy: "easy",
     simple: "easy",
@@ -16,6 +25,15 @@
     expert: "crazy",
     challenge: "crazy",
   };
+  const CATEGORY_ALIASES = {
+    average: "math",
+    map: "logic",
+    riddle: "logic",
+    science: "logic",
+    sorting: "logic",
+    story: "reading",
+  };
+  const CATEGORIES = ["math", "english", "language", "reading", "logic"];
   const FALLBACK_ORDER = {
     easy: ["easy"],
     normal: ["normal", "easy"],
@@ -24,6 +42,7 @@
   };
   const quizBags = new Map();
   const lastQuestionByBag = new Map();
+  const usedQuestionKeysByScope = new Map();
 
   function normalizeMode(value) {
     return DIFFICULTIES.includes(value) ? value : "normal";
@@ -36,28 +55,45 @@
 
   function difficultyFromGrade(question) {
     const grade = numericGrade(question.grade);
-    if (grade) {
-      if (grade <= 2) return "easy";
-      if (grade <= 4) return "normal";
-      return "hard";
-    }
+    if (grade) return DIFFICULTY_BY_GRADE[grade];
 
     const min = numericGrade(question.minGrade);
     const max = numericGrade(question.maxGrade);
-    if (!min && !max) return "normal";
+    if (!min && !max) return null;
 
     const low = min || max;
     const high = max || min;
-    const midpoint = (low + high) / 2;
-    if (midpoint <= 2) return "easy";
-    if (midpoint <= 4) return "normal";
-    return "hard";
+    if (high <= 2) return "easy";
+    if (low >= 5) return "crazy";
+    if (low >= 4) return "hard";
+    return "normal";
   }
 
   function normalizeQuizDifficulty(question) {
     const raw = String(question?.difficulty || "").trim().toLowerCase();
-    return DIFFICULTY_ALIASES[raw] || difficultyFromGrade(question || {});
+    const gradeDifficulty = difficultyFromGrade(question || {});
+    return gradeDifficulty || DIFFICULTY_ALIASES[raw] || "normal";
   }
+
+  function normalizeQuizCategory(question, key) {
+    const raw = String(question?.category || question?.topic || key || "").trim().toLowerCase();
+    if (CATEGORIES.includes(raw)) return raw;
+    return CATEGORY_ALIASES[raw] || "reading";
+  }
+
+  function normalizeQuestion(question, key, index) {
+    if (!question || typeof question !== "object") return null;
+    question.id = String(question.id || `${key}-${index + 1}`);
+    question.category = normalizeQuizCategory(question, key);
+    question.difficulty = normalizeQuizDifficulty(question);
+    question.grade = numericGrade(question.grade) || GRADES_BY_DIFFICULTY[question.difficulty];
+    return question;
+  }
+
+  Object.entries(quizBank).forEach(([key, list]) => {
+    if (!Array.isArray(list)) return;
+    list.forEach((question, index) => normalizeQuestion(question, key, index));
+  });
 
   function getQuizDifficultyForSelectedMode() {
     const selected = window.catsOwlDifficulty?.get?.() || localStorage.getItem(STORAGE_KEY);
@@ -79,6 +115,10 @@
 
   function questionId(question) {
     return String(question?.id || question?.question || "");
+  }
+
+  function questionKey(question) {
+    return String(question?.question || questionId(question));
   }
 
   function questionsForSelectedMode(list, selectedDifficulty) {
@@ -119,9 +159,19 @@
     if (!candidates.length) return shuffleQuizOptions(fallback);
 
     const bagKey = `${scope || "global"}\u0000${key}\u0000${difficulty}`;
+    const scopeKey = scope || "global";
+    let usedQuestionKeys = usedQuestionKeysByScope.get(scopeKey);
+    if (!usedQuestionKeys) {
+      usedQuestionKeys = new Set();
+      usedQuestionKeysByScope.set(scopeKey, usedQuestionKeys);
+    }
     let bag = quizBags.get(bagKey);
     if (!bag?.length) {
-      bag = shuffle(candidates);
+      const available = candidates.filter((question) => !usedQuestionKeys.has(questionKey(question)));
+      if (!available.length) {
+        candidates.forEach((question) => usedQuestionKeys.delete(questionKey(question)));
+      }
+      bag = shuffle(available.length ? available : candidates);
       const lastQuestion = lastQuestionByBag.get(bagKey);
       if (bag.length > 1 && questionId(bag[bag.length - 1]) === lastQuestion) {
         [bag[0], bag[bag.length - 1]] = [bag[bag.length - 1], bag[0]];
@@ -131,6 +181,7 @@
 
     const question = bag.pop();
     lastQuestionByBag.set(bagKey, questionId(question));
+    usedQuestionKeys.add(questionKey(question));
     return shuffleQuizOptions(question);
   }
 
