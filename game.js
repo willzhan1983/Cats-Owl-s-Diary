@@ -615,6 +615,9 @@ const MUSIC_BY_WORLD = {
   boss: "assets/audio/bgm_boss.mp3",
 };
 
+const BGM_AUDIO_VOLUME = 0.42;
+const BGM_SYNTH_GAIN = 0.12;
+
 const MUSIC_PATTERN_BY_WORLD = {
   forest_school: "happy",
   river_town: "river",
@@ -2708,7 +2711,7 @@ function initAudio() {
     music.audio = new Audio();
     music.audio.loop = true;
     music.audio.preload = "auto";
-    music.audio.volume = 0.28;
+    music.audio.volume = BGM_AUDIO_VOLUME;
     music.audio.addEventListener("error", () => {
       if (!music.key) return;
       music.audioFailed.add(music.key);
@@ -2720,7 +2723,7 @@ function initAudio() {
     if (!AudioContext) return;
     music.ctx = new AudioContext();
     music.master = music.ctx.createGain();
-    music.master.gain.value = 0.08;
+    music.master.gain.value = BGM_SYNTH_GAIN;
     music.master.connect(music.ctx.destination);
   }
   if (music.ctx.state === "suspended") music.ctx.resume();
