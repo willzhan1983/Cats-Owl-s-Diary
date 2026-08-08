@@ -2795,7 +2795,8 @@ function musicPatternForLevel(levelIndex) {
 function musicKeyForLevel(levelIndex) {
   const level = levels[levelIndex];
   if (level?.tasks?.some((task) => task.kind === "boss" || task.kind === "moon_boss")) return "boss";
-  return Object.hasOwn(MUSIC_BY_WORLD, level?.world) ? level.world : "forest_school";
+  const key = MUSIC_WORLD_ALIASES[level?.world] || level?.world;
+  return Object.hasOwn(MUSIC_BY_WORLD, key) ? key : "forest_school";
 }
 
 function playMusicStep() {
