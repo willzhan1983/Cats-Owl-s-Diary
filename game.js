@@ -607,6 +607,7 @@ const music = {
 
 const MUSIC_BY_WORLD = {
   forest_school: "assets/audio/bgm_forest_school.mp3",
+  river_town: "assets/audio/bgm_river_town.mp3",
   moonlight_lake: "assets/audio/bgm_moonlight_lake.mp3",
   apple_valley: "assets/audio/bgm_apple_valley.mp3",
   forest_road: "assets/audio/bgm_forest_road.mp3",
@@ -616,6 +617,7 @@ const MUSIC_BY_WORLD = {
 
 const MUSIC_PATTERN_BY_WORLD = {
   forest_school: "happy",
+  river_town: "river",
   moonlight_lake: "moonlight",
   apple_valley: "harvest",
   forest_road: "road",
@@ -2731,7 +2733,7 @@ function startMusicForLevel() {
 
 function startMusicForWorld(worldId) {
   const key = MUSIC_WORLD_ALIASES[worldId] || worldId;
-  startMusicForKey(MUSIC_BY_WORLD[key] ? key : "forest_school");
+  startMusicForKey(Object.hasOwn(MUSIC_BY_WORLD, key) ? key : "forest_school");
 }
 
 function startMusicForKey(key) {
@@ -2793,7 +2795,7 @@ function musicPatternForLevel(levelIndex) {
 function musicKeyForLevel(levelIndex) {
   const level = levels[levelIndex];
   if (level?.tasks?.some((task) => task.kind === "boss" || task.kind === "moon_boss")) return "boss";
-  return MUSIC_BY_WORLD[level?.world] ? level.world : "forest_school";
+  return Object.hasOwn(MUSIC_BY_WORLD, level?.world) ? level.world : "forest_school";
 }
 
 function playMusicStep() {
@@ -2802,6 +2804,7 @@ function playMusicStep() {
   const pattern = music.pattern || "happy";
   const notes = {
     happy: [523, 659, 784, 659, 698, 784, 880, 784],
+    river: [262, 330, 392, 330, 294, 349, 440, 349],
     moonlight: [392, 494, 587, 659, 587, 494, 440, 392],
     harvest: [523, 587, 659, 784, 659, 587, 523, 659],
     road: [440, 523, 587, 523, 659, 587, 523, 440],
