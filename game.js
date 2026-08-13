@@ -26,6 +26,7 @@ const mistQuestNext = document.getElementById("mistQuestNext");
 const mistQuestHelpBtn = document.getElementById("mistQuestHelpBtn");
 const mistQuestFallbackBtn = document.getElementById("mistQuestFallbackBtn");
 const quizPanel = document.getElementById("quizPanel");
+const worldMapPanel = document.getElementById("worldMapPanel");
 const quizTitle = document.getElementById("quizTitle");
 const quizQuestion = document.getElementById("quizQuestion");
 const quizOptions = document.getElementById("quizOptions");
@@ -2874,6 +2875,7 @@ function update(dt) {
   if (!state.running) return;
   if (state.activeQuiz) return;
   if (state.activeDialogue) return;
+  if (worldMapPanel?.getAttribute?.("aria-modal") === "true" && !worldMapPanel.hidden) return;
 
   state.time -= dt;
   if (state.time <= 0) {
