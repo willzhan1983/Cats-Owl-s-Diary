@@ -416,7 +416,7 @@
     button.innerHTML = `
       <span class="world-node-emoji" aria-hidden="true">${region.emoji}</span>
       <span class="world-node-name">${region.name}</span>
-      <span class="world-node-lock">${unlocked ? "可探索" : "未解锁"}</span>
+      <span class="world-node-lock">${unlocked ? "已解锁" : "未解锁"}</span>
     `;
     return button;
   }
