@@ -1767,6 +1767,7 @@ const levels = [
       item(260, 314, "boatPaddle", "完整船桨"),
       item(520, 228, "rescueRing", "救生圈"),
       { ...item(714, 344, "brokenPaddle", "损坏船桨"), decoy: true, minDifficulty: "normal" },
+      { ...item(610, 390, "brokenPaddle", "损坏船桨"), decoy: true, minDifficulty: "crazy" },
     ],
     tasks: [
       { x: 804, y: 282, id: "prepare_boat", name: "准备小船", need: ["boatPaddle", "rescueRing"], animal: "dodo", kind: "dock_delivery", done: false, progress: 0 },
@@ -2370,7 +2371,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   updateHud();
   messageEl.textContent = isMistSwampSleepingBridgeLevel() && ["hard", "crazy"].includes(selectedDifficulty)
     ? "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。"
-    : level.message;
+    : level.world === "riverside_dock" ? riversideDockStartMessage(level) : level.message;
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
 }
 
@@ -2733,7 +2734,7 @@ function replayCurrentLevel() {
   resetGame(levelIndex, levelIndex > 0);
   state.running = true;
   startBtn.textContent = text.restart;
-  messageEl.textContent = text.move;
+  messageEl.textContent = currentLevelStartMessage();
   startMusicForLevel();
 }
 
@@ -2789,9 +2790,16 @@ function clearLocalScoreRecords() {
   renderRunHistory();
 }
 
+function riversideDockStartMessage(level) {
+  if (level?.id !== "riverside_dock_entrance") return level?.message || text.move;
+  return `${level.message} ${CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty)}`;
+}
+
 function currentLevelStartMessage() {
   const level = levels[state.levelIndex];
-  return level?.world === "acorn_town" ? level.message || text.move : text.move;
+  if (level?.world === "acorn_town") return level.message || text.move;
+  if (level?.world === "riverside_dock") return riversideDockStartMessage(level);
+  return text.move;
 }
 
 function startGame() {
@@ -3737,13 +3745,15 @@ function updateRiversideDockMechanisms(dt) {
   const speed = selectedDifficulty === "crazy" ? 0.2 : selectedDifficulty === "hard" ? 0.16 : 0.12;
   state.riversideWaterPhase = (state.riversideWaterPhase + dt * speed) % 1;
   const windowSize = CATS_OWLS_RIVERSIDE_DOCK_RULES.waterWindowFor(selectedDifficulty);
+  const signalWindowSize = CATS_OWLS_RIVERSIDE_DOCK_RULES.signalWindowFor(selectedDifficulty);
   state.riversideWaterSafe = Math.abs(state.riversideWaterPhase - 0.5) <= windowSize / 2;
-  state.riversideSignalGreen = state.riversideWaterPhase >= 0.25 && state.riversideWaterPhase <= 0.75;
+  state.riversideSignalGreen = Math.abs(state.riversideWaterPhase - 0.5) <= signalWindowSize / 2;
 }
 
 function interactRiversideDockTask(task) {
   if (!isRiversideDockLevel() || !task || task.done) return false;
   if (task.kind === "route_marker") {
+    const routeHint = CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty);
     const result = CATS_OWLS_RIVERSIDE_DOCK_RULES.advanceSequence(
       state.riversideRoute,
       state.riversideRouteProgress,
@@ -3751,14 +3761,14 @@ function interactRiversideDockTask(task) {
     );
     state.riversideRouteProgress = result.progress;
     if (result.reset) {
-      applyRiversideDockWrongAction(task.x, task.y, "路线顺序不对，回到起点重新观察公告板。 ");
+      applyRiversideDockWrongAction(task.x, task.y, `路线顺序不对，已经回到起点。${routeHint}`);
     } else if (result.complete) {
       state.tasksList.filter((entry) => entry.kind === "route_marker").forEach((entry) => {
         if (!entry.done) completeTask(entry, entry.x, entry.y);
       });
       messageEl.textContent = "路线记对啦，河畔码头入口就在前面！";
     } else {
-      messageEl.textContent = `路线正确：${result.progress}/${state.riversideRoute.length}`;
+      messageEl.textContent = `路线正确：${result.progress}/${state.riversideRoute.length}。${routeHint}`;
     }
     updateHud();
     return true;
@@ -3779,8 +3789,13 @@ function interactRiversideDockTask(task) {
       .filter((entry) => entry.kind === "bridge_slot" && !entry.done)
       .sort((a, b) => a.order - b.order)[0];
     if (expected !== task) {
-      restoreRiversideBridgeAttempt();
-      applyRiversideDockWrongAction(task.x, task.y, "桥板顺序不对，短、中、长桥板已经退回背包。 ");
+      const resetsBridge = CATS_OWLS_RIVERSIDE_DOCK_RULES.bridgeResetsOnMistake(selectedDifficulty);
+      if (resetsBridge) restoreRiversideBridgeAttempt();
+      applyRiversideDockWrongAction(
+        task.x,
+        task.y,
+        resetsBridge ? "桥板顺序不对，短、中、长桥板已经退回背包。 " : "桥板顺序不对，已铺好的桥板保留，请继续当前一步。 "
+      );
       return true;
     }
     if (!state.inventory.includes(task.need)) {
@@ -3819,8 +3834,8 @@ function interactRiversideDockTask(task) {
   }
   if (task.kind === "dock_crossing") {
     const allowed = CATS_OWLS_RIVERSIDE_DOCK_RULES.canCross({
-      waterSafe: state.riversideWaterSafe,
-      signalGreen: state.riversideSignalGreen,
+      waterSafe: state.tasksList.some((entry) => entry.id === "water_safe" && entry.done),
+      signalGreen: state.tasksList.some((entry) => entry.id === "signal_green" && entry.done),
       hasPackage: state.inventory.includes("deliveryPackage"),
     });
     if (!taskDependenciesMet(task) || !allowed) {
@@ -4251,7 +4266,7 @@ function taskNearHint(task) {
       ? quizDisplay(task)?.near || "\u6309 E \u6311\u6218"
       : "先完成小镇任务，再来回答最后一题。";
   }
-  if (task.kind === "route_marker") return `按 E 选择${task.name}（${state.riversideRouteProgress}/${state.riversideRoute.length}）`;
+  if (task.kind === "route_marker") return `${CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty)} · 按 E 选择${task.name}（${state.riversideRouteProgress}/${state.riversideRoute.length}）`;
   if (task.kind === "dock_delivery") {
     const missing = missingNeeds(task.need);
     return missing.length ? `${task.name}还需要：${needLabels(missing)}。` : `按 E 完成${task.name}`;
@@ -8908,7 +8923,8 @@ if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") 
 resetGame(initialLevel);
 if (initialLevel > 0) {
   homeScreen.classList.add("is-hidden");
-  messageEl.textContent = levels[initialLevel].message;
+  startBtn.textContent = text.start;
+  messageEl.textContent = currentLevelStartMessage();
   preloadNearbyBackgrounds(initialLevel);
 }
 if (new URLSearchParams(window.location.search).get("play") === "1") {

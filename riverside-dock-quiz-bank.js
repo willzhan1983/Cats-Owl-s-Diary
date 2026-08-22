@@ -134,7 +134,7 @@
     if (wasRunning) {
       state.running = true;
       startBtn.textContent = text.restart;
-    }
+    } else startBtn.textContent = text.start;
   }
 
   globalScope.CATS_OWLS_RIVERSIDE_DOCK_QUIZ = Object.freeze({

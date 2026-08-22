@@ -50,8 +50,8 @@ assert.ok(
 );
 
 assert.ok(
-  index.includes("./game.js?v=acorn-town-20260729"),
-  "game.js should use the current Acorn Town cache version",
+  index.includes("./game.js?v=riverside-dock-difficulty-20260822"),
+  "game.js should use the current Riverside Dock cache version",
 );
 
 for (const script of ["mist-swamp-quiz-bank.js", "grade-quiz.js"]) {

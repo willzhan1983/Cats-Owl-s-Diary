@@ -10,16 +10,29 @@ const rules = sandbox.CATS_OWLS_RIVERSIDE_DOCK_RULES;
 assert.ok(rules, "Riverside Dock rules API should be exported");
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((mode) => rules.timeFor("riverside_dock_entrance", mode)),
-  [140, 120, 105, 90]
+  [170, 150, 130, 120]
 );
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map((mode) => rules.routeFor(mode).length),
-  [2, 3, 3, 4]
+  [2, 3, 3, 3]
 );
 assert.deepEqual(
   ["easy", "normal", "hard", "crazy"].map(rules.wrongActionPenalty),
-  [0, 0, 3, 5]
+  [0, 0, 4, 6]
 );
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map(rules.waterWindowFor),
+  [0.72, 0.58, 0.4, 0.28]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map(rules.signalWindowFor),
+  [0.5, 0.5, 0.44, 0.36]
+);
+assert.deepEqual(
+  ["easy", "normal", "hard", "crazy"].map(rules.bridgeResetsOnMistake),
+  [true, true, false, true]
+);
+assert.equal(rules.routeHintFor("crazy"), "路线提示：向右 → 向上 → 码头");
 assert.deepEqual(
   { ...rules.advanceSequence(["right", "up", "dock"], 0, "right") },
   { progress: 1, complete: false, reset: false }
