@@ -504,6 +504,10 @@ const dayNames = [
   "寻找丢失的橡果",
   "橡果集市兑换",
   "小镇公告板",
+  "码头入口",
+  "寻找丢失的船桨",
+  "修复河上木桥",
+  "安全渡河",
 ];
 
 const keys = new Set();
@@ -539,6 +543,7 @@ const COMPLETED_WORLDS_STORAGE_KEY = "catsOwlCompletedWorlds";
 const WORLD_PREREQUISITES = Object.freeze({
   acorn_town: "forest_road",
   riverside_dock: "acorn_town",
+  wetland_park: "riverside_dock",
 });
 const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
 let playerProfile = loadPlayerProfile();
@@ -612,6 +617,7 @@ const MUSIC_BY_WORLD = {
   moonlight_lake: "assets/audio/bgm_moonlight_lake.mp3",
   apple_valley: "assets/audio/bgm_apple_valley.mp3",
   forest_road: "assets/audio/bgm_forest_road.mp3",
+  riverside_dock: "assets/audio/bgm_moonlight_lake.mp3",
   dark_swamp: "assets/audio/bgm_dark_swamp.mp3",
   boss: "assets/audio/bgm_boss.mp3",
 };
@@ -1728,6 +1734,90 @@ const levels = [
     puddles: [],
     obstacles: [],
   },
+  {
+    id: "riverside_dock_entrance",
+    name: "码头入口",
+    bg: "pondSide",
+    world: "riverside_dock",
+    time: 120,
+    start: { x: 112, y: 430 },
+    message: "记住公告板路线，按顺序确认路标，再清理码头入口。",
+    collectibles: [
+      item(224, 376, "dockPass", "码头通行牌"),
+    ],
+    tasks: [
+      { x: 300, y: 214, id: "route_right", name: "向右路标", routeChoice: "right", animal: "directionSign", kind: "route_marker", done: false, progress: 0 },
+      { x: 500, y: 174, id: "route_up", name: "向上路标", routeChoice: "up", animal: "directionSign", kind: "route_marker", done: false, progress: 0 },
+      { x: 730, y: 224, id: "route_dock", name: "码头路标", routeChoice: "dock", animal: "riversideDockSign", kind: "route_marker", done: false, progress: 0 },
+      roadClearTask(390, 372, "漂流木", "branchPile", "正在清理漂流木……", 1.1),
+      { x: 820, y: 360, id: "dock_gate", name: "码头入口", need: ["dockPass"], animal: "riversideDockSign", kind: "dock_delivery", done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "riverside_paddle_search",
+    name: "寻找丢失的船桨",
+    bg: "pondSide",
+    world: "riverside_dock",
+    time: 125,
+    start: { x: 120, y: 430 },
+    message: "观察水流方向，找到完整船桨和救生圈。",
+    collectibles: [
+      item(260, 314, "boatPaddle", "完整船桨"),
+      item(520, 228, "rescueRing", "救生圈"),
+      { ...item(714, 344, "brokenPaddle", "损坏船桨"), decoy: true, minDifficulty: "normal" },
+      { ...item(610, 390, "brokenPaddle", "损坏船桨"), decoy: true, minDifficulty: "crazy" },
+    ],
+    tasks: [
+      { x: 804, y: 282, id: "prepare_boat", name: "准备小船", need: ["boatPaddle", "rescueRing"], animal: "dodo", kind: "dock_delivery", done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "riverside_bridge_repair",
+    name: "修复河上木桥",
+    bg: "wetland",
+    world: "riverside_dock",
+    time: 135,
+    start: { x: 112, y: 430 },
+    message: "按短、中、长的顺序放置桥板，最后系好码头绳。",
+    collectibles: [
+      item(180, 350, "plankShort", "短桥板"),
+      item(340, 250, "plankMedium", "中桥板"),
+      item(510, 370, "plankLong", "长桥板"),
+      item(680, 242, "dockRope", "码头绳"),
+    ],
+    tasks: [
+      { x: 380, y: 294, id: "bridge_short", name: "短桥板位置", need: "plankShort", order: 0, animal: "bridgePlank", kind: "bridge_slot", done: false, progress: 0 },
+      { x: 500, y: 294, id: "bridge_medium", name: "中桥板位置", need: "plankMedium", order: 1, animal: "bridgePlank", kind: "bridge_slot", done: false, progress: 0 },
+      { x: 620, y: 294, id: "bridge_long", name: "长桥板位置", need: "plankLong", order: 2, animal: "bridgePlank", kind: "bridge_slot", done: false, progress: 0 },
+      { x: 748, y: 294, id: "bridge_rope", name: "固定码头绳", need: "dockRope", order: 3, animal: "dockRope", kind: "bridge_slot", done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "riverside_safe_crossing",
+    name: "安全渡河",
+    bg: "wetland",
+    world: "riverside_dock",
+    time: 140,
+    start: { x: 116, y: 430 },
+    message: "检查水位和绿色信号，带着包裹安全到达对岸。",
+    levelReward: { type: "wetlandPass", count: 1 },
+    collectibles: [
+      item(210, 382, "deliveryPackage", "湿地包裹"),
+    ],
+    tasks: [
+      { x: 350, y: 226, id: "water_safe", name: "水位尺", animal: "waterGauge", kind: "water_gauge", done: false, progress: 0 },
+      { x: 520, y: 218, id: "signal_green", name: "渡口信号", requiresTaskId: "water_safe", animal: "dockSignal", kind: "dock_signal", done: false, progress: 0 },
+      { x: 820, y: 320, id: "wetland_crossing", name: "对岸安全区", need: ["deliveryPackage"], requiresTaskIds: ["water_safe", "signal_green"], animal: "wetlandPass", kind: "dock_crossing", done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1766,6 +1856,12 @@ WORLD_MAP.acorn_town.levels = levels
   .map((level, index) => (level.world === "acorn_town" ? index : -1))
   .filter((index) => index >= 0);
 
+if (WORLD_MAP.riverside_dock) {
+  WORLD_MAP.riverside_dock.levels = levels
+    .map((level, index) => (level.world === "riverside_dock" ? index : -1))
+    .filter((index) => index >= 0);
+}
+
 function nextPlayableLevelIndex(currentIndex) {
   return currentIndex + 1;
 }
@@ -1788,6 +1884,18 @@ function prepareAcornTownLevel(level) {
       .slice(0, traffic.count)
       .map((cart) => ({ ...cart, speed: traffic.speed })),
     exitAreas: (level.exitAreas || []).filter(visible),
+  };
+}
+
+function prepareRiversideDockLevel(level) {
+  if (level?.world !== "riverside_dock") return level;
+  const ranks = ["easy", "normal", "hard", "crazy"];
+  const visible = (entry) => ranks.indexOf(selectedDifficulty) >= ranks.indexOf(entry.minDifficulty || "easy");
+  return {
+    ...level,
+    time: CATS_OWLS_RIVERSIDE_DOCK_RULES.timeFor(level.id, selectedDifficulty),
+    collectibles: level.collectibles.filter(visible),
+    tasks: level.tasks.filter(visible),
   };
 }
 
@@ -2025,9 +2133,9 @@ function taskSystemType(kind) {
   if (kind === "boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "mud_boss") return TASK_TYPES.BOSS_FIGHT;
   if (kind === "quiz") return TASK_TYPES.SIMPLE_PUZZLE;
-  if (kind === "direction_sign" || kind === "exit_area") return TASK_TYPES.SIMPLE_PUZZLE;
+  if (["direction_sign", "exit_area", "route_marker", "bridge_slot", "water_gauge", "dock_signal"].includes(kind)) return TASK_TYPES.SIMPLE_PUZZLE;
   if (kind === "escort_npc") return TASK_TYPES.HELP_NPC;
-  if (kind === "delivery" || kind === "sort_basket") return TASK_TYPES.HELP_NPC;
+  if (["delivery", "sort_basket", "dock_delivery", "dock_crossing"].includes(kind)) return TASK_TYPES.HELP_NPC;
   return TASK_TYPES.FETCH_ITEM;
 }
 
@@ -2165,7 +2273,15 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   ) {
     acornQuizApi.beginRun(selectedDifficulty);
   }
-  const level = prepareAcornTownLevel(rawLevel);
+  const riversideQuizApi = window.CATS_OWLS_RIVERSIDE_DOCK_QUIZ;
+  if (
+    rawLevel?.world === "riverside_dock" &&
+    (options.startRiversideDockChapter || previousWorld !== "riverside_dock") &&
+    typeof riversideQuizApi?.beginRun === "function"
+  ) {
+    riversideQuizApi.beginRun(selectedDifficulty);
+  }
+  const level = prepareRiversideDockLevel(prepareAcornTownLevel(rawLevel));
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
@@ -2201,6 +2317,11 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
     acornRouteHint: "",
     acornRouteHintUntil: 0,
     acornBonusStatus: "none",
+    riversideRoute: rawLevel?.world === "riverside_dock" ? CATS_OWLS_RIVERSIDE_DOCK_RULES.routeFor(selectedDifficulty) : [],
+    riversideRouteProgress: 0,
+    riversideWaterPhase: 0,
+    riversideWaterSafe: false,
+    riversideSignalGreen: false,
     attackCooldownUntil: 0,
     bossAttackTimer: 0.9,
     hazards: [],
@@ -2250,7 +2371,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   updateHud();
   messageEl.textContent = isMistSwampSleepingBridgeLevel() && ["hard", "crazy"].includes(selectedDifficulty)
     ? "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。"
-    : level.message;
+    : level.world === "riverside_dock" ? riversideDockStartMessage(level) : level.message;
   startBtn.textContent = levelIndex === 0 ? text.start : text.next;
 }
 
@@ -2332,6 +2453,12 @@ function prepareTask(entry, level, index) {
     const assignment = window.CATS_OWLS_ACORN_TOWN_QUIZ.assign(level.id, selectedDifficulty);
     task.quiz = assignment.core;
     task.bonusQuiz = assignment.bonus;
+  } else if (
+    task.riversideDockShared &&
+    level.world === "riverside_dock" &&
+    typeof window.CATS_OWLS_RIVERSIDE_DOCK_QUIZ?.assign === "function"
+  ) {
+    task.quiz = window.CATS_OWLS_RIVERSIDE_DOCK_QUIZ.assign(level.id, selectedDifficulty);
   } else if (task.quizKey) {
     task.quiz = randomQuiz(task.quizKey, quizScope);
   }
@@ -2414,6 +2541,9 @@ function difficultySettings() {
 function levelTimeForDifficulty(level) {
   if (level.world === "acorn_town") {
     return CATS_OWLS_ACORN_TOWN_RULES.timeFor(level.id, selectedDifficulty);
+  }
+  if (level.world === "riverside_dock") {
+    return CATS_OWLS_RIVERSIDE_DOCK_RULES.timeFor(level.id, selectedDifficulty);
   }
   return Math.max(20, Math.round(level.time * difficultySettings().timeScale));
 }
@@ -2604,7 +2734,7 @@ function replayCurrentLevel() {
   resetGame(levelIndex, levelIndex > 0);
   state.running = true;
   startBtn.textContent = text.restart;
-  messageEl.textContent = text.move;
+  messageEl.textContent = currentLevelStartMessage();
   startMusicForLevel();
 }
 
@@ -2660,9 +2790,16 @@ function clearLocalScoreRecords() {
   renderRunHistory();
 }
 
+function riversideDockStartMessage(level) {
+  if (level?.id !== "riverside_dock_entrance") return level?.message || text.move;
+  return `${level.message} ${CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty)}`;
+}
+
 function currentLevelStartMessage() {
   const level = levels[state.levelIndex];
-  return level?.world === "acorn_town" ? level.message || text.move : text.move;
+  if (level?.world === "acorn_town") return level.message || text.move;
+  if (level?.world === "riverside_dock") return riversideDockStartMessage(level);
+  return text.move;
 }
 
 function startGame() {
@@ -2898,6 +3035,7 @@ function update(dt) {
   updateAppleCart(dt);
   updateForestRoadMechanisms(dt);
   updateAcornTownMechanisms(dt);
+  updateRiversideDockMechanisms(dt);
   updateMistSwampMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
@@ -3566,6 +3704,153 @@ function updateAcornTownMechanisms(dt) {
   checkAcornTownExitAreas();
 }
 
+function isRiversideDockLevel() {
+  return levels[state?.levelIndex]?.world === "riverside_dock";
+}
+
+function resetRiversidePlayerPosition() {
+  const start = levels[state.levelIndex]?.start;
+  if (!start) return;
+  state.player.x = start.x;
+  state.player.y = start.y;
+  state.player.vx = 0;
+  state.player.vy = 0;
+}
+
+function applyRiversideDockWrongAction(x, y, message) {
+  const amount = CATS_OWLS_RIVERSIDE_DOCK_RULES.wrongActionPenalty(selectedDifficulty);
+  if (amount) {
+    state.time = Math.max(0, state.time - amount);
+    addFloatingText(x, y - 56, `-${amount}秒`, "#e84b3f");
+  }
+  resetRiversidePlayerPosition();
+  messageEl.textContent = message;
+  updateHud();
+  return amount;
+}
+
+function restoreRiversideBridgeAttempt() {
+  const bridgeTasks = state.tasksList.filter((task) => task.kind === "bridge_slot");
+  for (const task of bridgeTasks) {
+    if (!task.done) continue;
+    task.done = false;
+    task.progress = 0;
+    state.tasks = Math.max(0, state.tasks - 1);
+    if (!state.inventory.includes(task.need)) state.inventory.push(task.need);
+  }
+}
+
+function updateRiversideDockMechanisms(dt) {
+  if (!isRiversideDockLevel()) return;
+  const speed = selectedDifficulty === "crazy" ? 0.2 : selectedDifficulty === "hard" ? 0.16 : 0.12;
+  state.riversideWaterPhase = (state.riversideWaterPhase + dt * speed) % 1;
+  const windowSize = CATS_OWLS_RIVERSIDE_DOCK_RULES.waterWindowFor(selectedDifficulty);
+  const signalWindowSize = CATS_OWLS_RIVERSIDE_DOCK_RULES.signalWindowFor(selectedDifficulty);
+  state.riversideWaterSafe = Math.abs(state.riversideWaterPhase - 0.5) <= windowSize / 2;
+  state.riversideSignalGreen = Math.abs(state.riversideWaterPhase - 0.5) <= signalWindowSize / 2;
+}
+
+function interactRiversideDockTask(task) {
+  if (!isRiversideDockLevel() || !task || task.done) return false;
+  if (task.kind === "route_marker") {
+    const routeHint = CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty);
+    const result = CATS_OWLS_RIVERSIDE_DOCK_RULES.advanceSequence(
+      state.riversideRoute,
+      state.riversideRouteProgress,
+      task.routeChoice
+    );
+    state.riversideRouteProgress = result.progress;
+    if (result.reset) {
+      applyRiversideDockWrongAction(task.x, task.y, `路线顺序不对，已经回到起点。${routeHint}`);
+    } else if (result.complete) {
+      state.tasksList.filter((entry) => entry.kind === "route_marker").forEach((entry) => {
+        if (!entry.done) completeTask(entry, entry.x, entry.y);
+      });
+      messageEl.textContent = "路线记对啦，河畔码头入口就在前面！";
+    } else {
+      messageEl.textContent = `路线正确：${result.progress}/${state.riversideRoute.length}。${routeHint}`;
+    }
+    updateHud();
+    return true;
+  }
+  if (task.kind === "dock_delivery") {
+    const missing = missingNeeds(task.need);
+    if (missing.length) {
+      messageEl.textContent = `${task.name}还需要：${needLabels(missing)}。`;
+      return true;
+    }
+    consumeNeeds(task.need);
+    completeTask(task, task.x, task.y);
+    updateHud();
+    return true;
+  }
+  if (task.kind === "bridge_slot") {
+    const expected = state.tasksList
+      .filter((entry) => entry.kind === "bridge_slot" && !entry.done)
+      .sort((a, b) => a.order - b.order)[0];
+    if (expected !== task) {
+      const resetsBridge = CATS_OWLS_RIVERSIDE_DOCK_RULES.bridgeResetsOnMistake(selectedDifficulty);
+      if (resetsBridge) restoreRiversideBridgeAttempt();
+      applyRiversideDockWrongAction(
+        task.x,
+        task.y,
+        resetsBridge ? "桥板顺序不对，短、中、长桥板已经退回背包。 " : "桥板顺序不对，已铺好的桥板保留，请继续当前一步。 "
+      );
+      return true;
+    }
+    if (!state.inventory.includes(task.need)) {
+      messageEl.textContent = `先找到${itemLabel(task.need)}。`;
+      return true;
+    }
+    consumeNeeds([task.need]);
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = `${task.name}放好了。`;
+    updateHud();
+    return true;
+  }
+  if (task.kind === "water_gauge") {
+    if (!state.riversideWaterSafe) {
+      applyRiversideDockWrongAction(task.x, task.y, "现在水位偏高，先在安全区等待。 ");
+      return true;
+    }
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "水位进入安全范围。";
+    updateHud();
+    return true;
+  }
+  if (task.kind === "dock_signal") {
+    if (!taskDependenciesMet(task)) {
+      messageEl.textContent = "先检查水位尺。";
+      return true;
+    }
+    if (!state.riversideSignalGreen) {
+      applyRiversideDockWrongAction(task.x, task.y, "渡口还是红灯，请等绿灯再确认。 ");
+      return true;
+    }
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "绿色安全信号已经确认。";
+    updateHud();
+    return true;
+  }
+  if (task.kind === "dock_crossing") {
+    const allowed = CATS_OWLS_RIVERSIDE_DOCK_RULES.canCross({
+      waterSafe: state.tasksList.some((entry) => entry.id === "water_safe" && entry.done),
+      signalGreen: state.tasksList.some((entry) => entry.id === "signal_green" && entry.done),
+      hasPackage: state.inventory.includes("deliveryPackage"),
+    });
+    if (!taskDependenciesMet(task) || !allowed) {
+      applyRiversideDockWrongAction(task.x, task.y, "水位、绿灯和包裹都准备好后才能安全渡河。 ");
+      return true;
+    }
+    consumeNeeds(task.need);
+    completeTask(task, task.x, task.y);
+    messageEl.textContent = "包裹安全送到对岸，湿地公园通行证已准备好！";
+    updateHud();
+    return true;
+  }
+  return false;
+}
+
 function quizTaskAvailable(task) {
   return !task.requiresCoreTasks || CATS_OWLS_ACORN_TOWN_RULES.coreTasksDone(state.tasksList);
 }
@@ -3577,7 +3862,8 @@ function checkCollectibles() {
     if (!entry.taken && distance(p, entry) < 42) {
       entry.taken = true;
       if (entry.decoy) {
-        applyAcornTownWrongAction(entry.x, entry.y, "这不是真橡果。");
+        if (isRiversideDockLevel()) applyRiversideDockWrongAction(entry.x, entry.y, "这是一支损坏的船桨，不能使用。 ");
+        else applyAcornTownWrongAction(entry.x, entry.y, "这不是真橡果。");
         continue;
       }
       if (entry.type === "potion") {
@@ -3676,6 +3962,11 @@ function checkTasks(dt) {
       messageEl.textContent = taskDependenciesMet(task)
         ? "按 E 前往河畔码头。"
         : "🔒 先修好公告板，确认码头路线。";
+      continue;
+    }
+
+    if (["route_marker", "dock_delivery", "bridge_slot", "water_gauge", "dock_signal", "dock_crossing"].includes(task.kind)) {
+      messageEl.textContent = taskNearHint(task);
       continue;
     }
 
@@ -3881,6 +4172,15 @@ function itemLabel(type) {
     guardBook: "\u5b88\u62a4\u4e66",
     moonLamp: "月光灯",
     boatPaddle: "小船桨",
+    brokenPaddle: "损坏船桨",
+    rescueRing: "救生圈",
+    dockPass: "码头通行牌",
+    plankShort: "短桥板",
+    plankMedium: "中桥板",
+    plankLong: "长桥板",
+    dockRope: "码头绳",
+    deliveryPackage: "湿地包裹",
+    wetlandPass: "湿地通行证",
     bubbleStone: "发光水泡石",
     divingHelmet: "泡泡潜水帽",
     moonKey: "月光钥匙",
@@ -3940,6 +4240,12 @@ function taskShortHint(task) {
   if (task.kind === "market_trade") return "兑换";
   if (task.kind === "notice_slot") return "拼碎片";
   if (task.kind === "town_exit") return "去码头";
+  if (task.kind === "route_marker") return "选路线";
+  if (task.kind === "dock_delivery") return "准备物品";
+  if (task.kind === "bridge_slot") return "铺桥板";
+  if (task.kind === "water_gauge") return "看水位";
+  if (task.kind === "dock_signal") return "等绿灯";
+  if (task.kind === "dock_crossing") return "安全渡河";
   if (task.kind === "quiz") return quizDisplay(task)?.short || task.speech;
   if (task.kind === "sort_basket") return "\u5206\u7c7b";
   if (task.kind === "road_clear") return task.progress > 0 ? "\u6e05\u7406\u4e2d" : "\u6e05\u7406";
@@ -3960,6 +4266,15 @@ function taskNearHint(task) {
       ? quizDisplay(task)?.near || "\u6309 E \u6311\u6218"
       : "先完成小镇任务，再来回答最后一题。";
   }
+  if (task.kind === "route_marker") return `${CATS_OWLS_RIVERSIDE_DOCK_RULES.routeHintFor(selectedDifficulty)} · 按 E 选择${task.name}（${state.riversideRouteProgress}/${state.riversideRoute.length}）`;
+  if (task.kind === "dock_delivery") {
+    const missing = missingNeeds(task.need);
+    return missing.length ? `${task.name}还需要：${needLabels(missing)}。` : `按 E 完成${task.name}`;
+  }
+  if (task.kind === "bridge_slot") return state.inventory.includes(task.need) ? `按 E 放置${itemLabel(task.need)}` : `先找到${itemLabel(task.need)}`;
+  if (task.kind === "water_gauge") return state.riversideWaterSafe ? "按 E 确认安全水位" : "水位偏高，请等待";
+  if (task.kind === "dock_signal") return state.riversideSignalGreen ? "按 E 确认绿色信号" : "红灯，请等待";
+  if (task.kind === "dock_crossing") return "检查水位、绿灯和包裹后按 E 渡河";
   if (task.kind === "sort_basket") {
     const missing = missingNeeds(task.need);
     return missing.length ? `${task.name}\u9700\u8981\uff1a${needLabels(missing)}\u54e6\u3002` : `\u6309 E \u653e\u8fdb${task.name}`;
@@ -4266,6 +4581,7 @@ function talkToNearbyTask() {
     return;
   }
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
+  if (interactRiversideDockTask(state.nearbyTask)) return;
   if (state.nearbyTask?.kind === "matched_delivery") {
     finishMatchedDelivery(state.nearbyTask);
     return;
@@ -5456,6 +5772,11 @@ const ACORN_TOWN_PROP_LABELS = {
   acornNoticeFragment: "碎片",
   acornTownCart: "推车",
   riversideDockSign: "码头",
+  bridgePlank: "桥板",
+  dockRope: "绳索",
+  waterGauge: "水位",
+  dockSignal: "信号",
+  wetlandPass: "通行证",
 };
 
 const MIST_SWAMP_MUSHROOM_ART_KEYS = {
@@ -8602,7 +8923,8 @@ if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") 
 resetGame(initialLevel);
 if (initialLevel > 0) {
   homeScreen.classList.add("is-hidden");
-  messageEl.textContent = levels[initialLevel].message;
+  startBtn.textContent = text.start;
+  messageEl.textContent = currentLevelStartMessage();
   preloadNearbyBackgrounds(initialLevel);
 }
 if (new URLSearchParams(window.location.search).get("play") === "1") {
