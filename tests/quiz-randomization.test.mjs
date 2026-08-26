@@ -50,7 +50,7 @@ assert.ok(
 );
 
 assert.ok(
-  index.includes("./game.js?v=riverside-dock-difficulty-20260822"),
+  index.includes("./game.js?v=riverside-dock-assets-20260826"),
   "game.js should use the current Riverside Dock cache version",
 );
 
@@ -61,7 +61,7 @@ for (const script of ["mist-swamp-quiz-bank.js", "grade-quiz.js"]) {
   );
 }
 assert.ok(
-  index.includes("./art-assets.js?v=acorn-town-20260729"),
+  index.includes("./art-assets.js?v=riverside-dock-assets-20260826"),
   "art-assets.js should use the current Acorn Town cache version",
 );
 

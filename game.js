@@ -617,7 +617,7 @@ const MUSIC_BY_WORLD = {
   moonlight_lake: "assets/audio/bgm_moonlight_lake.mp3",
   apple_valley: "assets/audio/bgm_apple_valley.mp3",
   forest_road: "assets/audio/bgm_forest_road.mp3",
-  riverside_dock: "assets/audio/bgm_moonlight_lake.mp3",
+  riverside_dock: "assets/audio/bgm_riverside_dock.mp3",
   dark_swamp: "assets/audio/bgm_dark_swamp.mp3",
   boss: "assets/audio/bgm_boss.mp3",
 };
@@ -5688,6 +5688,15 @@ const ART_PACK_PROP_KEYS = {
   noticeFragmentDecoy1: "acornNoticeFragment",
   noticeFragmentDecoy2: "acornNoticeFragment",
   travelStar: "travelStar",
+  dockPass: "dockPass",
+  rescueRing: "rescueRing",
+  brokenPaddle: "brokenPaddle",
+  plankShort: "woodenPlank",
+  plankMedium: "woodenPlank",
+  plankLong: "woodenPlank",
+  dockRope: "dockRope",
+  deliveryPackage: "deliveryPackage",
+  wetlandPass: "wetlandPass",
 };
 
 const ART_PACK_OBSTACLE_KEYS = {
@@ -5901,6 +5910,15 @@ const ART_PACK_ITEM_BOUNDS = {
   acornNoticeFragment: { x: -30, y: -30, w: 60, h: 60 },
   acornTownCart: { x: -50, y: -46, w: 100, h: 80 },
   riversideDockSign: { x: -48, y: -70, w: 96, h: 112 },
+  dockPass: { x: -30, y: -36, w: 60, h: 72 },
+  rescueRing: { x: -34, y: -34, w: 68, h: 68 },
+  brokenPaddle: { x: -40, y: -24, w: 80, h: 48 },
+  woodenPlank: { x: -42, y: -18, w: 84, h: 36 },
+  dockRope: { x: -34, y: -34, w: 68, h: 68 },
+  deliveryPackage: { x: -34, y: -34, w: 68, h: 68 },
+  wetlandPass: { x: -30, y: -36, w: 60, h: 72 },
+  waterGauge: { x: -34, y: -58, w: 68, h: 96 },
+  dockSignal: { x: -34, y: -58, w: 68, h: 96 },
 };
 
 const ART_PACK_OBSTACLE_BOUNDS = {
@@ -6487,7 +6505,7 @@ function drawTasks() {
       const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
       if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
     }
-    else drawAnimal(task.animal);
+    else if (!drawRiversideDockTaskArt(task)) drawAnimal(task.animal);
     drawMistQuestMarker(task);
     drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
@@ -6511,6 +6529,24 @@ function drawTasks() {
     if (task.kind === "boss" && !task.done) drawBossProgress(task.progress);
     ctx.restore();
   }
+}
+
+function drawRiversideDockTaskArt(task) {
+  if (!isRiversideDockLevel()) return false;
+  const key = {
+    bridgePlank: "woodenPlank",
+    dockRope: "dockRope",
+    waterGauge: "waterGauge",
+    dockSignal: "dockSignal",
+    wetlandPass: "wetlandPass",
+  }[task.animal];
+  const bounds = key && ART_PACK_ITEM_BOUNDS[key];
+  if (!key || !bounds || !drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) return false;
+  if (task.kind === "dock_signal") {
+    ctx.fillStyle = state.riversideSignalGreen ? "rgba(109, 205, 112, 0.62)" : "rgba(234, 94, 82, 0.62)";
+    circle(0, 30, 12);
+  }
+  return true;
 }
 
 function drawMistQuestMarker(task) {

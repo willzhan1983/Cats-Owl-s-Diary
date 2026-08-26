@@ -97,6 +97,15 @@
     acornNoticeFragment: "assets/items/acorn_notice_fragment.png",
     acornTownCart: "assets/props/acorn_town_cart.png",
     riversideDockSign: "assets/props/riverside_dock_sign.png",
+    dockPass: "assets/items/dock_pass.png",
+    rescueRing: "assets/items/rescue_ring.png",
+    brokenPaddle: "assets/items/broken_paddle.png",
+    woodenPlank: "assets/items/wooden_plank.png",
+    dockRope: "assets/items/dock_rope.png",
+    deliveryPackage: "assets/items/delivery_package.png",
+    wetlandPass: "assets/items/wetland_pass.png",
+    waterGauge: "assets/props/water_gauge.png",
+    dockSignal: "assets/props/dock_signal.png",
   };
 
   const registry = {
@@ -234,6 +243,15 @@
       acornNoticeFragment: window.ART_ASSETS.props.acornNoticeFragment,
       acornTownCart: window.ART_ASSETS.props.acornTownCart,
       riversideDockSign: window.ART_ASSETS.props.riversideDockSign,
+      dockPass: window.ART_ASSETS.props.dockPass,
+      rescueRing: window.ART_ASSETS.props.rescueRing,
+      brokenPaddle: window.ART_ASSETS.props.brokenPaddle,
+      woodenPlank: window.ART_ASSETS.props.woodenPlank,
+      dockRope: window.ART_ASSETS.props.dockRope,
+      deliveryPackage: window.ART_ASSETS.props.deliveryPackage,
+      wetlandPass: window.ART_ASSETS.props.wetlandPass,
+      waterGauge: window.ART_ASSETS.props.waterGauge,
+      dockSignal: window.ART_ASSETS.props.dockSignal,
     },
     obstacles: {
       pond: "./assets/asset-pack-01/obstacles/pond.png",
