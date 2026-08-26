@@ -10,6 +10,6 @@ assert.match(game, /function currentLevelStartMessage\(\)[\s\S]*?level\?\.world 
 assert.match(game, /if \(initialLevel > 0\) \{[\s\S]*?startBtn\.textContent = text\.start[\s\S]*?messageEl\.textContent = currentLevelStartMessage\(\)/);
 assert.match(game, /task\.kind === "route_marker"[\s\S]*?routeHintFor\(selectedDifficulty\)/);
 assert.match(index, /riverside-dock-rules\.js\?v=riverside-dock-difficulty-20260822/);
-assert.match(index, /game\.js\?v=riverside-dock-difficulty-20260822/);
+assert.match(index, /game\.js\?v=riverside-dock-assets-20260826/);
 assert.match(index, /riverside-dock-quiz-bank\.js\?v=riverside-dock-difficulty-20260822/);
 assert.match(quizBank, /if \(wasRunning\)[\s\S]*?text\.restart[\s\S]*?else[\s\S]*?text\.start/);
