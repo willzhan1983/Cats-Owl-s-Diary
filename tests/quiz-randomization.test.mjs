@@ -50,7 +50,7 @@ assert.ok(
 );
 
 assert.ok(
-  index.includes("./game.js?v=riverside-dock-polish-20260827"),
+  index.includes("./game.js?v=character-v6-20260827"),
   "game.js should use the current Riverside Dock cache version",
 );
 

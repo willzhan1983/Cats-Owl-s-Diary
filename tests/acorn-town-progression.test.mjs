@@ -16,6 +16,6 @@ assert.match(worldMap, /\["acorn_town", "riverside_dock"\]\.includes\(regionId\)
 assert.match(entry, /CATS_OWLS_PROGRESS\?\.isWorldUnlocked\("acorn_town"\)/);
 assert.match(entry, /进入橡果镇篇/);
 assert.match(index, /<script src="\.\/acorn-town-map-entry\.js\?v=acorn-town-20260729"><\/script>/);
-assert.match(index, /<script src="\.\/game\.js\?v=riverside-dock-polish-20260827"><\/script>/);
+assert.match(index, /<script src="\.\/game\.js\?v=character-v6-20260827"><\/script>/);
 assert.match(index, /<script src="\.\/art-assets\.js\?v=riverside-dock-assets-20260826"><\/script>/);
 assert.match(index, /<script src="\.\/world-map\.js\?v=acorn-town-20260729"><\/script>/);
