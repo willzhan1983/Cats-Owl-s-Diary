@@ -5913,6 +5913,9 @@ const ART_PACK_ITEM_BOUNDS = {
   dockPass: { x: -30, y: -36, w: 60, h: 72 },
   rescueRing: { x: -34, y: -34, w: 68, h: 68 },
   brokenPaddle: { x: -40, y: -24, w: 80, h: 48 },
+  plankShort: { x: -29, y: -14, w: 58, h: 28 },
+  plankMedium: { x: -42, y: -18, w: 84, h: 36 },
+  plankLong: { x: -55, y: -22, w: 110, h: 44 },
   woodenPlank: { x: -42, y: -18, w: 84, h: 36 },
   dockRope: { x: -34, y: -34, w: 68, h: 68 },
   deliveryPackage: { x: -34, y: -34, w: 68, h: 68 },
@@ -6533,15 +6536,20 @@ function drawTasks() {
 
 function drawRiversideDockTaskArt(task) {
   if (!isRiversideDockLevel()) return false;
-  const key = {
-    bridgePlank: "woodenPlank",
-    dockRope: "dockRope",
-    waterGauge: "waterGauge",
-    dockSignal: "dockSignal",
-    wetlandPass: "wetlandPass",
+  const bridgeBounds = {
+    bridge_short: "plankShort",
+    bridge_medium: "plankMedium",
+    bridge_long: "plankLong",
+  }[task.id];
+  const art = {
+    bridgePlank: { key: "woodenPlank", bounds: bridgeBounds || "woodenPlank" },
+    dockRope: { key: "dockRope", bounds: "dockRope" },
+    waterGauge: { key: "waterGauge", bounds: "waterGauge" },
+    dockSignal: { key: "dockSignal", bounds: "dockSignal" },
+    wetlandPass: { key: "wetlandPass", bounds: "wetlandPass" },
   }[task.animal];
-  const bounds = key && ART_PACK_ITEM_BOUNDS[key];
-  if (!key || !bounds || !drawPropImage(ctx, key, bounds.x, bounds.y, bounds.w, bounds.h)) return false;
+  const bounds = art && ART_PACK_ITEM_BOUNDS[art.bounds];
+  if (!art || !bounds || !drawPropImage(ctx, art.key, bounds.x, bounds.y, bounds.w, bounds.h)) return false;
   if (task.kind === "dock_signal") {
     ctx.fillStyle = state.riversideSignalGreen ? "rgba(109, 205, 112, 0.62)" : "rgba(234, 94, 82, 0.62)";
     circle(0, 30, 12);
