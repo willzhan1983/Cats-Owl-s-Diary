@@ -23,9 +23,9 @@ vm.runInNewContext(source, sandbox);
 
 const api = sandbox.CATS_OWLS_RIVERSIDE_DOCK_QUIZ;
 assert.ok(api, "Riverside Dock quiz API should be exported");
-assert.equal(api.catalog.length, 24);
+assert.equal(api.catalog.length, 48);
 for (const difficulty of ["easy", "normal", "hard", "crazy"]) {
-  assert.equal(api.catalog.filter((entry) => entry.difficulty === difficulty).length, 6);
+  assert.equal(api.catalog.filter((entry) => entry.difficulty === difficulty).length, 12);
 }
 assert.deepEqual(
   [...new Set(api.catalog.map((entry) => entry.category))].sort(),

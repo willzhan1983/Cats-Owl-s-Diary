@@ -9,7 +9,7 @@ const levels = [
   "riverside_bridge_repair",
   "riverside_safe_crossing",
 ].map((id) => ({ id, world: "riverside_dock", tasks: [] }));
-const sandbox = { quizBank: {}, levels };
+const sandbox = { quizBank: {}, levels, Math: Object.assign(Object.create(Math), { random: () => 0 }) };
 sandbox.window = sandbox;
 vm.runInNewContext(source, sandbox);
 const api = sandbox.CATS_OWLS_RIVERSIDE_DOCK_QUIZ;
@@ -23,4 +23,11 @@ assert.equal(api.runSnapshot().assignedLevels, 4);
 const secondRunId = api.beginRun("normal");
 assert.ok(secondRunId > firstRunId);
 assert.equal(api.runSnapshot().assignedLevels, 0, "new chapter entry should clear old assignments");
-assert.equal(api.assign(levels[0].id, "normal").difficulty, "normal");
+const secondAssignments = levels.map((level) => api.assign(level.id, "normal"));
+assert.equal(secondAssignments.every((entry) => entry.difficulty === "normal"), true);
+assert.equal(
+  secondAssignments.some((entry) => assignments.some((previous) => previous.id === entry.id)),
+  false,
+  "a new chapter entry should avoid questions used in the immediately previous run"
+);
+assert.equal(api.runSnapshot().recentIds.length, 8, "recent question history should retain both chapter runs");

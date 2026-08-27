@@ -6,7 +6,7 @@ const map = readFileSync(new URL("../world-map.js", import.meta.url), "utf8");
 const index = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const names = ["迷雾沼泽入口", "萤火虫小径", "沉睡木桥", "迷雾核心", "沼泽泥浆怪"];
 
-assert.match(index, /game\.js\?v=riverside-dock-assets-20260826/);
+assert.match(index, /game\.js\?v=riverside-dock-polish-20260827/);
 
 function levelBlock(name) {
   const start = game.indexOf(`name: "${name}"`);
