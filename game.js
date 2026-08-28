@@ -464,6 +464,14 @@ const WORLD_MAP = {
     levels: [],
     taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE],
   },
+  wetland_park: {
+    id: "wetland_park",
+    name: "湿地公园",
+    background: "wetland",
+    levels: [],
+    taskTypes: [TASK_TYPES.FETCH_ITEM, TASK_TYPES.HELP_NPC, TASK_TYPES.SIMPLE_PUZZLE, TASK_TYPES.BOSS_FIGHT],
+    boss: "fogCrocodile",
+  },
   mist_swamp: {
     id: "mist_swamp",
     name: "迷雾沼泽",
@@ -544,6 +552,7 @@ const WORLD_PREREQUISITES = Object.freeze({
   acorn_town: "forest_road",
   riverside_dock: "acorn_town",
   wetland_park: "riverside_dock",
+  mist_swamp: "wetland_park",
 });
 const DEFAULT_NICKNAMES = ["小猫勇士", "月光探险家", "森林小帮手", "星星队长", "猫头鹰同学", "彩虹日记员"];
 let playerProfile = loadPlayerProfile();
@@ -1818,6 +1827,91 @@ const levels = [
     puddles: [],
     obstacles: [],
   },
+  {
+    id: "wetland_fog_entrance",
+    name: "雾中入口",
+    bg: "wetland",
+    world: "wetland_park",
+    time: 130,
+    start: { x: 120, y: 420 },
+    message: "跟随 Lumi 点亮瞭望台，穿过湿地迷雾。",
+    collectibles: [],
+    tasks: [
+      { x: 214, y: 324, id: "lumi_quest", name: "Lumi", animal: "lumi", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 470, y: 224, id: "wetland_lookout_one", name: "第一座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", reward: "wetlandMapPiece", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 732, y: 182, id: "wetland_lookout_two", name: "第二座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", requiresWetlandQuest: true, done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "wetland_reed_maze",
+    name: "芦苇迷径",
+    bg: "wetland",
+    world: "wetland_park",
+    time: 135,
+    start: { x: 120, y: 420 },
+    message: "听风、看水纹、找鸟影，拼出安全路线。",
+    collectibles: [],
+    tasks: [
+      { x: 210, y: 322, id: "nono_quest", name: "Nono", animal: "nono", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 460, y: 240, id: "wetland_water_ripple", name: "水纹观察点", animal: "wetlandMarker", kind: "wetland_observation", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 720, y: 188, id: "wetland_bird_shadow", name: "鸟影观察点", animal: "wetlandMarker", kind: "wetland_observation", reward: "windFeather", requiresWetlandQuest: true, done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "wetland_drift_crossing",
+    name: "浮木渡口",
+    bg: "wetland",
+    world: "wetland_park",
+    time: 140,
+    start: { x: 120, y: 420 },
+    message: "等水流变缓，沿荷叶和浮木点亮净化灯。",
+    collectibles: [],
+    tasks: [
+      { x: 210, y: 322, id: "reed_crossing_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 460, y: 250, id: "wetland_lamp_one", name: "第一盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 720, y: 190, id: "wetland_lamp_two", name: "第二盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", reward: "crossingKnot", requiresWetlandQuest: true, done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "wetland_ruin_mirrors",
+    name: "沼泽遗迹",
+    bg: "wetland",
+    world: "wetland_park",
+    time: 145,
+    start: { x: 120, y: 420 },
+    message: "转动反光镜，让净化光照亮水闸。",
+    collectibles: [],
+    tasks: [
+      { x: 210, y: 322, id: "reed_ruin_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 460, y: 250, id: "wetland_mirror_one", name: "第一面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 720, y: 190, id: "wetland_mirror_two", name: "第二面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", reward: "purificationCore", requiresWetlandQuest: true, done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
+  {
+    id: "wetland_fog_crocodile",
+    name: "迷雾巨鳄·沼泽守门人",
+    bg: "wetland",
+    world: "wetland_park",
+    time: 160,
+    start: { x: 120, y: 420 },
+    message: "帮助被迷雾困住的巨鳄恢复清醒。",
+    levelReward: { type: "wetlandPass", count: 1 },
+    collectibles: [],
+    tasks: [
+      { x: 700, y: 238, id: "crocodile_quest", name: "迷雾巨鳄", animal: "fogCrocodile", kind: "wetland_npc", role: "boss", done: false, progress: 0 },
+      { x: 470, y: 250, id: "wetland_fog_core", name: "迷雾核心", animal: "wetlandCore", kind: "wetland_core", reward: "wetlandPass", requiresWetlandQuest: true, done: false, progress: 0 },
+    ],
+    puddles: [],
+    obstacles: [],
+  },
 ];
 
 const LEVEL_WORLD_SEQUENCE = [
@@ -1859,6 +1953,12 @@ WORLD_MAP.acorn_town.levels = levels
 if (WORLD_MAP.riverside_dock) {
   WORLD_MAP.riverside_dock.levels = levels
     .map((level, index) => (level.world === "riverside_dock" ? index : -1))
+    .filter((index) => index >= 0);
+}
+
+if (WORLD_MAP.wetland_park) {
+  WORLD_MAP.wetland_park.levels = levels
+    .map((level, index) => (level.world === "wetland_park" ? index : -1))
     .filter((index) => index >= 0);
 }
 
