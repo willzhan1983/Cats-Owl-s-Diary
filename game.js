@@ -2028,7 +2028,7 @@ function wetlandQuestNpcTask() {
 }
 
 function wetlandQuestAllowsProgress() {
-  return !isWetlandParkLevel() || state.wetlandQuest?.status === "active";
+  return !isWetlandParkLevel() || ["active", "ready"].includes(state.wetlandQuest?.status);
 }
 
 function isMistSwampSleepingBridgeLevel() {
@@ -4774,6 +4774,10 @@ function interactWetlandParkTask(task) {
   }
   if (!wetlandQuestAllowsProgress()) {
     messageEl.textContent = `先去找${wetlandQuestNpcTask()?.name || "任务伙伴"}接任务。`;
+    return true;
+  }
+  if (task.kind === "quiz") {
+    openQuiz(task);
     return true;
   }
   if (!task.kind.startsWith("wetland_")) return false;
