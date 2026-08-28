@@ -1486,7 +1486,7 @@ assert.deepEqual(easyBossMatrixResult.bossFlow, {
 });
 
 const legacyTaskKindCounts = Array.from(levels)
-  .filter((level) => !["mist_swamp", "acorn_town", "riverside_dock"].includes(level.world))
+  .filter((level) => !["mist_swamp", "acorn_town", "riverside_dock", "wetland_park"].includes(level.world))
   .flatMap((level) => Array.from(level.tasks, (task) => task.kind))
   .reduce((counts, kind) => ({ ...counts, [kind]: (counts[kind] || 0) + 1 }), {});
 assert.deepEqual(legacyTaskKindCounts, {
