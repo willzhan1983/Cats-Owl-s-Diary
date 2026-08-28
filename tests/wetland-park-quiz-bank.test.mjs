@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
 const source = readFileSync(new URL("../wetland-park-quiz-bank.js", import.meta.url), "utf8");
+const game = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const context = { quizBank: {}, levels: [{ world: "wetland_park", id: "wetland_fog_entrance", tasks: [] }], globalThis: {}, Math };
 context.window = context.globalThis;
 vm.runInNewContext(source, context);
@@ -15,3 +16,5 @@ for (const question of api.catalog) {
   assert.ok(question.options[question.answer] !== undefined);
 }
 assert.equal(context.levels[0].tasks.filter((task) => task.wetlandParkShared).length, 1);
+assert.match(game, /startWetlandParkChapter/);
+assert.match(game, /CATS_OWLS_WETLAND_PARK_QUIZ/);

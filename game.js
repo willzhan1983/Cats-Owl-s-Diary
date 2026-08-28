@@ -2381,6 +2381,14 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   ) {
     riversideQuizApi.beginRun(selectedDifficulty);
   }
+  const wetlandQuizApi = window.CATS_OWLS_WETLAND_PARK_QUIZ;
+  if (
+    rawLevel?.world === "wetland_park" &&
+    (options.startWetlandParkChapter || previousWorld !== "wetland_park") &&
+    typeof wetlandQuizApi?.beginRun === "function"
+  ) {
+    wetlandQuizApi.beginRun(selectedDifficulty);
+  }
   const level = prepareRiversideDockLevel(prepareAcornTownLevel(rawLevel));
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
@@ -2559,6 +2567,12 @@ function prepareTask(entry, level, index) {
     typeof window.CATS_OWLS_RIVERSIDE_DOCK_QUIZ?.assign === "function"
   ) {
     task.quiz = window.CATS_OWLS_RIVERSIDE_DOCK_QUIZ.assign(level.id, selectedDifficulty);
+  } else if (
+    task.wetlandParkShared &&
+    level.world === "wetland_park" &&
+    typeof window.CATS_OWLS_WETLAND_PARK_QUIZ?.assign === "function"
+  ) {
+    task.quiz = window.CATS_OWLS_WETLAND_PARK_QUIZ.assign(level.id, selectedDifficulty);
   } else if (task.quizKey) {
     task.quiz = randomQuiz(task.quizKey, quizScope);
   }
