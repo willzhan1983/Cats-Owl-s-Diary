@@ -1837,7 +1837,7 @@ const levels = [
     message: "跟随 Lumi 点亮瞭望台，穿过湿地迷雾。",
     collectibles: [],
     tasks: [
-      { x: 214, y: 324, id: "lumi_quest", name: "Lumi", animal: "lumi", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 214, y: 324, id: "lumi_quest", name: "Lumi", animal: "lumi", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 470, y: 224, id: "wetland_lookout_one", name: "第一座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", reward: "wetlandMapPiece", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 732, y: 182, id: "wetland_lookout_two", name: "第二座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
@@ -1854,7 +1854,7 @@ const levels = [
     message: "听风、看水纹、找鸟影，拼出安全路线。",
     collectibles: [],
     tasks: [
-      { x: 210, y: 322, id: "nono_quest", name: "Nono", animal: "nono", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 210, y: 322, id: "nono_quest", name: "Nono", animal: "nono", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 240, id: "wetland_water_ripple", name: "水纹观察点", animal: "wetlandMarker", kind: "wetland_observation", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 188, id: "wetland_bird_shadow", name: "鸟影观察点", animal: "wetlandMarker", kind: "wetland_observation", reward: "windFeather", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
@@ -1871,7 +1871,7 @@ const levels = [
     message: "等水流变缓，沿荷叶和浮木点亮净化灯。",
     collectibles: [],
     tasks: [
-      { x: 210, y: 322, id: "reed_crossing_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 210, y: 322, id: "reed_crossing_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 250, id: "wetland_lamp_one", name: "第一盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 190, id: "wetland_lamp_two", name: "第二盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", reward: "crossingKnot", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
@@ -1888,7 +1888,7 @@ const levels = [
     message: "转动反光镜，让净化光照亮水闸。",
     collectibles: [],
     tasks: [
-      { x: 210, y: 322, id: "reed_ruin_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", done: false, progress: 0 },
+      { x: 210, y: 322, id: "reed_ruin_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 250, id: "wetland_mirror_one", name: "第一面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 190, id: "wetland_mirror_two", name: "第二面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", reward: "purificationCore", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
@@ -1906,7 +1906,7 @@ const levels = [
     levelReward: { type: "wetlandPass", count: 1 },
     collectibles: [],
     tasks: [
-      { x: 700, y: 238, id: "crocodile_quest", name: "迷雾巨鳄", animal: "fogCrocodile", kind: "wetland_npc", role: "boss", done: false, progress: 0 },
+      { x: 700, y: 238, id: "crocodile_quest", name: "迷雾巨鳄", animal: "fogCrocodile", kind: "wetland_npc", role: "boss", optional: true, done: false, progress: 0 },
       { x: 470, y: 250, id: "wetland_fog_core", name: "迷雾核心", animal: "wetlandCore", kind: "wetland_core", reward: "wetlandPass", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
@@ -6698,7 +6698,7 @@ function drawTasks() {
 
 function drawWetlandParkTaskArt(task) {
   if (!isWetlandParkLevel()) return false;
-  if (task.kind === "wetland_npc") return false;
+  if (task.kind === "wetland_npc") return drawWetlandParkNpcFallback(task.animal);
   const color = { wetland_lookout: "#ffd85d", wetland_observation: "#8fd7f2", wetland_lamp: "#fff09a", wetland_mirror: "#c7ecff", wetland_core: "#a98cff" }[task.kind];
   if (!color) return false;
   ctx.fillStyle = color;
@@ -6709,6 +6709,61 @@ function drawWetlandParkTaskArt(task) {
   ctx.fillStyle = "#395b47";
   fitText(task.done ? "✓" : "!", 0, -4, 26);
   return true;
+}
+
+function drawWetlandParkNpcFallback(kind) {
+  if (kind === "lumi") {
+    ctx.fillStyle = "rgba(255, 235, 109, 0.42)";
+    circle(0, -22, 38);
+    ctx.fillStyle = "#8dd8e8";
+    ctx.beginPath();
+    ctx.ellipse(-20, -24, 17, 10, -0.45, 0, Math.PI * 2);
+    ctx.ellipse(20, -24, 17, 10, 0.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffd95f";
+    circle(0, -16, 18);
+    ctx.fillStyle = "#4e5132";
+    circle(-6, -18, 3);
+    circle(6, -18, 3);
+    return true;
+  }
+  if (kind === "reed") {
+    ctx.fillStyle = "#a87a55";
+    ctx.beginPath();
+    ctx.ellipse(0, -15, 28, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#f3d6bb";
+    circle(0, -22, 15);
+    ctx.fillStyle = "#4d3a31";
+    circle(-5, -24, 2.8);
+    circle(5, -24, 2.8);
+    ctx.strokeStyle = "#6d4936";
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(21, -4);
+    ctx.quadraticCurveTo(42, 4, 34, 17);
+    ctx.stroke();
+    return true;
+  }
+  if (kind === "fogCrocodile") {
+    ctx.fillStyle = "rgba(176, 214, 179, 0.38)";
+    circle(0, -18, 48);
+    ctx.fillStyle = "#7fbf70";
+    ctx.beginPath();
+    ctx.ellipse(0, -14, 42, 24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#dff2c9";
+    roundRect(-24, -11, 48, 18, 9);
+    ctx.fill();
+    ctx.fillStyle = "#354f36";
+    circle(-13, -30, 5);
+    circle(13, -30, 5);
+    ctx.fillStyle = "#ffffff";
+    circle(-12, -31, 1.5);
+    circle(14, -31, 1.5);
+    return true;
+  }
+  return false;
 }
 
 function drawRiversideDockTaskArt(task) {
