@@ -2012,6 +2012,25 @@ function isMistSwampLevel() {
   return levels[state.levelIndex]?.world === "mist_swamp";
 }
 
+function isWetlandParkLevel() {
+  return levels[state?.levelIndex]?.world === "wetland_park";
+}
+
+function createWetlandQuestState(level, tasks) {
+  if (level?.world !== "wetland_park") return null;
+  const npcTask = tasks.find((task) => task.kind === "wetland_npc");
+  return { status: "locked", npcTaskId: npcTask?.id || null, checkpoint: { ...level.start } };
+}
+
+function wetlandQuestNpcTask() {
+  if (!isWetlandParkLevel() || !state.wetlandQuest) return null;
+  return state.tasksList.find((task) => task.id === state.wetlandQuest.npcTaskId) || null;
+}
+
+function wetlandQuestAllowsProgress() {
+  return !isWetlandParkLevel() || state.wetlandQuest?.status === "active";
+}
+
 function isMistSwampSleepingBridgeLevel() {
   const level = levels[state.levelIndex];
   return level?.world === "mist_swamp" && level.name === "沉睡木桥";
@@ -2437,6 +2456,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
     activeQuiz: null,
     activeDialogue: null,
     mistQuest: null,
+    wetlandQuest: null,
     nearbyTask: null,
     nearbyMudBubble: null,
     nearbyAppleTree: null,
@@ -2474,6 +2494,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
     leaves: makeLeaves(levelIndex),
   };
   state.mistQuest = createMistQuestState(level, state.tasksList);
+  state.wetlandQuest = createWetlandQuestState(level, state.tasksList);
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
@@ -4694,6 +4715,7 @@ function talkToNearbyTask() {
     openDialogue(state.nearbyTask);
     return;
   }
+  if (interactWetlandParkTask(state.nearbyTask)) return;
   if (isMistSwampLevel() && interactMistSwampTask(state.nearbyTask)) return;
   if (interactRiversideDockTask(state.nearbyTask)) return;
   if (state.nearbyTask?.kind === "matched_delivery") {
@@ -4736,6 +4758,32 @@ function talkToNearbyTask() {
     }
     openDialogue(state.nearbyTask);
   }
+}
+
+function interactWetlandParkTask(task) {
+  if (!isWetlandParkLevel()) return false;
+  if (!task) return false;
+  if (task.kind === "wetland_npc") {
+    if (state.wetlandQuest.status === "locked") {
+      state.wetlandQuest.status = "active";
+      messageEl.textContent = `${task.name}的任务开始啦！${levels[state.levelIndex].message}`;
+    } else {
+      messageEl.textContent = state.wetlandQuest.status === "ready" ? "任务完成啦，继续前往下一关！" : levels[state.levelIndex].message;
+    }
+    return true;
+  }
+  if (!wetlandQuestAllowsProgress()) {
+    messageEl.textContent = `先去找${wetlandQuestNpcTask()?.name || "任务伙伴"}接任务。`;
+    return true;
+  }
+  if (!task.kind.startsWith("wetland_")) return false;
+  if (!task.done) completeTask(task, task.x, task.y);
+  state.wetlandQuest.checkpoint = { x: task.x, y: task.y };
+  const objectivesDone = state.tasksList.filter((entry) => entry.kind.startsWith("wetland_") && entry.kind !== "wetland_npc").every((entry) => entry.done);
+  if (objectivesDone) state.wetlandQuest.status = "ready";
+  messageEl.textContent = objectivesDone ? "这一段探索完成啦！" : `${task.name}已经完成，继续观察前方。`;
+  updateHud();
+  return true;
 }
 
 function interactMistSwampTask(task) {
@@ -6622,7 +6670,7 @@ function drawTasks() {
       const bounds = ART_PACK_ITEM_BOUNDS.mistLamp;
       if (!drawPropImage(ctx, "mistLamp", bounds.x, bounds.y, bounds.w, bounds.h)) drawAnimal(task.animal);
     }
-    else if (!drawRiversideDockTaskArt(task)) drawAnimal(task.animal);
+    else if (!drawWetlandParkTaskArt(task) && !drawRiversideDockTaskArt(task)) drawAnimal(task.animal);
     drawMistQuestMarker(task);
     drawMudBossCore(task);
     if (isMistSwampLevel() && task.kind === "mist_lamp" && isMistLampActive(task)) {
@@ -6646,6 +6694,21 @@ function drawTasks() {
     if (task.kind === "boss" && !task.done) drawBossProgress(task.progress);
     ctx.restore();
   }
+}
+
+function drawWetlandParkTaskArt(task) {
+  if (!isWetlandParkLevel()) return false;
+  if (task.kind === "wetland_npc") return false;
+  const color = { wetland_lookout: "#ffd85d", wetland_observation: "#8fd7f2", wetland_lamp: "#fff09a", wetland_mirror: "#c7ecff", wetland_core: "#a98cff" }[task.kind];
+  if (!color) return false;
+  ctx.fillStyle = color;
+  ctx.strokeStyle = "rgba(45, 94, 72, 0.8)";
+  ctx.lineWidth = 4;
+  circle(0, -12, task.kind === "wetland_core" ? 34 : 26);
+  ctx.stroke();
+  ctx.fillStyle = "#395b47";
+  fitText(task.done ? "✓" : "!", 0, -4, 26);
+  return true;
 }
 
 function drawRiversideDockTaskArt(task) {
