@@ -113,6 +113,11 @@ const backgroundSources = {
   cityRoad: "./assets/v2/v2-bg-city-road.png",
   pondSide: "./assets/v2/v2-bg-pond.png",
   wetland: "./assets/v2/v2-bg-wetland.png",
+  wetlandFogEntrance: "./assets/wetland-park-generated/fog_entrance.png",
+  wetlandReedMaze: "./assets/wetland-park-generated/reed_maze.png",
+  wetlandDriftwoodCrossing: "./assets/wetland-park-generated/driftwood_crossing.png",
+  wetlandMarshRuins: "./assets/wetland-park-generated/marsh_ruins.png",
+  wetlandFogCrocodile: "./assets/wetland-park-generated/fog_crocodile_sanctuary.png",
   swampBoss: "./assets/v2/v2-bg-swamp-boss.png",
   forestSchool: "./assets/bg-level1-schoolyard.png",
   riverTown: "./assets/v2/v2-bg-city-road.png",
@@ -145,6 +150,11 @@ const backgroundSourceCandidates = {
   classroom: ["./assets/bg-level4-classroom.png", "./assets/bg-level1-schoolyard.png"],
   pondSide: ["./assets/v2/v2-bg-pond.png", "./assets/bg-level5-courage.jpg"],
   wetland: ["./assets/v2/v2-bg-wetland.png", "./assets/v2/v2-bg-pond.png"],
+  wetlandFogEntrance: ["./assets/wetland-park-generated/fog_entrance.png", "./assets/v2/v2-bg-wetland.png"],
+  wetlandReedMaze: ["./assets/wetland-park-generated/reed_maze.png", "./assets/v2/v2-bg-wetland.png"],
+  wetlandDriftwoodCrossing: ["./assets/wetland-park-generated/driftwood_crossing.png", "./assets/v2/v2-bg-wetland.png"],
+  wetlandMarshRuins: ["./assets/wetland-park-generated/marsh_ruins.png", "./assets/v2/v2-bg-wetland.png"],
+  wetlandFogCrocodile: ["./assets/wetland-park-generated/fog_crocodile_sanctuary.png", "./assets/v2/v2-bg-swamp-boss.png"],
   swampBoss: ["./assets/v2/v2-bg-swamp-boss.png", "./assets/bg-level6-boss.jpg"],
   adventure: ["./assets/bg-level3-adventure.png", "./assets/v2/v2-bg-city-road.png"],
   courage: ["./assets/bg-level5-courage.jpg", "./assets/v2/v2-bg-pond.png"],
@@ -675,6 +685,33 @@ function preloadNearbyBackgrounds(levelIndex) {
   const next = levelBackgroundKey(levels[nextPlayableLevelIndex(levelIndex)]);
   ensureBackground(current);
   window.setTimeout(() => ensureBackground(next), 800);
+}
+
+const WETLAND_ART_SOURCES = {
+  lumi: "./assets/wetland-park-generated/characters/lumi_idle.png",
+  reed: "./assets/wetland-park-generated/characters/reed_idle.png",
+  fogCrocodile: "./assets/wetland-park-generated/characters/fog_crocodile_idle.png",
+  wetlandLookout: "./assets/wetland-park-generated/props/observation_marker.png",
+  wetlandMarker: "./assets/wetland-park-generated/props/observation_marker.png",
+  wetlandLamp: "./assets/wetland-park-generated/props/purification_lantern.png",
+  wetlandMirror: "./assets/wetland-park-generated/props/mirror_relic.png",
+  wetlandCore: "./assets/wetland-park-generated/props/fog_core.png",
+};
+
+const wetlandArtImages = {};
+
+function drawWetlandParkImage(key, bounds) {
+  const source = WETLAND_ART_SOURCES[key];
+  if (!source) return false;
+  const image = wetlandArtImages[key] || new Image();
+  if (!wetlandArtImages[key]) {
+    image.decoding = "async";
+    image.src = source;
+    wetlandArtImages[key] = image;
+  }
+  if (!image.complete || !image.naturalWidth) return false;
+  ctx.drawImage(image, bounds.x, bounds.y, bounds.w, bounds.h);
+  return true;
 }
 
 const quizBank = {
@@ -1830,7 +1867,7 @@ const levels = [
   {
     id: "wetland_fog_entrance",
     name: "雾中入口",
-    bg: "wetland",
+    bg: "wetlandFogEntrance",
     world: "wetland_park",
     time: 130,
     start: { x: 120, y: 420 },
@@ -1847,7 +1884,7 @@ const levels = [
   {
     id: "wetland_reed_maze",
     name: "芦苇迷径",
-    bg: "wetland",
+    bg: "wetlandReedMaze",
     world: "wetland_park",
     time: 135,
     start: { x: 120, y: 420 },
@@ -1864,7 +1901,7 @@ const levels = [
   {
     id: "wetland_drift_crossing",
     name: "浮木渡口",
-    bg: "wetland",
+    bg: "wetlandDriftwoodCrossing",
     world: "wetland_park",
     time: 140,
     start: { x: 120, y: 420 },
@@ -1881,7 +1918,7 @@ const levels = [
   {
     id: "wetland_ruin_mirrors",
     name: "沼泽遗迹",
-    bg: "wetland",
+    bg: "wetlandMarshRuins",
     world: "wetland_park",
     time: 145,
     start: { x: 120, y: 420 },
@@ -1898,7 +1935,7 @@ const levels = [
   {
     id: "wetland_fog_crocodile",
     name: "迷雾巨鳄·沼泽守门人",
-    bg: "wetland",
+    bg: "wetlandFogCrocodile",
     world: "wetland_park",
     time: 160,
     start: { x: 120, y: 420 },
@@ -6702,7 +6739,20 @@ function drawTasks() {
 
 function drawWetlandParkTaskArt(task) {
   if (!isWetlandParkLevel()) return false;
-  if (task.kind === "wetland_npc") return drawWetlandParkNpcFallback(task.animal);
+  const npcArt = {
+    lumi: { key: "lumi", bounds: { x: -48, y: -82, w: 96, h: 112 } },
+    reed: { key: "reed", bounds: { x: -52, y: -76, w: 104, h: 106 } },
+    fogCrocodile: { key: "fogCrocodile", bounds: { x: -92, y: -126, w: 184, h: 126 } },
+  }[task.animal];
+  if (task.kind === "wetland_npc") return (npcArt && drawWetlandParkImage(npcArt.key, npcArt.bounds)) || drawWetlandParkNpcFallback(task.animal);
+  const propArt = {
+    wetlandLookout: { key: "wetlandLookout", bounds: { x: -38, y: -62, w: 76, h: 92 } },
+    wetlandMarker: { key: "wetlandMarker", bounds: { x: -38, y: -62, w: 76, h: 92 } },
+    wetlandLamp: { key: "wetlandLamp", bounds: { x: -36, y: -70, w: 72, h: 100 } },
+    wetlandMirror: { key: "wetlandMirror", bounds: { x: -48, y: -76, w: 96, h: 106 } },
+    wetlandCore: { key: "wetlandCore", bounds: { x: -46, y: -74, w: 92, h: 104 } },
+  }[task.animal];
+  if (propArt && drawWetlandParkImage(propArt.key, propArt.bounds)) return true;
   const color = { wetland_lookout: "#ffd85d", wetland_observation: "#8fd7f2", wetland_lamp: "#fff09a", wetland_mirror: "#c7ecff", wetland_core: "#a98cff" }[task.kind];
   if (!color) return false;
   ctx.fillStyle = color;
