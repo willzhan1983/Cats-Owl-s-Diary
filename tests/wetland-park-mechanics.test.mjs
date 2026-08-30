@@ -55,3 +55,9 @@ assert.match(game, /function drawWetlandFogPatrols\(\)/);
 assert.match(game, /function drawWetlandMemoryRoute\(\)/);
 assert.match(game, /state\.wetlandQuest\.checkpoint = \{ x: task\.x, y: task\.y \};/);
 assert.match(game, /if \(state\.wetlandQuest\.fogPatrolHitCooldown <= 0 && patrol\.hitCooldown <= 0 && distance\(state\.player, patrol\) < patrol\.radius \+ 20\) \{\s*patrol\.hitCooldown = 1;\s*state\.wetlandQuest\.fogPatrolHitCooldown = 1;\s*applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"\);/);
+
+const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
+const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";
+const drawTasksBody = game.match(/function drawTasks\(\)[\s\S]*?\n\}/)?.[0] || "";
+assert.match(checkTasksBody, reedMazeMemoryRouteSkip);
+assert.match(drawTasksBody, reedMazeMemoryRouteSkip);
