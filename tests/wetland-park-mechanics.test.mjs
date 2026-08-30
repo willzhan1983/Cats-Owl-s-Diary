@@ -38,6 +38,10 @@ assert.match(game, /function updateWetlandParkMechanisms\(dt\)\s*\{\s*if \(!isWe
 const resetSequence = game.match(/function resetWetlandSequence\([\s\S]*?\n\}/)?.[0] || "";
 assert.doesNotMatch(resetSequence, /state\.hearts\s*=\s*Math\.max/);
 assert.doesNotMatch(resetSequence, /state\.time\s*=\s*Math\.max/);
+assert.doesNotMatch(resetSequence, /\.done\s*=/);
+assert.doesNotMatch(resetSequence, /\.progress\s*=/);
+assert.doesNotMatch(resetSequence, /state\.tasks\s*=/);
+assert.match(resetSequence, /findIndex\(\(id\) => !state\.tasksList\.find\(\(entry\) => entry\.id === id\)\?\.done\)/);
 assert.match(game, /if \(isWetlandParkLevel\(\) && task\.kind === "wetland_npc"\) return wetlandNpcDialogue\(task\);/);
 assert.match(game, /function prepareWetlandFogPatrols\(\)/);
 assert.match(game, /function updateWetlandFogPatrols\(dt\)/);
@@ -49,3 +53,5 @@ assert.match(game, /state\.wetlandQuest\.fogPatrolHitCooldown = 1/);
 assert.match(game, /applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"/);
 assert.match(game, /function drawWetlandFogPatrols\(\)/);
 assert.match(game, /function drawWetlandMemoryRoute\(\)/);
+assert.match(game, /state\.wetlandQuest\.checkpoint = \{ x: task\.x, y: task\.y \};/);
+assert.match(game, /if \(state\.wetlandQuest\.fogPatrolHitCooldown <= 0 && patrol\.hitCooldown <= 0 && distance\(state\.player, patrol\) < patrol\.radius \+ 20\) \{\s*patrol\.hitCooldown = 1;\s*state\.wetlandQuest\.fogPatrolHitCooldown = 1;\s*applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"\);/);

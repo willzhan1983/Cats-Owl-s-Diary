@@ -4247,7 +4247,7 @@ function checkTasks(dt) {
   let nearestDistance = Infinity;
   let nearestPriority = -1;
   for (const task of state.tasksList) {
-    if (task.hidden) continue;
+    if (isWetlandParkLevel() && levels[state.levelIndex].id === "wetland_reed_maze" && task.kind === "wetland_memory_route") continue;
     if (isMistSwampLevel() && task.kind === "mud_bubble" && (!task.active || task.done)) continue;
     const near = distance(p, task) < 58;
     if (near) {
@@ -4997,14 +4997,8 @@ function talkToNearbyTask() {
 }
 
 function resetWetlandSequence(rule) {
-  for (const id of rule.sequence) {
-    const completedTask = state.tasksList.find((entry) => entry.id === id);
-    if (!completedTask?.done) continue;
-    completedTask.done = false;
-    completedTask.progress = 0;
-    state.tasks = Math.max(0, state.tasks - 1);
-  }
-  state.wetlandQuest.sequenceIndex = 0;
+  const firstUnfinished = rule.sequence.findIndex((id) => !state.tasksList.find((entry) => entry.id === id)?.done);
+  state.wetlandQuest.sequenceIndex = firstUnfinished === -1 ? rule.sequence.length : firstUnfinished;
 }
 
 function applyWetlandWrongAction(text, checkpoint = state.wetlandQuest.checkpoint) {
@@ -6972,7 +6966,7 @@ function taskRenderAlpha(task) {
 
 function drawTasks() {
   for (const task of state.tasksList) {
-    if (task.hidden) continue;
+    if (isWetlandParkLevel() && levels[state.levelIndex].id === "wetland_reed_maze" && task.kind === "wetland_memory_route") continue;
     if (task.kind === "road_clear" && task.done) continue;
     if (isMistSwampLevel() && task.kind === "mud_bubble") continue;
     ctx.save();
