@@ -123,6 +123,11 @@ assert.match(game, /if \(!boss\.purificationUntil\) boss\.purificationUntil = no
 assert.match(game, /if \(now >= boss\.purificationUntil\) return true;/);
 const wetlandBossUpdate = game.slice(game.indexOf("function updateWetlandBoss(dt)"), game.indexOf("function collectWetlandBossWisp(task)"));
 assert.match(wetlandBossUpdate, /if \(boss\.purificationUntil && now > boss\.purificationUntil\) \{[\s\S]*?boss\.phase = "collect";[\s\S]*?boss\.carriedWispIds = boss\.carriedWispIds\.slice\(0, 1\);[\s\S]*?boss\.purificationUntil = 0;[\s\S]*?applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\);[\s\S]*?return;/);
+assert.match(wetlandBossUpdate, /if \(!heldNearCore\) \{[\s\S]*?return;[\s\S]*?if \(!boss\.purificationUntil\) boss\.purificationUntil = now \+ wetlandDifficultyConfig\(\)\.bossWindow \* 1000;[\s\S]*?if \(!boss\.holdStartedAt\) boss\.holdStartedAt = now;/);
+const updateDeadlineIndex = wetlandBossUpdate.indexOf("if (!boss.purificationUntil) boss.purificationUntil = now + wetlandDifficultyConfig().bossWindow * 1000;");
+const updateHoldIndex = wetlandBossUpdate.indexOf("if (!boss.holdStartedAt) boss.holdStartedAt = now;");
+const updateCompletionIndex = wetlandBossUpdate.indexOf("if (now - boss.holdStartedAt < holdSeconds * 1000) return;");
+assert.ok(updateDeadlineIndex > 0 && updateDeadlineIndex < updateHoldIndex && updateHoldIndex < updateCompletionIndex, "continuous-hold final-wisp route must establish a deadline before hold progress can complete");
 assert.doesNotMatch(wetlandBossUpdate, /purificationUntil && !boss\.holdStartedAt/);
 assert.doesNotMatch(game.slice(game.indexOf("function collectWetlandBossWisp(task)"), game.indexOf("function startWetlandPurification()")), /performance\.now\(\) \+ wetlandDifficultyConfig\(\)\.bossWindow/);
 

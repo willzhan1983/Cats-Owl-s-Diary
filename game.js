@@ -4262,6 +4262,7 @@ function updateWetlandBoss(dt) {
       boss.holdStartedAt = 0;
       return;
     }
+    if (!boss.purificationUntil) boss.purificationUntil = now + wetlandDifficultyConfig().bossWindow * 1000;
     if (!boss.holdStartedAt) boss.holdStartedAt = now;
     if (now - boss.holdStartedAt < holdSeconds * 1000) return;
     for (const wisp of wetlandBossWisps()) {
