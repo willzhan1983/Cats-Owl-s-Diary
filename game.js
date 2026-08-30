@@ -4576,7 +4576,7 @@ function taskDialogueMode(task) {
 }
 
 function taskDialogueLines(task, mode) {
-  if (task.kind === "wetland_npc") return wetlandNpcDialogue(task);
+  if (isWetlandParkLevel() && task.kind === "wetland_npc") return wetlandNpcDialogue(task);
   if (isMistQuestNpc(task)) {
     const quest = levels[state.levelIndex].mistQuest;
     if (mode === "quest_intro") return quest.introLines;
@@ -4893,8 +4893,6 @@ function resetWetlandSequence(rule) {
     completedTask.done = false;
     completedTask.progress = 0;
     state.tasks = Math.max(0, state.tasks - 1);
-    state.hearts = Math.max(0, state.hearts - 3);
-    state.time = Math.max(0, state.time - 5);
   }
   state.wetlandQuest.sequenceIndex = 0;
 }
