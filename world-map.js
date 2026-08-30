@@ -49,8 +49,8 @@
       background: "assets/v2/v2-bg-swamp-boss.png",
       npcs: ["ruru", "owlly"],
       neighbors: ["starlight_mountain", "forest_school", "wetland_park"],
-      unlocked: true,
-      unlockCondition: "完成森林公路后可进入",
+      unlocked: false,
+      unlockCondition: "完成湿地公园冒险后可进入",
       position: { column: 2, row: 2 },
       theme: "点灯驱雾、萤火虫引路、修木桥、净化守护者",
       previous: "森林公路",
@@ -358,7 +358,7 @@
 
   function regionIsUnlocked(regionId) {
     const region = WORLD_MAP[regionId];
-    const hasDynamicProgress = ["acorn_town", "riverside_dock"].includes(regionId) || regionId === "wetland_park";
+    const hasDynamicProgress = ["acorn_town", "riverside_dock", "wetland_park", "mist_swamp"].includes(regionId);
     return Boolean(region?.unlocked || (hasDynamicProgress && window.CATS_OWLS_PROGRESS?.isWorldUnlocked(regionId)));
   }
 
