@@ -2108,7 +2108,7 @@ function wetlandAdventureRule() {
 
 function wetlandNpcDialogue(task) {
   const levelId = levels[state.levelIndex]?.id;
-  if (levelId === "wetland_fog_crocodile") return ["迷雾把我困住了……请找到散落的 3 束净化光。", "光点聚齐后，再回来净化迷雾核心。"];
+  if (levelId === "wetland_fog_crocodile") return ["迷雾把我困住了……先从三道雾浪的安全缺口穿过。", "再收集 3 束净化光，靠近核心持续按住 E 或交互按钮。"];
   if (levelId === "wetland_reed_maze") return ["水纹、荷叶、鸟影、芦苇、月光会短暂闪烁。", "路线消失后，可以回到 Nono 这里按 E 重新查看路线。"];
   const clue = wetlandAdventureRule()?.clue || "跟着场景中的光点继续探索。";
   return [`${task.name}：湿地的路会随雾和水流变化。`, clue];
@@ -2629,6 +2629,8 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   prepareWetlandMemoryRoute();
   prepareWetlandPlatforms();
   prepareWetlandMirrors();
+  prepareWetlandBoss();
+  attackBtn.hidden = isWetlandBossLevel();
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
@@ -4026,6 +4028,10 @@ function updateWetlandParkMechanisms(dt) {
     updateWetlandFogPatrols(dt);
     return;
   }
+  if (levels[state.levelIndex].id === "wetland_fog_crocodile") {
+    updateWetlandBoss(dt);
+    return;
+  }
   if (levels[state.levelIndex].id !== "wetland_drift_crossing") return;
   const speed = selectedDifficulty === "crazy" ? 0.19 : selectedDifficulty === "hard" ? 0.16 : selectedDifficulty === "normal" ? 0.13 : 0.1;
   const windowSize = { easy: 0.42, normal: 0.3, hard: 0.23, crazy: 0.17 }[selectedDifficulty] || 0.3;
@@ -4151,6 +4157,197 @@ function rotateWetlandMirror(task) {
   state.wetlandQuest.status = "ready";
   messageEl.textContent = "净化光已经照亮水闸，遗迹通路打开啦！";
   updateHud();
+  return true;
+}
+
+function isWetlandBossLevel() {
+  return isWetlandParkLevel() && levels[state.levelIndex]?.id === "wetland_fog_crocodile";
+}
+
+function wetlandBossWisps() {
+  return state.tasksList.filter((task) => task.kind === "wetland_boss_wisp");
+}
+
+function prepareWetlandBoss() {
+  if (!isWetlandBossLevel() || !state.wetlandQuest) return;
+  state.wetlandQuest.boss = {
+    phase: "avoid",
+    waveAngle: 0,
+    nextWaveAt: performance.now() + 1400,
+    safeGapAngle: 0,
+    carriedWisps: 0,
+    requiredWisps: 3,
+    purificationUntil: 0,
+    holdStartedAt: 0,
+    checkpoint: { x: 180, y: 392 },
+    purificationCoreReady: true,
+    mistRing: null,
+    avoidedWaves: 0,
+    carriedWispIds: [],
+  };
+  state.wetlandQuest.checkpoint = { ...state.wetlandQuest.boss.checkpoint };
+  for (const wisp of wetlandBossWisps()) wisp.bossActive = false;
+}
+
+function wetlandBossOrigin() {
+  return state.tasksList.find((task) => task.id === "crocodile_quest") || { x: 700, y: 238 };
+}
+
+function wetlandBossCore() {
+  return state.tasksList.find((task) => task.id === "wetland_fog_core") || null;
+}
+
+function activateWetlandBossWisps(retainedIds = []) {
+  const retained = new Set(retainedIds);
+  for (const wisp of wetlandBossWisps()) wisp.bossActive = !retained.has(wisp.id) && !wisp.done;
+}
+
+function dropLastWetlandBossWisp() {
+  const boss = state.wetlandQuest.boss;
+  const lastId = boss.carriedWispIds.pop();
+  if (!lastId) return;
+  const wisp = state.tasksList.find((task) => task.id === lastId);
+  if (wisp) wisp.bossActive = true;
+  boss.carriedWisps = boss.carriedWispIds.length;
+}
+
+function wetlandBossTaskInteractive(task) {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss) return true;
+  const boss = state.wetlandQuest.boss;
+  if (task.kind === "wetland_boss_wisp") return boss.phase === "collect" && task.bossActive && !task.done;
+  if (task.kind === "wetland_core") return boss.phase === "purify" || task.done;
+  if (task.kind === "wetland_decoy") return boss.phase === "collect";
+  return true;
+}
+
+function wetlandBossTaskVisible(task) {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss) return true;
+  if (task.kind === "wetland_boss_wisp") return task.bossActive || task.done;
+  if (task.kind === "wetland_decoy") return state.wetlandQuest.boss.phase === "collect";
+  return true;
+}
+
+function updateWetlandBoss(dt) {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss || state.wetlandQuest.status !== "active") return;
+  const boss = state.wetlandQuest.boss;
+  const now = performance.now();
+  if (boss.phase === "purify") {
+    const core = wetlandBossCore();
+    if (now >= boss.purificationUntil && !boss.holdStartedAt) {
+      boss.phase = "collect";
+      boss.carriedWispIds = boss.carriedWispIds.slice(0, 1);
+      boss.carriedWisps = boss.carriedWispIds.length;
+      boss.holdStartedAt = 0;
+      boss.nextWaveAt = now + 900;
+      activateWetlandBossWisps(boss.carriedWispIds);
+      applyWetlandWrongAction("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss.checkpoint);
+      return;
+    }
+    const holdSeconds = { easy: 1.8, normal: 1.8, hard: 2.2, crazy: 2.6 }[selectedDifficulty] || 1.8;
+    const heldNearCore = pressed("interact") && core && distance(state.player, core) < 64;
+    if (!heldNearCore) {
+      boss.holdStartedAt = 0;
+      return;
+    }
+    if (!boss.holdStartedAt) boss.holdStartedAt = now;
+    if (now - boss.holdStartedAt < holdSeconds * 1000) return;
+    for (const wisp of wetlandBossWisps()) {
+      if (wisp.done) continue;
+      wisp.done = true;
+      wisp.progress = 1;
+      wisp.bossActive = false;
+      state.tasks += 1;
+    }
+    if (core && !core.done) completeTask(core, core.x, core.y);
+    boss.phase = "complete";
+    boss.holdStartedAt = 0;
+    state.wetlandQuest.status = "ready";
+    messageEl.textContent = "净化光照亮了迷雾核心，巨鳄恢复清醒啦！";
+    updateHud();
+    return;
+  }
+
+  if (!["avoid", "collect"].includes(boss.phase)) return;
+  if (!boss.mistRing && now >= boss.nextWaveAt) {
+    boss.waveAngle = (boss.waveAngle + Math.PI * 0.72) % (Math.PI * 2);
+    boss.safeGapAngle = boss.waveAngle;
+    boss.mistRing = { radius: 42, collided: false };
+  }
+  const ring = boss.mistRing;
+  if (!ring) return;
+  ring.radius += wetlandDifficultyConfig().bossSpeed * dt;
+  const origin = wetlandBossOrigin();
+  const playerDistance = distance(state.player, origin);
+  if (!ring.collided && Math.abs(playerDistance - ring.radius) < 18) {
+    const playerAngle = Math.atan2(state.player.y - origin.y, state.player.x - origin.x);
+    const gapDistance = Math.abs(Math.atan2(
+      Math.sin(playerAngle - boss.safeGapAngle),
+      Math.cos(playerAngle - boss.safeGapAngle),
+    ));
+    if (gapDistance > 0.48) {
+      ring.collided = true;
+      if (boss.phase === "collect") dropLastWetlandBossWisp();
+      applyWetlandWrongAction(
+        boss.phase === "collect" ? "雾浪卷走了最后携带的一束光。" : "雾浪挡住了前路，去安全缺口再试一次。",
+        boss.checkpoint,
+      );
+    }
+  }
+  if (ring.radius <= 760) return;
+  if (boss.phase === "avoid" && !ring.collided) boss.avoidedWaves += 1;
+  boss.mistRing = null;
+  boss.nextWaveAt = now + 900;
+  if (boss.phase === "avoid" && boss.avoidedWaves >= 3) {
+    boss.phase = "collect";
+    activateWetlandBossWisps();
+    messageEl.textContent = "三道雾浪都过去了，去收集 3 束净化光吧！";
+  }
+}
+
+function collectWetlandBossWisp(task) {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss || task?.kind !== "wetland_boss_wisp") return false;
+  const boss = state.wetlandQuest.boss;
+  if (boss.phase !== "collect" || !task.bossActive || task.done) return true;
+  task.bossActive = false;
+  boss.carriedWispIds.push(task.id);
+  boss.carriedWisps = boss.carriedWispIds.length;
+  burst(task.x, task.y, "#d9f8a8", 14);
+  addFloatingText(task.x, task.y - 48, `净化光 ${boss.carriedWisps}/${boss.requiredWisps}`, "#6ea85d");
+  if (boss.carriedWisps >= boss.requiredWisps) {
+    boss.phase = "purify";
+    boss.mistRing = null;
+    boss.nextWaveAt = Infinity;
+    boss.purificationUntil = performance.now() + wetlandDifficultyConfig().bossWindow * 1000;
+    boss.holdStartedAt = 0;
+    messageEl.textContent = "净化窗口开启！靠近迷雾核心，持续按住 E 或交互按钮。";
+  } else {
+    messageEl.textContent = `已携带 ${boss.carriedWisps}/3 束净化光，继续寻找。`;
+  }
+  return true;
+}
+
+function startWetlandPurification() {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss) return false;
+  const boss = state.wetlandQuest.boss;
+  if (boss.phase !== "purify" || !boss.purificationCoreReady) {
+    messageEl.textContent = boss.phase === "complete"
+      ? "迷雾已经散开，巨鳄恢复清醒啦！"
+      : boss.phase === "avoid" ? "先从雾浪的安全缺口穿过。" : "先收集散落在沼泽里的 3 束净化光。";
+    return true;
+  }
+  const core = wetlandBossCore();
+  if (!core || distance(state.player, core) >= 64) {
+    messageEl.textContent = "再靠近迷雾核心一点，持续按住 E 或交互按钮。";
+    return true;
+  }
+  if (!pressed("interact")) {
+    boss.holdStartedAt = 0;
+    messageEl.textContent = "需要持续按住 E 或交互按钮，直到光环充满。";
+    return true;
+  }
+  const now = performance.now();
+  if (now >= boss.purificationUntil) return true;
+  if (!boss.holdStartedAt) boss.holdStartedAt = now;
   return true;
 }
 
@@ -4389,6 +4586,7 @@ function checkTasks(dt) {
   let nearestPriority = -1;
   for (const task of state.tasksList) {
     if (isWetlandParkLevel() && levels[state.levelIndex].id === "wetland_reed_maze" && task.kind === "wetland_memory_route") continue;
+    if (!wetlandBossTaskInteractive(task)) continue;
     if (isMistSwampLevel() && task.kind === "mud_bubble" && (!task.active || task.done)) continue;
     const near = distance(p, task) < 58;
     if (near) {
@@ -5172,6 +5370,9 @@ function applyWetlandSequenceStep(task) {
 }
 
 function wetlandBossWispsReady() {
+  if (isWetlandBossLevel() && state.wetlandQuest?.boss) {
+    return state.wetlandQuest.boss.carriedWisps >= state.wetlandQuest.boss.requiredWisps;
+  }
   const wisps = state.tasksList.filter((entry) => entry.kind === "wetland_boss_wisp");
   return wisps.length > 0 && wisps.every((entry) => entry.done);
 }
@@ -5183,7 +5384,7 @@ function wetlandTaskHint(task) {
     return state.wetlandQuest?.waterSafe ? "水流变缓了！按 E 点亮这盏净化灯。" : "水流太急，等水面泛起绿色光圈再启动。";
   }
   if (task.kind === "wetland_decoy") return "紫色、裂纹或摇晃的光是幻象，千万别按 E。";
-  if (task.kind === "wetland_core") return wetlandBossWispsReady() ? "三束净化光已聚齐，按 E 净化迷雾核心。" : "先找到散落在沼泽里的 3 束净化光。";
+  if (task.kind === "wetland_core") return wetlandBossWispsReady() ? "三束净化光已聚齐，持续按住 E 净化迷雾核心。" : "先避开雾浪，再找到散落在沼泽里的 3 束净化光。";
   if (task.kind === "wetland_boss_wisp") return "按 E 收集净化光，别让迷雾把它吞掉。";
   const rule = wetlandAdventureRule();
   return rule?.sequence.includes(task.id) ? `${rule.clue} 按 E 操作。` : `按 E 处理${task.name}。`;
@@ -5212,6 +5413,8 @@ function interactWetlandParkTask(task) {
     return true;
   }
   if (!task.kind.startsWith("wetland_")) return false;
+  if (task.kind === "wetland_boss_wisp") return collectWetlandBossWisp(task);
+  if (task.kind === "wetland_core" && isWetlandBossLevel()) return startWetlandPurification();
   if (task.kind === "wetland_memory_node") return interactWetlandMemoryNode(task);
   if (task.kind === "wetland_mirror" && !task.done) return rotateWetlandMirror(task);
   if (task.done) {
@@ -5583,6 +5786,7 @@ function draw() {
   drawWetlandBeamPath();
   drawCollectibles();
   drawTasks();
+  drawWetlandBossEffects();
   drawWetlandFogPatrols();
   drawWetlandMemoryRoute();
   drawMudBubbles();
@@ -7117,6 +7321,7 @@ function taskRenderAlpha(task) {
 function drawTasks() {
   for (const task of state.tasksList) {
     if (isWetlandParkLevel() && levels[state.levelIndex].id === "wetland_reed_maze" && task.kind === "wetland_memory_route") continue;
+    if (!wetlandBossTaskVisible(task)) continue;
     if (task.kind === "road_clear" && task.done) continue;
     if (isMistSwampLevel() && task.kind === "mud_bubble") continue;
     ctx.save();
@@ -7267,6 +7472,75 @@ function drawWetlandBeamPath() {
     ctx.fillStyle = index < path.connectedCount ? "#ffe17d" : "#b9cddb";
     ctx.fillText(glyphs[state.wetlandQuest.mirrorAngles[index] || 0], mirror.x, mirror.y + 46);
   });
+  ctx.restore();
+}
+
+function drawWetlandBossEffects() {
+  if (!isWetlandBossLevel() || !state.wetlandQuest?.boss) return;
+  const boss = state.wetlandQuest.boss;
+  const origin = wetlandBossOrigin();
+  const core = wetlandBossCore();
+  ctx.save();
+  if (boss.mistRing) {
+    const gapHalf = 0.48;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(126, 108, 163, 0.72)";
+    ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.arc(
+      origin.x,
+      origin.y,
+      boss.mistRing.radius,
+      boss.safeGapAngle + gapHalf,
+      boss.safeGapAngle + Math.PI * 2 - gapHalf,
+    );
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(255, 228, 132, 0.9)";
+    ctx.lineWidth = 5;
+    for (const edge of [-gapHalf, gapHalf]) {
+      const angle = boss.safeGapAngle + edge;
+      ctx.beginPath();
+      ctx.arc(origin.x, origin.y, boss.mistRing.radius, angle - 0.07, angle + 0.07);
+      ctx.stroke();
+    }
+  }
+
+  if (core && boss.carriedWisps > 0 && boss.phase !== "complete") {
+    const now = performance.now() / 650;
+    for (let index = 0; index < boss.carriedWisps; index += 1) {
+      const angle = now + (index * Math.PI * 2) / boss.requiredWisps;
+      const x = core.x + Math.cos(angle) * 58;
+      const y = core.y - 12 + Math.sin(angle) * 34;
+      const glow = ctx.createRadialGradient(x, y, 2, x, y, 18);
+      glow.addColorStop(0, "rgba(247, 255, 190, 0.96)");
+      glow.addColorStop(1, "rgba(170, 235, 134, 0)");
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(x, y, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e8ffad";
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  if (core && boss.phase === "purify") {
+    const required = { easy: 1.8, normal: 1.8, hard: 2.2, crazy: 2.6 }[selectedDifficulty] || 1.8;
+    const progress = boss.holdStartedAt
+      ? clamp((performance.now() - boss.holdStartedAt) / (required * 1000), 0, 1)
+      : 0;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "rgba(63, 74, 83, 0.58)";
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.arc(core.x, core.y - 12, 50, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = "#f6e889";
+    ctx.beginPath();
+    ctx.arc(core.x, core.y - 12, 50, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -9659,6 +9933,7 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   if (event.key === "e" || event.key === "E") {
+    keys.add("interact");
     talkToNearbyTask();
     event.preventDefault();
     return;
@@ -9675,6 +9950,10 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("keyup", (event) => {
+  if (event.key === "e" || event.key === "E") {
+    keys.delete("interact");
+    return;
+  }
   const dir = keyMap[event.key];
   if (!dir) return;
   keys.delete(dir);
@@ -9684,6 +9963,14 @@ enterBtn.addEventListener("click", enterGame);
 soundBtn.addEventListener("click", toggleSound);
 attackBtn.addEventListener("click", shootBossWeapon);
 dialogueBtn?.addEventListener("click", talkToNearbyTask);
+dialogueBtn?.addEventListener("pointerdown", (event) => {
+  touchDirs.add("interact");
+  if (isWetlandBossLevel() && state.wetlandQuest?.boss?.phase === "purify") startWetlandPurification();
+  dialogueBtn.setPointerCapture?.(event.pointerId);
+});
+dialogueBtn?.addEventListener("pointerup", () => touchDirs.delete("interact"));
+dialogueBtn?.addEventListener("pointercancel", () => touchDirs.delete("interact"));
+dialogueBtn?.addEventListener("lostpointercapture", () => touchDirs.delete("interact"));
 dialogueCloseBtn?.addEventListener("click", closeDialogue);
 dialogueNextBtn?.addEventListener("click", nextDialogueLine);
 dialogueGiveBtn?.addEventListener("click", finishDialogueDelivery);
@@ -9710,6 +9997,7 @@ document.querySelectorAll("[data-dir]").forEach((button) => {
 
 window.addEventListener("blur", () => {
   touchDirs.clear();
+  keys.delete("interact");
 });
 
 function syncRoleButtons() {

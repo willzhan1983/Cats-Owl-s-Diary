@@ -83,6 +83,17 @@ assert.match(game, /rgba\(255, 213, 86, 0\.9\)/);
 assert.match(game, /rgba\(135, 164, 184, 0\.72\)/);
 assert.match(game, /const glyphs = \["↖", "↑", "↗"\]/);
 
+assert.match(game, /function prepareWetlandBoss\(\)/);
+assert.match(game, /function updateWetlandBoss\(dt\)/);
+assert.match(game, /function collectWetlandBossWisp\(task\)/);
+assert.match(game, /function startWetlandPurification\(\)/);
+assert.match(game, /purificationCoreReady: true/);
+assert.match(game, /applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\)/);
+assert.match(game, /const holdSeconds = \{ easy: 1\.8, normal: 1\.8, hard: 2\.2, crazy: 2\.6 \}/);
+assert.match(game, /performance\.now\(\) \+ wetlandDifficultyConfig\(\)\.bossWindow \* 1000/);
+assert.match(game, /if \(now >= boss\.purificationUntil && !boss\.holdStartedAt\)/);
+assert.match(game, /if \(now >= boss\.purificationUntil\) return true;/);
+
 const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
 const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";
 const drawTasksBody = game.match(/function drawTasks\(\)[\s\S]*?\n\}/)?.[0] || "";
