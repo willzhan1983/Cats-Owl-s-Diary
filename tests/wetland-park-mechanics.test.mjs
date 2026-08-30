@@ -47,6 +47,7 @@ assert.match(game, /function prepareWetlandFogPatrols\(\)/);
 assert.match(game, /function updateWetlandFogPatrols\(dt\)/);
 assert.match(game, /function prepareWetlandMemoryRoute\(\)/);
 assert.match(game, /function interactWetlandMemoryNode\(task\)/);
+assert.match(game, /按 E 重新查看路线/);
 assert.match(game, /fogPatrols: \[/);
 assert.match(game, /fog_patrol_far.*minDifficulty: "hard"/);
 assert.match(game, /state\.wetlandQuest\.fogPatrolHitCooldown = 1/);
