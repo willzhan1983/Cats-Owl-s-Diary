@@ -39,3 +39,13 @@ const resetSequence = game.match(/function resetWetlandSequence\([\s\S]*?\n\}/)?
 assert.doesNotMatch(resetSequence, /state\.hearts\s*=\s*Math\.max/);
 assert.doesNotMatch(resetSequence, /state\.time\s*=\s*Math\.max/);
 assert.match(game, /if \(isWetlandParkLevel\(\) && task\.kind === "wetland_npc"\) return wetlandNpcDialogue\(task\);/);
+assert.match(game, /function prepareWetlandFogPatrols\(\)/);
+assert.match(game, /function updateWetlandFogPatrols\(dt\)/);
+assert.match(game, /function prepareWetlandMemoryRoute\(\)/);
+assert.match(game, /function interactWetlandMemoryNode\(task\)/);
+assert.match(game, /fogPatrols: \[/);
+assert.match(game, /fog_patrol_far.*minDifficulty: "hard"/);
+assert.match(game, /state\.wetlandQuest\.fogPatrolHitCooldown = 1/);
+assert.match(game, /applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"/);
+assert.match(game, /function drawWetlandFogPatrols\(\)/);
+assert.match(game, /function drawWetlandMemoryRoute\(\)/);

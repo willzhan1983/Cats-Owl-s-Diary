@@ -14,3 +14,11 @@ assert.match(game, /state\.wetlandQuest = createWetlandQuestState\(level, state\
 assert.match(game, /checkpoint/);
 assert.match(game, /先去找\$\{wetlandQuestNpcTask\(\)\?\.name \|\| "任务伙伴"\}接任务/);
 assert.match(game, /kind: "wetland_npc", role: "issuer", optional: true/);
+assert.match(game, /kind: "wetland_memory_node"/);
+for (const token of ["water", "leaf", "bird", "reed", "moon"]) {
+  assert.match(game, new RegExp(`routeToken: "${token}"`));
+}
+assert.match(game, /memoryRoute = tokens\.slice\(0, wetlandDifficultyConfig\(\)\.routeLength\)/);
+assert.match(game, /routeVisibleUntil = performance\.now\(\) \+ 4200/);
+assert.match(game, /applyWetlandWrongAction\("芦苇把你带回了岔路口。", state\.wetlandQuest\.memoryCheckpoint\)/);
+assert.match(game, /kind === "wetland_memory_route"/);
