@@ -64,3 +64,25 @@ Result: passed with no output.
 ## Commit
 
 Implementation commit: `5c7e0ee39335c76276dc03d4c5ba79f4eff33ff3`
+
+## Round 1 review fix completion
+
+The review fixes remove the duplicate sequence-failure time/heart deductions, guard Wetland NPC dialogue by world, and expand the focused contract test to verify all exact difficulty penalties, adventure-state fields and non-Wetland defaults, checkpoint restoration, the Wetland update guard, and the absence of independent reset deductions.
+
+Command: `node --check game.js`
+
+Result: passed with no output.
+
+Command: `node --test tests/wetland-park-mechanics.test.mjs`
+
+Result: passed; 1 test, 0 failures.
+
+Command: `git diff --check`
+
+Result: passed with no output.
+
+Changed files: `game.js`, `tests/wetland-park-mechanics.test.mjs`, and this report.
+
+Self-review: no approved pre-existing Wetland features were reverted and no history was rewritten. The exact failure effects now enter through `applyWetlandWrongAction`; the dialogue branch is explicitly Wetland-only; and the focused test covers the requested static contract.
+
+Fix commit: `6fca2340355e66091eb3ea3c505d4b64132b2315`
