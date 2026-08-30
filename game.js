@@ -656,6 +656,10 @@ const MUSIC_PATTERN_BY_WORLD = {
 
 MUSIC_BY_WORLD.acorn_town = MUSIC_BY_WORLD.apple_valley;
 MUSIC_PATTERN_BY_WORLD.acorn_town = "harvest";
+MUSIC_BY_WORLD.wetland_park = MUSIC_BY_WORLD.dark_swamp;
+MUSIC_BY_WORLD.wetland_boss = MUSIC_BY_WORLD.boss;
+MUSIC_PATTERN_BY_WORLD.wetland_park = "danger";
+MUSIC_PATTERN_BY_WORLD.wetland_boss = "boss";
 
 const MUSIC_WORLD_ALIASES = {
   mist_swamp: "dark_swamp",
@@ -1877,6 +1881,7 @@ const levels = [
       { id: "fog_patrol_left", path: [{ x: 336, y: 334 }, { x: 520, y: 262 }], radius: 30 },
       { id: "fog_patrol_right", path: [{ x: 618, y: 346 }, { x: 796, y: 210 }], radius: 30 },
       { id: "fog_patrol_far", path: [{ x: 720, y: 126 }, { x: 874, y: 260 }], radius: 28, minDifficulty: "hard" },
+      { id: "fog_patrol_deep", path: [{ x: 548, y: 142 }, { x: 670, y: 330 }], radius: 26, minDifficulty: "crazy" },
     ],
     collectibles: [],
     tasks: [
@@ -3206,6 +3211,7 @@ function musicPatternForLevel(levelIndex) {
 
 function musicKeyForLevel(levelIndex) {
   const level = levels[levelIndex];
+  if (level?.id === "wetland_fog_crocodile") return "wetland_boss";
   if (level?.tasks?.some((task) => task.kind === "boss" || task.kind === "moon_boss")) return "boss";
   const key = MUSIC_WORLD_ALIASES[level?.world] || level?.world;
   return Object.hasOwn(MUSIC_BY_WORLD, key) ? key : "forest_school";
@@ -4137,9 +4143,15 @@ function rotateWetlandMirror(task) {
   const index = mirrors.findIndex((mirror) => mirror.id === task.id);
   if (index < 0) return false;
   if (state.wetlandQuest.mirrorAngles.length !== mirrors.length) prepareWetlandMirrors();
+  const previousPath = wetlandBeamPath();
   state.wetlandQuest.mirrorAngles[index] = (state.wetlandQuest.mirrorAngles[index] + 1) % 3;
   const path = wetlandBeamPath();
   if (path.hitsMist) {
+    if (path.connectedCount > previousPath.connectedCount) {
+      state.wetlandQuest.mirrorMistHits = 0;
+      messageEl.textContent = `光路已连接 ${path.connectedCount}/${mirrors.length} 面，继续校准。`;
+      return true;
+    }
     state.wetlandQuest.mirrorMistHits += 1;
     if (state.wetlandQuest.mirrorMistHits === 3) {
       prepareWetlandMirrors();
@@ -4233,11 +4245,12 @@ function updateWetlandBoss(dt) {
   const now = performance.now();
   if (boss.phase === "purify") {
     const core = wetlandBossCore();
-    if (now > boss.purificationUntil) {
+    if (boss.purificationUntil && now > boss.purificationUntil) {
       boss.phase = "collect";
       boss.carriedWispIds = boss.carriedWispIds.slice(0, 1);
       boss.carriedWisps = boss.carriedWispIds.length;
       boss.holdStartedAt = 0;
+      boss.purificationUntil = 0;
       boss.nextWaveAt = now + 900;
       activateWetlandBossWisps(boss.carriedWispIds);
       applyWetlandWrongAction("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss.checkpoint);
@@ -4317,9 +4330,9 @@ function collectWetlandBossWisp(task) {
     boss.phase = "purify";
     boss.mistRing = null;
     boss.nextWaveAt = Infinity;
-    boss.purificationUntil = performance.now() + wetlandDifficultyConfig().bossWindow * 1000;
+    boss.purificationUntil = 0;
     boss.holdStartedAt = 0;
-    messageEl.textContent = "净化窗口开启！靠近迷雾核心，持续按住 E 或交互按钮。";
+    messageEl.textContent = "净化光已聚齐！靠近迷雾核心，持续按住 E 或交互按钮启动净化。";
   } else {
     messageEl.textContent = `已携带 ${boss.carriedWisps}/3 束净化光，继续寻找。`;
   }
@@ -4346,10 +4359,26 @@ function startWetlandPurification() {
     return true;
   }
   const now = performance.now();
+  if (!boss.purificationUntil) boss.purificationUntil = now + wetlandDifficultyConfig().bossWindow * 1000;
   if (now >= boss.purificationUntil) return true;
   if (!boss.holdStartedAt) boss.holdStartedAt = now;
   return true;
 }
+
+function refreshWetlandParkQuizTask() {
+  if (!state || !isWetlandParkLevel()) return false;
+  const level = levels[state.levelIndex];
+  const sourceTask = level?.tasks?.find((task) => task.wetlandParkShared);
+  if (!sourceTask || state.tasksList.some((task) => task.wetlandParkShared)) return false;
+  const api = window.CATS_OWLS_WETLAND_PARK_QUIZ;
+  if (typeof api?.assign !== "function") return false;
+  if (!api.runSnapshot().id) api.beginRun(selectedDifficulty);
+  state.tasksList.push(prepareTask(sourceTask, level, state.tasksList.length));
+  updateHud();
+  return true;
+}
+
+window.CATS_OWLS_REFRESH_WETLAND_PARK_QUIZ = refreshWetlandParkQuizTask;
 
 function prepareWetlandFogPatrols() {
   if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_fog_entrance" || !state.wetlandQuest) return;

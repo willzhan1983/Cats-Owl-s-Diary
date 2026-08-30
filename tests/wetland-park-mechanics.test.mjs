@@ -50,6 +50,9 @@ assert.match(game, /function interactWetlandMemoryNode\(task\)/);
 assert.match(game, /按 E 重新查看路线/);
 assert.match(game, /fogPatrols: \[/);
 assert.match(game, /fog_patrol_far.*minDifficulty: "hard"/);
+assert.match(game, /fog_patrol_deep.*minDifficulty: "crazy"/);
+const fogEntrance = game.slice(game.indexOf('id: "wetland_fog_entrance"'), game.indexOf('id: "wetland_reed_maze"'));
+assert.equal((fogEntrance.match(/id: "fog_patrol_/g) || []).length, 4);
 assert.match(game, /state\.wetlandQuest\.fogPatrolHitCooldown = 1/);
 assert.match(game, /applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"/);
 assert.match(game, /function drawWetlandFogPatrols\(\)/);
@@ -78,11 +81,36 @@ assert.match(game, /answer: \[2, 0, 1, 2\]/);
 assert.match(game, /id: "wetland_mirror_four"[\s\S]*?minDifficulty: "hard"/);
 assert.match(game, /mirrorAngles = activeWetlandMirrorTasks\(\)\.map\(\(\) => 0\)/);
 assert.match(game, /mirrorAngles\[index\] = \(state\.wetlandQuest\.mirrorAngles\[index\] \+ 1\) % 3/);
+assert.match(game, /if \(path\.connectedCount > previousPath\.connectedCount\) \{[\s\S]*?mirrorMistHits = 0;/);
 assert.match(game, /if \(state\.wetlandQuest\.mirrorMistHits === 3\) \{[\s\S]*?prepareWetlandMirrors\(\);[\s\S]*?applyWetlandWrongAction\("光束照到了迷雾晶石，镜面需要重新校准。"\)/);
 assert.match(game, /state\.wetlandQuest\.mirrorMistHits = 0;[\s\S]*?completeTask\(mirror, mirror\.x, mirror\.y\)/);
 assert.match(game, /rgba\(255, 213, 86, 0\.9\)/);
 assert.match(game, /rgba\(135, 164, 184, 0\.72\)/);
 assert.match(game, /const glyphs = \["↖", "↑", "↗"\]/);
+
+const mirrorAnswer = [2, 0, 1, 2];
+function solveMirrorPuzzle(mirrorCount) {
+  const angles = Array(mirrorCount).fill(0);
+  let mistHits = 0;
+  const connectedCount = () => {
+    let connected = 0;
+    while (connected < mirrorCount && angles[connected] === mirrorAnswer[connected]) connected += 1;
+    return connected;
+  };
+  for (let index = 0; index < mirrorCount; index += 1) {
+    while (angles[index] !== mirrorAnswer[index]) {
+      const previous = connectedCount();
+      angles[index] = (angles[index] + 1) % 3;
+      const connected = connectedCount();
+      if (connected === mirrorCount) return true;
+      mistHits = connected > previous ? 0 : mistHits + 1;
+      if (mistHits >= 3) return false;
+    }
+  }
+  return connectedCount() === mirrorCount;
+}
+assert.equal(solveMirrorPuzzle(4), true, "hard mirror answer must be reachable before three consecutive mist hits");
+assert.equal(solveMirrorPuzzle(4), true, "crazy mirror answer must be reachable before three consecutive mist hits");
 
 assert.match(game, /function prepareWetlandBoss\(\)/);
 assert.match(game, /function updateWetlandBoss\(dt\)/);
@@ -91,12 +119,12 @@ assert.match(game, /function startWetlandPurification\(\)/);
 assert.match(game, /purificationCoreReady: true/);
 assert.match(game, /applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\)/);
 assert.match(game, /const holdSeconds = \{ easy: 1\.8, normal: 1\.8, hard: 2\.2, crazy: 2\.6 \}/);
-assert.match(game, /performance\.now\(\) \+ wetlandDifficultyConfig\(\)\.bossWindow \* 1000/);
+assert.match(game, /if \(!boss\.purificationUntil\) boss\.purificationUntil = now \+ wetlandDifficultyConfig\(\)\.bossWindow \* 1000/);
 assert.match(game, /if \(now >= boss\.purificationUntil\) return true;/);
 const wetlandBossUpdate = game.slice(game.indexOf("function updateWetlandBoss(dt)"), game.indexOf("function collectWetlandBossWisp(task)"));
-assert.match(wetlandBossUpdate, /if \(now > boss\.purificationUntil\) \{[\s\S]*?boss\.phase = "collect";[\s\S]*?boss\.carriedWispIds = boss\.carriedWispIds\.slice\(0, 1\);[\s\S]*?applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\);[\s\S]*?return;/);
+assert.match(wetlandBossUpdate, /if \(boss\.purificationUntil && now > boss\.purificationUntil\) \{[\s\S]*?boss\.phase = "collect";[\s\S]*?boss\.carriedWispIds = boss\.carriedWispIds\.slice\(0, 1\);[\s\S]*?boss\.purificationUntil = 0;[\s\S]*?applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\);[\s\S]*?return;/);
 assert.doesNotMatch(wetlandBossUpdate, /purificationUntil && !boss\.holdStartedAt/);
-assert.ok(wetlandBossUpdate.indexOf("now > boss.purificationUntil") < wetlandBossUpdate.indexOf("const holdSeconds"));
+assert.doesNotMatch(game.slice(game.indexOf("function collectWetlandBossWisp(task)"), game.indexOf("function startWetlandPurification()")), /performance\.now\(\) \+ wetlandDifficultyConfig\(\)\.bossWindow/);
 
 const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
 const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";

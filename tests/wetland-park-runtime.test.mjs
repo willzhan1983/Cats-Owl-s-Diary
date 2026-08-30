@@ -10,7 +10,7 @@ assert.match(game, /if \(!isWetlandParkLevel\(\)\) return false;/);
 assert.match(game, /function drawWetlandParkTaskArt\(task\)/);
 assert.match(game, /function drawWetlandParkImage\(key, bounds\)/);
 assert.match(game, /wetlandFogEntrance: "\.\/assets\/wetland-park-generated\/fog_entrance\.png"/);
-assert.match(game, /fogCrocodile: \{ key: "fogCrocodile", bounds: \{ x: -92, y: -126, w: 184, h: 126 \} \}/);
+assert.match(game, /fogCrocodile: \{ key: "fogCrocodile", bounds: \{ x: -74, y: -101, w: 148, h: 101 \} \}/);
 assert.ok(!/isMistSwampLevel\(\)\s*&&\s*.*wetland/.test(game));
 assert.match(game, /wetlandFloatingLog: "\.\/assets\/wetland-park-generated\/props\/floating_log\.png"/);
 assert.match(game, /function drawWetlandPlatforms\(\)/);

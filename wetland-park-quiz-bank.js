@@ -68,4 +68,5 @@
     if (!level.tasks.some((task) => task.wetlandParkShared)) level.tasks.push({ x: 800, y: 400, id: `wp_quiz_${level.id}`, name: "湿地观察题", animal: "logic", speech: "完成任务后回答一道湿地观察题。", quizKey: KEY, quiz: null, kind: "quiz", requiresCoreTasks: true, wetlandParkShared: true, done: false, progress: 0 });
   }
   globalScope.CATS_OWLS_WETLAND_PARK_QUIZ = Object.freeze({ key: KEY, beginRun, assign, runSnapshot, catalog: Object.freeze(catalog.map((question) => Object.freeze(clone(question)))) });
+  globalScope.CATS_OWLS_REFRESH_WETLAND_PARK_QUIZ?.();
 })(typeof window !== "undefined" ? window : globalThis);
