@@ -1952,6 +1952,8 @@ const levels = [
       { x: 210, y: 322, id: "reed_ruin_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 250, id: "wetland_mirror_one", name: "第一面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 190, id: "wetland_mirror_two", name: "第二面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", reward: "purificationCore", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 850, y: 310, id: "wetland_mirror_three", name: "第三面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 660, y: 110, id: "wetland_mirror_four", name: "第四面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", minDifficulty: "hard", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 612, y: 370, id: "wetland_false_mirror", name: "裂纹假镜", animal: "wetlandMirror", kind: "wetland_decoy", optional: true, requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
@@ -2092,7 +2094,12 @@ function isWetlandParkLevel() {
 const WETLAND_ADVENTURE_RULES = {
   wetland_fog_entrance: { sequence: ["wetland_lookout_one", "wetland_lookout_two", "wetland_lookout_three"], clue: "跟着萤火光：依次点亮三座瞭望台。" },
   wetland_drift_crossing: { sequence: ["wetland_lamp_one", "wetland_lamp_two"], clue: "水流变绿时，按近到远的顺序点灯。" },
-  wetland_ruin_mirrors: { sequence: ["wetland_mirror_one", "wetland_mirror_two"], clue: "让光从第一面镜子折到第二面。" },
+  wetland_ruin_mirrors: {
+    sequence: ["wetland_mirror_one", "wetland_mirror_two", "wetland_mirror_three", "wetland_mirror_four"],
+    mirrors: ["wetland_mirror_one", "wetland_mirror_two", "wetland_mirror_three", "wetland_mirror_four"],
+    answer: [2, 0, 1, 2],
+    clue: "让光沿反光镜折向水闸，避开迷雾晶石。",
+  },
 };
 
 function wetlandAdventureRule() {
@@ -2621,6 +2628,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   prepareWetlandFogPatrols();
   prepareWetlandMemoryRoute();
   prepareWetlandPlatforms();
+  prepareWetlandMirrors();
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
@@ -4091,6 +4099,61 @@ function resolveWetlandPlatformRide(dt) {
   }
 }
 
+function activeWetlandMirrorTasks() {
+  const rule = wetlandAdventureRule();
+  if (!rule?.mirrors || !state?.wetlandQuest) return [];
+  return rule.mirrors
+    .slice(0, wetlandDifficultyConfig().mirrorCount)
+    .map((id) => state.tasksList.find((task) => task.id === id))
+    .filter(Boolean);
+}
+
+function prepareWetlandMirrors() {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_ruin_mirrors" || !state.wetlandQuest) return;
+  state.wetlandQuest.mirrorAngles = activeWetlandMirrorTasks().map(() => 0);
+  state.wetlandQuest.mirrorMistHits = 0;
+}
+
+function wetlandBeamPath() {
+  const mirrors = activeWetlandMirrorTasks();
+  const rule = wetlandAdventureRule();
+  if (!mirrors.length || !rule?.answer) return { connectedCount: 0, hitsMist: false };
+  const answer = rule.answer.slice(0, mirrors.length);
+  const angles = state.wetlandQuest.mirrorAngles;
+  let connectedCount = 0;
+  while (connectedCount < answer.length && angles[connectedCount] === answer[connectedCount]) connectedCount += 1;
+  return { connectedCount, hitsMist: connectedCount < answer.length };
+}
+
+function rotateWetlandMirror(task) {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_ruin_mirrors" || !state.wetlandQuest) return false;
+  const mirrors = activeWetlandMirrorTasks();
+  const index = mirrors.findIndex((mirror) => mirror.id === task.id);
+  if (index < 0) return false;
+  if (state.wetlandQuest.mirrorAngles.length !== mirrors.length) prepareWetlandMirrors();
+  state.wetlandQuest.mirrorAngles[index] = (state.wetlandQuest.mirrorAngles[index] + 1) % 3;
+  const path = wetlandBeamPath();
+  if (path.hitsMist) {
+    state.wetlandQuest.mirrorMistHits += 1;
+    if (state.wetlandQuest.mirrorMistHits === 3) {
+      prepareWetlandMirrors();
+      applyWetlandWrongAction("光束照到了迷雾晶石，镜面需要重新校准。");
+      return true;
+    }
+    messageEl.textContent = `光束偏进了迷雾：${state.wetlandQuest.mirrorMistHits}/3。`;
+    return true;
+  }
+  state.wetlandQuest.mirrorMistHits = 0;
+  for (const mirror of mirrors) {
+    if (!mirror.done) completeTask(mirror, mirror.x, mirror.y);
+  }
+  state.wetlandQuest.checkpoint = { x: task.x, y: task.y };
+  state.wetlandQuest.status = "ready";
+  messageEl.textContent = "净化光已经照亮水闸，遗迹通路打开啦！";
+  updateHud();
+  return true;
+}
+
 function prepareWetlandFogPatrols() {
   if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_fog_entrance" || !state.wetlandQuest) return;
   const ranks = ["easy", "normal", "hard", "crazy"];
@@ -5115,6 +5178,7 @@ function wetlandBossWispsReady() {
 
 function wetlandTaskHint(task) {
   if (task.kind === "wetland_memory_node") return "按 E 选择这处记忆路线节点。";
+  if (task.kind === "wetland_mirror") return "按 E 转动反光镜，让光束避开迷雾晶石。";
   if (task.kind === "wetland_lamp") {
     return state.wetlandQuest?.waterSafe ? "水流变缓了！按 E 点亮这盏净化灯。" : "水流太急，等水面泛起绿色光圈再启动。";
   }
@@ -5149,6 +5213,7 @@ function interactWetlandParkTask(task) {
   }
   if (!task.kind.startsWith("wetland_")) return false;
   if (task.kind === "wetland_memory_node") return interactWetlandMemoryNode(task);
+  if (task.kind === "wetland_mirror" && !task.done) return rotateWetlandMirror(task);
   if (task.done) {
     messageEl.textContent = `${task.name}已经完成，继续向前探索。`;
     return true;
@@ -5515,6 +5580,7 @@ function draw() {
   drawEscortCart();
   drawTownCarts();
   drawWetlandPlatforms();
+  drawWetlandBeamPath();
   drawCollectibles();
   drawTasks();
   drawWetlandFogPatrols();
@@ -7174,6 +7240,34 @@ function drawWetlandPlatformFallback(platform) {
   ctx.moveTo(platform.x + platform.width * 0.15, platform.y - 10);
   ctx.lineTo(platform.x + platform.width * 0.25, platform.y + 10);
   ctx.stroke();
+}
+
+function drawWetlandBeamPath() {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_ruin_mirrors" || !state.wetlandQuest) return;
+  const mirrors = activeWetlandMirrorTasks();
+  if (!mirrors.length) return;
+  const path = wetlandBeamPath();
+  const points = [{ x: 280, y: 382 }, ...mirrors, { x: 902, y: 126 }];
+  ctx.save();
+  ctx.lineCap = "round";
+  ctx.lineWidth = 7;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const connected = index < path.connectedCount || (!path.hitsMist && index === mirrors.length);
+    ctx.strokeStyle = connected ? "rgba(255, 213, 86, 0.9)" : "rgba(135, 164, 184, 0.72)";
+    ctx.beginPath();
+    ctx.moveTo(points[index].x, points[index].y);
+    ctx.lineTo(points[index + 1].x, points[index + 1].y);
+    ctx.stroke();
+  }
+  const glyphs = ["↖", "↑", "↗"];
+  ctx.font = "700 26px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  mirrors.forEach((mirror, index) => {
+    ctx.fillStyle = index < path.connectedCount ? "#ffe17d" : "#b9cddb";
+    ctx.fillText(glyphs[state.wetlandQuest.mirrorAngles[index] || 0], mirror.x, mirror.y + 46);
+  });
+  ctx.restore();
 }
 
 function drawWetlandParkTaskArt(task) {

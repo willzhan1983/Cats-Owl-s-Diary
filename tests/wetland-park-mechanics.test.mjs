@@ -67,6 +67,22 @@ assert.match(game, /applyWetlandWrongAction\("浮木下沉了，回到上一段�
 assert.match(game, /state\.wetlandQuest\.waterRecoveryUntil = performance\.now\(\) \+ 700/);
 assert.match(game, /先通过前面的浮木，才能点亮这盏灯。/);
 
+assert.match(game, /function prepareWetlandMirrors\(\)/);
+assert.match(game, /function rotateWetlandMirror\(task\)/);
+assert.match(game, /function wetlandBeamPath\(\)/);
+assert.match(game, /function drawWetlandBeamPath\(\)/);
+assert.match(game, /mirrorMistHits/);
+assert.match(game, /mirrors: \["wetland_mirror_one", "wetland_mirror_two", "wetland_mirror_three", "wetland_mirror_four"\]/);
+assert.match(game, /answer: \[2, 0, 1, 2\]/);
+assert.match(game, /id: "wetland_mirror_four"[\s\S]*?minDifficulty: "hard"/);
+assert.match(game, /mirrorAngles = activeWetlandMirrorTasks\(\)\.map\(\(\) => 0\)/);
+assert.match(game, /mirrorAngles\[index\] = \(state\.wetlandQuest\.mirrorAngles\[index\] \+ 1\) % 3/);
+assert.match(game, /if \(state\.wetlandQuest\.mirrorMistHits === 3\) \{[\s\S]*?prepareWetlandMirrors\(\);[\s\S]*?applyWetlandWrongAction\("光束照到了迷雾晶石，镜面需要重新校准。"\)/);
+assert.match(game, /state\.wetlandQuest\.mirrorMistHits = 0;[\s\S]*?completeTask\(mirror, mirror\.x, mirror\.y\)/);
+assert.match(game, /rgba\(255, 213, 86, 0\.9\)/);
+assert.match(game, /rgba\(135, 164, 184, 0\.72\)/);
+assert.match(game, /const glyphs = \["↖", "↑", "↗"\]/);
+
 const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
 const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";
 const drawTasksBody = game.match(/function drawTasks\(\)[\s\S]*?\n\}/)?.[0] || "";
