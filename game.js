@@ -4233,7 +4233,7 @@ function updateWetlandBoss(dt) {
   const now = performance.now();
   if (boss.phase === "purify") {
     const core = wetlandBossCore();
-    if (now >= boss.purificationUntil && !boss.holdStartedAt) {
+    if (now > boss.purificationUntil) {
       boss.phase = "collect";
       boss.carriedWispIds = boss.carriedWispIds.slice(0, 1);
       boss.carriedWisps = boss.carriedWispIds.length;

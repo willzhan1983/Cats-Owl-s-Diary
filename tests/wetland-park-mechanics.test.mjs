@@ -91,8 +91,11 @@ assert.match(game, /purificationCoreReady: true/);
 assert.match(game, /applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\)/);
 assert.match(game, /const holdSeconds = \{ easy: 1\.8, normal: 1\.8, hard: 2\.2, crazy: 2\.6 \}/);
 assert.match(game, /performance\.now\(\) \+ wetlandDifficultyConfig\(\)\.bossWindow \* 1000/);
-assert.match(game, /if \(now >= boss\.purificationUntil && !boss\.holdStartedAt\)/);
 assert.match(game, /if \(now >= boss\.purificationUntil\) return true;/);
+const wetlandBossUpdate = game.slice(game.indexOf("function updateWetlandBoss(dt)"), game.indexOf("function collectWetlandBossWisp(task)"));
+assert.match(wetlandBossUpdate, /if \(now > boss\.purificationUntil\) \{[\s\S]*?boss\.phase = "collect";[\s\S]*?boss\.carriedWispIds = boss\.carriedWispIds\.slice\(0, 1\);[\s\S]*?applyWetlandWrongAction\("巨鳄又被雾气惊醒了，保留一束光再试一次。", boss\.checkpoint\);[\s\S]*?return;/);
+assert.doesNotMatch(wetlandBossUpdate, /purificationUntil && !boss\.holdStartedAt/);
+assert.ok(wetlandBossUpdate.indexOf("now > boss.purificationUntil") < wetlandBossUpdate.indexOf("const holdSeconds"));
 
 const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
 const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";
