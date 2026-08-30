@@ -12,3 +12,6 @@ assert.match(game, /function drawWetlandParkImage\(key, bounds\)/);
 assert.match(game, /wetlandFogEntrance: "\.\/assets\/wetland-park-generated\/fog_entrance\.png"/);
 assert.match(game, /fogCrocodile: \{ key: "fogCrocodile", bounds: \{ x: -92, y: -126, w: 184, h: 126 \} \}/);
 assert.ok(!/isMistSwampLevel\(\)\s*&&\s*.*wetland/.test(game));
+assert.match(game, /wetlandFloatingLog: "\.\/assets\/wetland-park-generated\/props\/floating_log\.png"/);
+assert.match(game, /function drawWetlandPlatforms\(\)/);
+assert.match(game, /ctx\.globalAlpha = platform\.submergedUntil > performance\.now\(\) \? 0\.32 : 1/);

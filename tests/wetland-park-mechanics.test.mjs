@@ -55,6 +55,17 @@ assert.match(game, /function drawWetlandFogPatrols\(\)/);
 assert.match(game, /function drawWetlandMemoryRoute\(\)/);
 assert.match(game, /state\.wetlandQuest\.checkpoint = \{ x: task\.x, y: task\.y \};/);
 assert.match(game, /if \(state\.wetlandQuest\.fogPatrolHitCooldown <= 0 && patrol\.hitCooldown <= 0 && distance\(state\.player, patrol\) < patrol\.radius \+ 20\) \{\s*patrol\.hitCooldown = 1;\s*state\.wetlandQuest\.fogPatrolHitCooldown = 1;\s*applyWetlandWrongAction\("被迷雾挡住了，回到最近的瞭望台。"\);/);
+assert.match(game, /function prepareWetlandPlatforms\(\)/);
+assert.match(game, /function updateWetlandPlatforms\(dt\)/);
+assert.match(game, /function resolveWetlandPlatformRide\(dt\)/);
+assert.match(game, /wetlandCrossingCheckpoint/);
+assert.match(game, /wetlandPlatforms: \[/);
+assert.match(game, /id: "log_a", y: 358, minX: 272, maxX: 466, width: 82/);
+assert.match(game, /id: "log_b", y: 302, minX: 440, maxX: 650, width: 82/);
+assert.match(game, /id: "log_c", y: 244, minX: 626, maxX: 824, width: 82/);
+assert.match(game, /applyWetlandWrongAction\("浮木下沉了，回到上一段安全岸边。", state\.wetlandQuest\.wetlandCrossingCheckpoint\)/);
+assert.match(game, /state\.wetlandQuest\.waterRecoveryUntil = performance\.now\(\) \+ 700/);
+assert.match(game, /先通过前面的浮木，才能点亮这盏灯。/);
 
 const reedMazeMemoryRouteSkip = /if \(isWetlandParkLevel\(\) && levels\[state\.levelIndex\]\.id === "wetland_reed_maze" && task\.kind === "wetland_memory_route"\) continue;/;
 const checkTasksBody = game.match(/function checkTasks\(dt\)[\s\S]*?\n\}/)?.[0] || "";

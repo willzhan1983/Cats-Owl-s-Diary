@@ -694,6 +694,7 @@ const WETLAND_ART_SOURCES = {
   wetlandLookout: "./assets/wetland-park-generated/props/observation_marker.png",
   wetlandMarker: "./assets/wetland-park-generated/props/observation_marker.png",
   wetlandLamp: "./assets/wetland-park-generated/props/purification_lantern.png",
+  wetlandFloatingLog: "./assets/wetland-park-generated/props/floating_log.png",
   wetlandMirror: "./assets/wetland-park-generated/props/mirror_relic.png",
   wetlandCore: "./assets/wetland-park-generated/props/fog_core.png",
 };
@@ -1918,6 +1919,16 @@ const levels = [
     time: 140,
     start: { x: 120, y: 420 },
     message: "等水流变缓，沿荷叶和浮木点亮净化灯。",
+    wetlandPlatforms: [
+      { id: "log_a", y: 358, minX: 272, maxX: 466, width: 82, checkpoint: { x: 250, y: 386 } },
+      { id: "log_b", y: 302, minX: 440, maxX: 650, width: 82, checkpoint: { x: 470, y: 330 } },
+      { id: "log_c", y: 244, minX: 626, maxX: 824, width: 82, checkpoint: { x: 674, y: 272 } },
+    ],
+    wetlandWaterBounds: [
+      { x: 369, y: 358, w: 260, h: 48 },
+      { x: 545, y: 302, w: 286, h: 48 },
+      { x: 725, y: 244, w: 274, h: 48 },
+    ],
     collectibles: [],
     tasks: [
       { x: 210, y: 322, id: "reed_crossing_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
@@ -2609,6 +2620,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   state.wetlandQuest = createWetlandQuestState(level, state.tasksList);
   prepareWetlandFogPatrols();
   prepareWetlandMemoryRoute();
+  prepareWetlandPlatforms();
   if (isMistSwampSleepingBridgeLevel()) prepareSleepingBridgeLevel();
   if (level.world === "mist_swamp" && level.name === "沼泽泥浆怪") prepareMudBossLevel();
   updateHud();
@@ -4011,6 +4023,72 @@ function updateWetlandParkMechanisms(dt) {
   const windowSize = { easy: 0.42, normal: 0.3, hard: 0.23, crazy: 0.17 }[selectedDifficulty] || 0.3;
   state.wetlandQuest.waterPhase = (state.wetlandQuest.waterPhase + dt * speed) % 1;
   state.wetlandQuest.waterSafe = Math.abs(state.wetlandQuest.waterPhase - 0.5) <= windowSize / 2;
+  updateWetlandPlatforms(dt);
+  resolveWetlandPlatformRide(dt);
+}
+
+function prepareWetlandPlatforms() {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_drift_crossing" || !state.wetlandQuest) return;
+  const platforms = levels[state.levelIndex].wetlandPlatforms || [];
+  const initialCheckpoint = platforms[0]?.checkpoint || levels[state.levelIndex].start;
+  state.wetlandQuest.platforms = platforms.map((platform) => ({
+    ...platform,
+    x: platform.minX,
+    previousX: platform.minX,
+    direction: 1,
+    submergedUntil: 0,
+    lastSafeX: platform.minX,
+    reachedFarBank: false,
+  }));
+  state.wetlandQuest.wetlandCrossingCheckpoint = { ...initialCheckpoint };
+  state.wetlandQuest.wetlandCrossingCheckpointId = null;
+  state.wetlandQuest.waterRecoveryUntil = 0;
+}
+
+function updateWetlandPlatforms(dt) {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_drift_crossing" || !state.wetlandQuest) return;
+  const now = performance.now();
+  const speed = wetlandDifficultyConfig().logSpeed;
+  for (const platform of state.wetlandQuest.platforms) {
+    platform.previousX = platform.x;
+    platform.x += platform.direction * speed * dt;
+    if (platform.x >= platform.maxX) {
+      platform.x = platform.maxX;
+      platform.direction = -1;
+    } else if (platform.x <= platform.minX) {
+      platform.x = platform.minX;
+      platform.direction = 1;
+      platform.submergedUntil = now + 700;
+      platform.reachedFarBank = false;
+    }
+  }
+}
+
+function resolveWetlandPlatformRide(dt) {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_drift_crossing" || !state.wetlandQuest) return;
+  const now = performance.now();
+  const player = state.player;
+  const standingPlatform = state.wetlandQuest.platforms.find((platform) => (
+    platform.submergedUntil <= now &&
+    Math.abs(player.x - platform.x) <= platform.width / 2 &&
+    Math.abs(player.y - platform.y) <= 24
+  ));
+  if (standingPlatform) {
+    const delta = standingPlatform.x - standingPlatform.previousX;
+    player.x = clamp(player.x + delta, 58, canvas.width - 58);
+    standingPlatform.lastSafeX = player.x;
+    if (!standingPlatform.reachedFarBank && standingPlatform.x >= standingPlatform.maxX) {
+      standingPlatform.reachedFarBank = true;
+      state.wetlandQuest.wetlandCrossingCheckpoint = { ...standingPlatform.checkpoint };
+      state.wetlandQuest.wetlandCrossingCheckpointId = standingPlatform.id;
+    }
+    return;
+  }
+  const inWater = (levels[state.levelIndex].wetlandWaterBounds || []).some((water) => pointInRect(player, water));
+  if (inWater && !standingPlatform && performance.now() >= state.wetlandQuest.waterRecoveryUntil) {
+    state.wetlandQuest.waterRecoveryUntil = performance.now() + 700;
+    applyWetlandWrongAction("浮木下沉了，回到上一段安全岸边。", state.wetlandQuest.wetlandCrossingCheckpoint);
+  }
 }
 
 function prepareWetlandFogPatrols() {
@@ -5075,6 +5153,11 @@ function interactWetlandParkTask(task) {
     messageEl.textContent = `${task.name}已经完成，继续向前探索。`;
     return true;
   }
+  const requiredPlatform = { wetland_lamp_one: "log_b", wetland_lamp_two: "log_c" }[task.id];
+  if (task.kind === "wetland_lamp" && requiredPlatform && state.wetlandQuest.wetlandCrossingCheckpointId !== requiredPlatform) {
+    messageEl.textContent = "先通过前面的浮木，才能点亮这盏灯。";
+    return true;
+  }
   if (task.kind === "wetland_lamp" && !state.wetlandQuest.waterSafe) {
     applyWetlandWrongAction("水流还没有变缓，浮木被冲走了！");
     return true;
@@ -5431,6 +5514,7 @@ function draw() {
   drawFireflyTrail();
   drawEscortCart();
   drawTownCarts();
+  drawWetlandPlatforms();
   drawCollectibles();
   drawTasks();
   drawWetlandFogPatrols();
@@ -7058,6 +7142,38 @@ function drawWetlandMemoryRoute() {
     ctx.textBaseline = "middle";
     ctx.fillText(String(index + 1), task.x, task.y - 54);
   }
+}
+
+function drawWetlandPlatforms() {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_drift_crossing" || !state.wetlandQuest) return;
+  for (const platform of state.wetlandQuest.platforms) {
+    ctx.save();
+    ctx.globalAlpha = platform.submergedUntil > performance.now() ? 0.32 : 1;
+    ctx.fillStyle = "rgba(74, 167, 196, 0.3)";
+    ctx.beginPath();
+    ctx.ellipse(platform.x, platform.y + 18, platform.width * 0.78, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    const bounds = { x: platform.x - platform.width / 2, y: platform.y - 26, w: platform.width, h: 52 };
+    if (!drawWetlandParkImage("wetlandFloatingLog", bounds)) drawWetlandPlatformFallback(platform);
+    ctx.restore();
+  }
+}
+
+function drawWetlandPlatformFallback(platform) {
+  ctx.fillStyle = "#7d4a28";
+  roundRect(platform.x - platform.width / 2, platform.y - 15, platform.width, 30, 15);
+  ctx.fill();
+  ctx.strokeStyle = "rgba(70, 40, 22, 0.8)";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  ctx.strokeStyle = "rgba(221, 165, 92, 0.6)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(platform.x - platform.width * 0.22, platform.y - 10);
+  ctx.lineTo(platform.x - platform.width * 0.12, platform.y + 10);
+  ctx.moveTo(platform.x + platform.width * 0.15, platform.y - 10);
+  ctx.lineTo(platform.x + platform.width * 0.25, platform.y + 10);
+  ctx.stroke();
 }
 
 function drawWetlandParkTaskArt(task) {
