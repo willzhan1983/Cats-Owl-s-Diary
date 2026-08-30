@@ -1877,6 +1877,8 @@ const levels = [
       { x: 214, y: 324, id: "lumi_quest", name: "Lumi", animal: "lumi", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 470, y: 224, id: "wetland_lookout_one", name: "第一座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", reward: "wetlandMapPiece", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 732, y: 182, id: "wetland_lookout_two", name: "第二座瞭望台", animal: "wetlandLookout", kind: "wetland_lookout", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 600, y: 350, id: "wetland_false_beacon", name: "紫色迷雾灯", animal: "wetlandMarker", kind: "wetland_decoy", optional: true, requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 846, y: 300, id: "wetland_false_beacon_hard", name: "远处假灯", animal: "wetlandMarker", kind: "wetland_decoy", optional: true, minDifficulty: "hard", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
     obstacles: [],
@@ -1894,6 +1896,7 @@ const levels = [
       { x: 210, y: 322, id: "nono_quest", name: "Nono", animal: "nono", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 240, id: "wetland_water_ripple", name: "水纹观察点", animal: "wetlandMarker", kind: "wetland_observation", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 188, id: "wetland_bird_shadow", name: "鸟影观察点", animal: "wetlandMarker", kind: "wetland_observation", reward: "windFeather", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 590, y: 372, id: "wetland_reed_echo", name: "芦苇回声", animal: "wetlandMarker", kind: "wetland_decoy", optional: true, requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
     obstacles: [],
@@ -1911,6 +1914,7 @@ const levels = [
       { x: 210, y: 322, id: "reed_crossing_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 250, id: "wetland_lamp_one", name: "第一盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 190, id: "wetland_lamp_two", name: "第二盏净化灯", animal: "wetlandLamp", kind: "wetland_lamp", reward: "crossingKnot", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 590, y: 370, id: "wetland_false_lamp", name: "漂浮假灯", animal: "wetlandLamp", kind: "wetland_decoy", optional: true, requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
     obstacles: [],
@@ -1928,6 +1932,7 @@ const levels = [
       { x: 210, y: 322, id: "reed_ruin_quest", name: "Reed", animal: "reed", kind: "wetland_npc", role: "issuer", optional: true, done: false, progress: 0 },
       { x: 460, y: 250, id: "wetland_mirror_one", name: "第一面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 720, y: 190, id: "wetland_mirror_two", name: "第二面反光镜", animal: "wetlandMirror", kind: "wetland_mirror", reward: "purificationCore", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 612, y: 370, id: "wetland_false_mirror", name: "裂纹假镜", animal: "wetlandMirror", kind: "wetland_decoy", optional: true, requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
     obstacles: [],
@@ -1944,6 +1949,10 @@ const levels = [
     collectibles: [],
     tasks: [
       { x: 700, y: 238, id: "crocodile_quest", name: "迷雾巨鳄", animal: "fogCrocodile", kind: "wetland_npc", role: "boss", optional: true, done: false, progress: 0 },
+      { x: 350, y: 352, id: "wetland_wisp_one", name: "第一束净化光", animal: "wetlandMarker", kind: "wetland_boss_wisp", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 536, y: 166, id: "wetland_wisp_two", name: "第二束净化光", animal: "wetlandMarker", kind: "wetland_boss_wisp", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 784, y: 356, id: "wetland_wisp_three", name: "第三束净化光", animal: "wetlandMarker", kind: "wetland_boss_wisp", requiresWetlandQuest: true, done: false, progress: 0 },
+      { x: 630, y: 356, id: "wetland_false_wisp", name: "迷雾幻象", animal: "wetlandMarker", kind: "wetland_decoy", optional: true, minDifficulty: "normal", requiresWetlandQuest: true, done: false, progress: 0 },
       { x: 470, y: 250, id: "wetland_fog_core", name: "迷雾核心", animal: "wetlandCore", kind: "wetland_core", reward: "wetlandPass", requiresWetlandQuest: true, done: false, progress: 0 },
     ],
     puddles: [],
@@ -2036,6 +2045,13 @@ function prepareRiversideDockLevel(level) {
   };
 }
 
+function prepareWetlandParkLevel(level) {
+  if (level?.world !== "wetland_park") return level;
+  const ranks = ["easy", "normal", "hard", "crazy"];
+  const visible = (entry) => ranks.indexOf(selectedDifficulty) >= ranks.indexOf(entry.minDifficulty || "easy");
+  return { ...level, tasks: level.tasks.filter(visible) };
+}
+
 function levelBackgroundKey(level) {
   if (!level) return null;
   return level.bg || WORLD_MAP[level.world]?.background;
@@ -2053,10 +2069,60 @@ function isWetlandParkLevel() {
   return levels[state?.levelIndex]?.world === "wetland_park";
 }
 
+const WETLAND_ADVENTURE_RULES = {
+  wetland_fog_entrance: { sequence: ["wetland_lookout_one", "wetland_lookout_two"], clue: "跟着萤火光：先点亮近处，再点亮远处。" },
+  wetland_reed_maze: { sequence: ["wetland_water_ripple", "wetland_bird_shadow"], clue: "先看水纹，再追鸟影。" },
+  wetland_drift_crossing: { sequence: ["wetland_lamp_one", "wetland_lamp_two"], clue: "水流变绿时，按近到远的顺序点灯。" },
+  wetland_ruin_mirrors: { sequence: ["wetland_mirror_one", "wetland_mirror_two"], clue: "让光从第一面镜子折到第二面。" },
+};
+
+function wetlandAdventureRule() {
+  return WETLAND_ADVENTURE_RULES[levels[state?.levelIndex]?.id] || null;
+}
+
+function wetlandNpcDialogue(task) {
+  const levelId = levels[state.levelIndex]?.id;
+  if (levelId === "wetland_fog_crocodile") return ["迷雾把我困住了……请找到散落的 3 束净化光。", "光点聚齐后，再回来净化迷雾核心。"];
+  const clue = wetlandAdventureRule()?.clue || "跟着场景中的光点继续探索。";
+  return [`${task.name}：湿地的路会随雾和水流变化。`, clue];
+}
+
+function wetlandDifficultyConfig() {
+  return {
+    easy: { routeLength: 3, hintViews: Infinity, patrols: 1, patrolSpeed: 44, logSpeed: 38, mirrorCount: 3, bossSpeed: 68, bossWindow: 5.5 },
+    normal: { routeLength: 4, hintViews: 2, patrols: 2, patrolSpeed: 58, logSpeed: 52, mirrorCount: 3, bossSpeed: 82, bossWindow: 4.5 },
+    hard: { routeLength: 5, hintViews: 1, patrols: 3, patrolSpeed: 72, logSpeed: 68, mirrorCount: 4, bossSpeed: 98, bossWindow: 3.6 },
+    crazy: { routeLength: 5, hintViews: 1, patrols: 4, patrolSpeed: 88, logSpeed: 84, mirrorCount: 4, bossSpeed: 116, bossWindow: 2.8 },
+  }[selectedDifficulty] || { routeLength: 4, hintViews: 2, patrols: 2, patrolSpeed: 58, logSpeed: 52, mirrorCount: 3, bossSpeed: 82, bossWindow: 4.5 };
+}
+
+function createWetlandAdventureState(level) {
+  const isWetland = level?.world === "wetland_park";
+  const config = wetlandDifficultyConfig();
+  return {
+    checkpoint: isWetland ? { ...level.start } : null,
+    hintViews: isWetland ? config.hintViews : 0,
+    routeIndex: 0,
+    routeVisibleUntil: 0,
+    patrols: [],
+    platforms: [],
+    mirrorAngles: [],
+    mirrorMistHits: 0,
+    boss: null,
+  };
+}
+
 function createWetlandQuestState(level, tasks) {
   if (level?.world !== "wetland_park") return null;
   const npcTask = tasks.find((task) => task.kind === "wetland_npc");
-  return { status: "locked", npcTaskId: npcTask?.id || null, checkpoint: { ...level.start } };
+  return {
+    status: "locked",
+    npcTaskId: npcTask?.id || null,
+    sequenceIndex: 0,
+    waterPhase: 0,
+    waterSafe: false,
+    ...createWetlandAdventureState(level),
+  };
 }
 
 function wetlandQuestNpcTask() {
@@ -2445,7 +2511,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   ) {
     wetlandQuizApi.beginRun(selectedDifficulty);
   }
-  const level = prepareRiversideDockLevel(prepareAcornTownLevel(rawLevel));
+  const level = prepareWetlandParkLevel(prepareRiversideDockLevel(prepareAcornTownLevel(rawLevel)));
   const levelTime = levelTimeForDifficulty(level);
   if (gameEntered) preloadNearbyBackgrounds(levelIndex);
   closeQuiz();
@@ -3208,6 +3274,7 @@ function update(dt) {
   updateForestRoadMechanisms(dt);
   updateAcornTownMechanisms(dt);
   updateRiversideDockMechanisms(dt);
+  updateWetlandParkMechanisms(dt);
   updateMistSwampMechanisms(dt);
   updateUnderwaterMechanisms(dt);
   updateMoonBoss();
@@ -3922,6 +3989,15 @@ function updateRiversideDockMechanisms(dt) {
   state.riversideSignalGreen = Math.abs(state.riversideWaterPhase - 0.5) <= signalWindowSize / 2;
 }
 
+function updateWetlandParkMechanisms(dt) {
+  if (!isWetlandParkLevel() || !state.wetlandQuest) return;
+  if (levels[state.levelIndex].id !== "wetland_drift_crossing") return;
+  const speed = selectedDifficulty === "crazy" ? 0.19 : selectedDifficulty === "hard" ? 0.16 : selectedDifficulty === "normal" ? 0.13 : 0.1;
+  const windowSize = { easy: 0.42, normal: 0.3, hard: 0.23, crazy: 0.17 }[selectedDifficulty] || 0.3;
+  state.wetlandQuest.waterPhase = (state.wetlandQuest.waterPhase + dt * speed) % 1;
+  state.wetlandQuest.waterSafe = Math.abs(state.wetlandQuest.waterPhase - 0.5) <= windowSize / 2;
+}
+
 function interactRiversideDockTask(task) {
   if (!isRiversideDockLevel() || !task || task.done) return false;
   if (task.kind === "route_marker") {
@@ -4139,6 +4215,18 @@ function checkTasks(dt) {
 
     if (["route_marker", "dock_delivery", "bridge_slot", "water_gauge", "dock_signal", "dock_crossing"].includes(task.kind)) {
       messageEl.textContent = taskNearHint(task);
+      continue;
+    }
+
+    if (isWetlandParkLevel() && task.kind.startsWith("wetland_")) {
+      if (task.kind === "wetland_npc") {
+        const marker = state.wetlandQuest?.status === "locked" ? "接任务" : state.wetlandQuest?.status === "ready" ? "查看结果" : "查看线索";
+        messageEl.textContent = `按 E 和${task.name}对话（${marker}）。`;
+      } else if (!wetlandQuestAllowsProgress()) {
+        messageEl.textContent = `先去找${wetlandQuestNpcTask()?.name || "任务伙伴"}接任务。`;
+      } else {
+        messageEl.textContent = wetlandTaskHint(task);
+      }
       continue;
     }
 
@@ -4488,6 +4576,7 @@ function taskDialogueMode(task) {
 }
 
 function taskDialogueLines(task, mode) {
+  if (task.kind === "wetland_npc") return wetlandNpcDialogue(task);
   if (isMistQuestNpc(task)) {
     const quest = levels[state.levelIndex].mistQuest;
     if (mode === "quest_intro") return quest.introLines;
@@ -4797,15 +4886,73 @@ function talkToNearbyTask() {
   }
 }
 
+function resetWetlandSequence(rule) {
+  for (const id of rule.sequence) {
+    const completedTask = state.tasksList.find((entry) => entry.id === id);
+    if (!completedTask?.done) continue;
+    completedTask.done = false;
+    completedTask.progress = 0;
+    state.tasks = Math.max(0, state.tasks - 1);
+    state.hearts = Math.max(0, state.hearts - 3);
+    state.time = Math.max(0, state.time - 5);
+  }
+  state.wetlandQuest.sequenceIndex = 0;
+}
+
+function applyWetlandWrongAction(text, checkpoint = state.wetlandQuest.checkpoint) {
+  const penalty = { easy: { time: 3, points: 3 }, normal: { time: 5, points: 5 }, hard: { time: 7, points: 8 }, crazy: { time: 9, points: 12 } }[selectedDifficulty] || { time: 5, points: 5 };
+  state.time = Math.max(0, state.time - penalty.time);
+  state.runPoints = Math.max(0, state.runPoints - penalty.points);
+  state.hearts = Math.max(0, state.hearts - 1);
+  state.player.x = checkpoint.x;
+  state.player.y = checkpoint.y;
+  addFloatingText(checkpoint.x, checkpoint.y - 54, `-${penalty.time} 秒 / -${penalty.points} 分`, "#dc5a5a");
+  messageEl.textContent = `${text} 时间 -${penalty.time} 秒、积分 -${penalty.points}。`;
+  updateHud();
+}
+
+function applyWetlandSequenceStep(task) {
+  const rule = wetlandAdventureRule();
+  if (!rule?.sequence.includes(task.id)) return true;
+  if (task.done) {
+    messageEl.textContent = `${task.name}已经完成，继续找下一处线索。`;
+    return false;
+  }
+  const expectedId = rule.sequence[state.wetlandQuest.sequenceIndex];
+  if (task.id !== expectedId) {
+    resetWetlandSequence(rule);
+    applyWetlandWrongAction(`线索顺序不对。${rule.clue}`);
+    return false;
+  }
+  state.wetlandQuest.sequenceIndex += 1;
+  return true;
+}
+
+function wetlandBossWispsReady() {
+  const wisps = state.tasksList.filter((entry) => entry.kind === "wetland_boss_wisp");
+  return wisps.length > 0 && wisps.every((entry) => entry.done);
+}
+
+function wetlandTaskHint(task) {
+  if (task.kind === "wetland_lamp") {
+    return state.wetlandQuest?.waterSafe ? "水流变缓了！按 E 点亮这盏净化灯。" : "水流太急，等水面泛起绿色光圈再启动。";
+  }
+  if (task.kind === "wetland_decoy") return "紫色、裂纹或摇晃的光是幻象，千万别按 E。";
+  if (task.kind === "wetland_core") return wetlandBossWispsReady() ? "三束净化光已聚齐，按 E 净化迷雾核心。" : "先找到散落在沼泽里的 3 束净化光。";
+  if (task.kind === "wetland_boss_wisp") return "按 E 收集净化光，别让迷雾把它吞掉。";
+  const rule = wetlandAdventureRule();
+  return rule?.sequence.includes(task.id) ? `${rule.clue} 按 E 操作。` : `按 E 处理${task.name}。`;
+}
+
 function interactWetlandParkTask(task) {
   if (!isWetlandParkLevel()) return false;
   if (!task) return false;
   if (task.kind === "wetland_npc") {
     if (state.wetlandQuest.status === "locked") {
       state.wetlandQuest.status = "active";
-      messageEl.textContent = `${task.name}的任务开始啦！${levels[state.levelIndex].message}`;
+      openDialogue(task);
     } else {
-      messageEl.textContent = state.wetlandQuest.status === "ready" ? "任务完成啦，继续前往下一关！" : levels[state.levelIndex].message;
+      openDialogue(task);
     }
     return true;
   }
@@ -4818,6 +4965,25 @@ function interactWetlandParkTask(task) {
     return true;
   }
   if (!task.kind.startsWith("wetland_")) return false;
+  if (task.done) {
+    messageEl.textContent = `${task.name}已经完成，继续向前探索。`;
+    return true;
+  }
+  if (task.kind === "wetland_lamp" && !state.wetlandQuest.waterSafe) {
+    applyWetlandWrongAction("水流还没有变缓，浮木被冲走了！");
+    return true;
+  }
+  if (task.kind === "wetland_decoy") {
+    const rule = wetlandAdventureRule();
+    if (rule) resetWetlandSequence(rule);
+    applyWetlandWrongAction("碰到了湿地幻象！");
+    return true;
+  }
+  if (task.kind === "wetland_core" && !wetlandBossWispsReady()) {
+    messageEl.textContent = "迷雾核心太强了，先找齐 3 束净化光。";
+    return true;
+  }
+  if (!applyWetlandSequenceStep(task)) return true;
   if (!task.done) completeTask(task, task.x, task.y);
   state.wetlandQuest.checkpoint = { x: task.x, y: task.y };
   const objectivesDone = state.tasksList.filter((entry) => entry.kind.startsWith("wetland_") && entry.kind !== "wetland_npc").every((entry) => entry.done);
@@ -6740,9 +6906,9 @@ function drawTasks() {
 function drawWetlandParkTaskArt(task) {
   if (!isWetlandParkLevel()) return false;
   const npcArt = {
-    lumi: { key: "lumi", bounds: { x: -48, y: -82, w: 96, h: 112 } },
-    reed: { key: "reed", bounds: { x: -52, y: -76, w: 104, h: 106 } },
-    fogCrocodile: { key: "fogCrocodile", bounds: { x: -92, y: -126, w: 184, h: 126 } },
+    lumi: { key: "lumi", bounds: { x: -39, y: -68, w: 78, h: 91 } },
+    reed: { key: "reed", bounds: { x: -42, y: -63, w: 84, h: 86 } },
+    fogCrocodile: { key: "fogCrocodile", bounds: { x: -74, y: -101, w: 148, h: 101 } },
   }[task.animal];
   if (task.kind === "wetland_npc") return (npcArt && drawWetlandParkImage(npcArt.key, npcArt.bounds)) || drawWetlandParkNpcFallback(task.animal);
   const propArt = {
@@ -6752,8 +6918,26 @@ function drawWetlandParkTaskArt(task) {
     wetlandMirror: { key: "wetlandMirror", bounds: { x: -48, y: -76, w: 96, h: 106 } },
     wetlandCore: { key: "wetlandCore", bounds: { x: -46, y: -74, w: 92, h: 104 } },
   }[task.animal];
-  if (propArt && drawWetlandParkImage(propArt.key, propArt.bounds)) return true;
-  const color = { wetland_lookout: "#ffd85d", wetland_observation: "#8fd7f2", wetland_lamp: "#fff09a", wetland_mirror: "#c7ecff", wetland_core: "#a98cff" }[task.kind];
+  if (propArt && drawWetlandParkImage(propArt.key, propArt.bounds)) {
+    if (task.kind === "wetland_lamp") {
+      ctx.fillStyle = state.wetlandQuest?.waterSafe ? "rgba(111, 212, 128, 0.8)" : "rgba(231, 105, 86, 0.78)";
+      circle(0, 26, 10);
+    }
+    if (task.kind === "wetland_decoy") {
+      ctx.fillStyle = "rgba(145, 92, 198, 0.72)";
+      circle(0, -12, 24);
+      ctx.strokeStyle = "#f2d5ff";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-13, -25);
+      ctx.lineTo(13, 1);
+      ctx.moveTo(13, -25);
+      ctx.lineTo(-13, 1);
+      ctx.stroke();
+    }
+    return true;
+  }
+  const color = { wetland_lookout: "#ffd85d", wetland_observation: "#8fd7f2", wetland_lamp: state.wetlandQuest?.waterSafe ? "#88db8e" : "#e97562", wetland_mirror: "#c7ecff", wetland_core: "#a98cff", wetland_boss_wisp: "#c7f4a6", wetland_decoy: "#9c68cb" }[task.kind];
   if (!color) return false;
   ctx.fillStyle = color;
   ctx.strokeStyle = "rgba(45, 94, 72, 0.8)";
