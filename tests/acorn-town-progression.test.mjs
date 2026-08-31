@@ -12,7 +12,7 @@ assert.match(game, /catsOwlCompletedWorlds/);
 assert.match(game, /markWorldCompleted\(currentWorld\)/);
 assert.match(game, /function nextPlayableLevelIndex\(/);
 assert.match(worldMap, /CATS_OWLS_PROGRESS\?\.isWorldUnlocked/);
-assert.match(worldMap, /\["acorn_town", "riverside_dock"\]\.includes\(regionId\)/);
+assert.match(worldMap, /\["acorn_town", "riverside_dock", "wetland_park", "mist_swamp"\]\.includes\(regionId\)/);
 assert.match(entry, /CATS_OWLS_PROGRESS\?\.isWorldUnlocked\("acorn_town"\)/);
 assert.match(entry, /进入橡果镇篇/);
 assert.match(index, /<script src="\.\/acorn-town-map-entry\.js\?v=acorn-town-20260729"><\/script>/);
