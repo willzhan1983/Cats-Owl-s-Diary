@@ -531,6 +531,7 @@ const dayNames = [
 const keys = new Set();
 const touchDirs = new Set();
 let lastFrame = performance.now();
+let overlayPauseStartedAt = 0;
 let state;
 let gameEntered = false;
 let storybookIntroSeen = false;
@@ -2642,7 +2643,7 @@ function resetGame(levelIndex = 0, keepHearts = false, options = {}) {
   messageEl.textContent = isMistSwampSleepingBridgeLevel() && ["hard", "crazy"].includes(selectedDifficulty)
     ? "观察灯的位置，按黄 → 蓝 → 紫 → 绿点亮。"
     : level.world === "riverside_dock" ? riversideDockStartMessage(level) : level.message;
-  startBtn.textContent = levelIndex === 0 ? text.start : text.next;
+  setStartButton(levelIndex === 0 ? text.start : text.next);
 }
 
 function randomSleepingBridgeLampSlots() {
@@ -3009,7 +3010,7 @@ function replayCurrentLevel() {
   closeScoreSummaryPanel();
   resetGame(levelIndex, levelIndex > 0);
   state.running = true;
-  startBtn.textContent = text.restart;
+  setStartButton(text.restart, true);
   messageEl.textContent = currentLevelStartMessage();
   startMusicForLevel();
 }
@@ -3078,15 +3079,26 @@ function currentLevelStartMessage() {
   return text.move;
 }
 
+function hasCurrentRunProgress() {
+  return state.running && (state.tasks > 0 || state.inventory.length > 0 || state.time < state.levelTime - 1);
+}
+
+function setStartButton(label, restarting = false) {
+  startBtn.textContent = label;
+  startBtn.classList.toggle("is-restart", restarting);
+  startBtn.setAttribute("aria-label", restarting ? "重新开始当前任务" : label);
+}
+
 function startGame() {
   gameEntered = true;
   storybookIntroSeen = true;
   preloadNearbyBackgrounds(state.levelIndex);
   initAudio();
   if (state.running) {
+    if (hasCurrentRunProgress() && !window.confirm("重新开始会失去这一关当前进度，确定要重来吗？")) return;
     resetGame(state.levelIndex, state.levelIndex > 0);
     state.running = true;
-    startBtn.textContent = text.restart;
+    setStartButton(text.restart, true);
     messageEl.textContent = currentLevelStartMessage();
     startMusicForLevel();
     return;
@@ -3105,7 +3117,7 @@ function startGame() {
 
   state.running = true;
   state.levelClear = false;
-  startBtn.textContent = text.restart;
+  setStartButton(text.restart, true);
   messageEl.textContent = currentLevelStartMessage();
   startMusicForLevel();
 }
@@ -3283,13 +3295,48 @@ function pressed(dir) {
   return keys.has(dir) || touchDirs.has(dir);
 }
 
+function isGameplayOverlayOpen() {
+  return Boolean(
+    state?.activeQuiz ||
+    state?.activeDialogue ||
+    (worldMapPanel?.getAttribute?.("aria-modal") === "true" && !worldMapPanel.hidden) ||
+    (runHistoryPanel?.getAttribute?.("aria-modal") === "true" && !runHistoryPanel.hidden)
+  );
+}
+
+function shiftActiveDeadline(deadline, pauseStartedAt, pausedFor) {
+  return deadline > pauseStartedAt ? deadline + pausedFor : deadline;
+}
+
+function resumeGameplayTimers(pauseStartedAt, pausedFor) {
+  const wetlandQuest = state?.wetlandQuest;
+  if (!wetlandQuest) return;
+  wetlandQuest.routeVisibleUntil = shiftActiveDeadline(wetlandQuest.routeVisibleUntil, pauseStartedAt, pausedFor);
+  wetlandQuest.waterRecoveryUntil = shiftActiveDeadline(wetlandQuest.waterRecoveryUntil, pauseStartedAt, pausedFor);
+  const boss = wetlandQuest.boss;
+  if (!boss) return;
+  boss.nextWaveAt = shiftActiveDeadline(boss.nextWaveAt, pauseStartedAt, pausedFor);
+  boss.purificationUntil = shiftActiveDeadline(boss.purificationUntil, pauseStartedAt, pausedFor);
+  if (boss.holdStartedAt && boss.purificationUntil > pauseStartedAt) boss.holdStartedAt += pausedFor;
+}
+
+function syncGameplayOverlayPause() {
+  if (isGameplayOverlayOpen()) {
+    if (!overlayPauseStartedAt) overlayPauseStartedAt = performance.now();
+    return true;
+  }
+  if (!overlayPauseStartedAt) return false;
+  const pausedFor = performance.now() - overlayPauseStartedAt;
+  resumeGameplayTimers(overlayPauseStartedAt, pausedFor);
+  overlayPauseStartedAt = 0;
+  return false;
+}
+
 function update(dt) {
   updateParticles(dt);
   updateLeaves(dt);
+  if (syncGameplayOverlayPause()) return;
   if (!state.running) return;
-  if (state.activeQuiz) return;
-  if (state.activeDialogue) return;
-  if (worldMapPanel?.getAttribute?.("aria-modal") === "true" && !worldMapPanel.hidden) return;
 
   state.time -= dt;
   if (state.time <= 0) {
@@ -3297,7 +3344,7 @@ function update(dt) {
     if (difficultySettings().stopOnTimeout && !["ready", "settled"].includes(state.mistQuest?.status)) {
       state.running = false;
       const settlement = settleLevelRun(false);
-      startBtn.textContent = text.again;
+      setStartButton(text.again);
       messageEl.textContent = "\u75af\u72c2\u96be\u5ea6\u6311\u6218\u5931\u8d25\uff0c\u518d\u8bd5\u4e00\u6b21\uff01";
       showScoreSummaryPanel(settlement, { failed: true });
     } else if (!state.timeExpiredNotified) {
@@ -3336,13 +3383,13 @@ function update(dt) {
     markCurrentWorldCompletedAtBoundary();
     if (state.levelIndex === levels.length - 1) {
       state.gameComplete = true;
-      startBtn.textContent = text.again;
+      setStartButton(text.again);
       messageEl.textContent =
         levels[state.levelIndex]?.world === "moonlight_lake"
           ? "尼斯湖怪恢复平静了，月光湖安全啦！"
           : text.allDone;
     } else {
-      startBtn.textContent = text.next;
+      setStartButton(text.next);
       messageEl.textContent =
         levels[state.levelIndex]?.world === "moonlight_lake"
           ? `${dayNames[state.levelIndex] || `\u7b2c${state.levelIndex + 1}\u5929`}\u5b8c\u6210\uff01\u51c6\u5907\u53bb\u4e0b\u4e00\u4e2a\u6708\u5149\u6e56\u5730\u70b9\u3002`
@@ -4437,9 +4484,16 @@ function prepareWetlandMemoryRoute() {
   const tokens = ["water", "leaf", "bird", "reed", "moon"];
   state.wetlandQuest.memoryRoute = tokens.slice(0, wetlandDifficultyConfig().routeLength);
   state.wetlandQuest.routeIndex = 0;
-  state.wetlandQuest.routeVisibleUntil = performance.now() + 4200;
+  state.wetlandQuest.routeVisibleUntil = 0;
   state.wetlandQuest.hintViews = wetlandDifficultyConfig().hintViews;
   state.wetlandQuest.memoryCheckpoint = { ...levels[state.levelIndex].start };
+}
+
+function startWetlandMemoryRoute() {
+  if (!isWetlandParkLevel() || levels[state.levelIndex]?.id !== "wetland_reed_maze" || !state.wetlandQuest?.memoryRoute) return false;
+  state.wetlandQuest.routeVisibleUntil = performance.now() + 4200;
+  messageEl.textContent = "路线出现啦，记住数字顺序后按 E 选择节点。";
+  return true;
 }
 
 function showWetlandMemoryRouteHint(afterFailure = false) {
@@ -5197,8 +5251,12 @@ function nextDialogueLine() {
 }
 
 function closeDialogue() {
+  const task = state?.activeDialogue?.task;
   if (dialoguePanel) dialoguePanel.hidden = true;
   if (state) state.activeDialogue = null;
+  if (task?.kind === "wetland_npc" && levels[state.levelIndex]?.id === "wetland_reed_maze" && state.wetlandQuest?.status === "active" && !state.wetlandQuest.routeVisibleUntil) {
+    startWetlandMemoryRoute();
+  }
   renderMistQuestHud();
 }
 
@@ -10122,14 +10180,14 @@ if (initialLevel > 0 || new URLSearchParams(window.location.search).get("play") 
 resetGame(initialLevel);
 if (initialLevel > 0) {
   homeScreen.classList.add("is-hidden");
-  startBtn.textContent = text.start;
+  setStartButton(text.start);
   messageEl.textContent = currentLevelStartMessage();
   preloadNearbyBackgrounds(initialLevel);
 }
 if (new URLSearchParams(window.location.search).get("play") === "1") {
   homeScreen.classList.add("is-hidden");
   state.running = true;
-  startBtn.textContent = text.restart;
+  setStartButton(text.restart, true);
   preloadNearbyBackgrounds(initialLevel);
 }
 requestAnimationFrame(loop);

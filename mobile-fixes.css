@@ -20,6 +20,7 @@
   #worldMapBtn::after { content: "\1F5FA"; font-size: 18px; }
   #recordsBtn::after { content: "\1F4D8"; font-size: 18px; }
   #startBtn::after { content: "\25B6"; font-size: 16px; }
+  #startBtn.is-restart::after { content: "\21BB"; font-size: 22px; }
 
   .topbar-actions button,
   #startBtn,
